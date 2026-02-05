@@ -1,0 +1,32 @@
+{
+  "name": "ttg-chat-frontend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:user": "vite --port 8888",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vueuse/core": "^10.7.0",
+    "axios": "^1.6.2",
+    "gsap": "^3.12.2",
+    "pinia": "^2.1.7",
+    "socket.io-client": "^4.7.2",
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.4",
+    "@vitejs/plugin-vue": "^4.5.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "postcss-pxtorem": "^6.1.0",
+    "tailwindcss": "^3.3.6",
+    "typescript": "5.6.2",
+    "vite": "^5.0.5",
+    "vite-plugin-pwa": "^1.2.0",
+    "vue-tsc": "2.0.29"
+  }
+}

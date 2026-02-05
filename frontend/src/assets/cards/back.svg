@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="140" height="190" viewBox="0 0 140 190" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#0a0f1a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="60%">
+      <stop offset="0" stop-color="rgba(255,255,255,0.10)"/>
+      <stop offset="1" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+    <pattern id="dots" width="10" height="10" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="rgba(255,255,255,0.06)" />
+    </pattern>
+  </defs>
+
+  <rect x="2" y="2" width="136" height="186" rx="10" fill="url(#bg)" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+  <rect x="10" y="10" width="120" height="170" rx="7" fill="url(#dots)" opacity="0.9"/>
+  <rect x="10" y="10" width="120" height="170" rx="7" fill="url(#glow)"/>
+  <rect x="10" y="10" width="120" height="170" rx="7" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
+
+  <circle cx="70" cy="95" r="35" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+  <image href="/f.ico" x="48" y="73" width="44" height="44" preserveAspectRatio="xMidYMid meet" opacity="0.95"/>
+
+  <text x="70" y="155" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-weight="700">TTG Game</text>
+</svg>

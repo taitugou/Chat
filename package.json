@@ -1,0 +1,16 @@
+{
+  "name": "ttg-chat",
+  "version": "1.0.0",
+  "description": "TTG Chat - 社交聊天应用",
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+  },
+  "keywords": ["chat", "social", "vue", "nodejs"],
+  "author": "",
+  "license": "MIT"
+}
+
