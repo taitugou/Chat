@@ -1,5 +1,7 @@
 import express from 'express';
-import { createServer } from 'http';
+import http from 'http';
+import https from 'https';
+import fs from 'fs';
 import { Server } from 'socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
 import cors from 'cors';
@@ -40,7 +42,39 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const httpServer = createServer(app);
+let httpServer;
+
+if (config.server.ssl.enabled) {
+  try {
+    const keyPath = config.server.ssl.key;
+    const certPath = config.server.ssl.cert;
+    
+    // Ensure we handle both absolute and relative paths correctly
+    // If paths are from .env they might be absolute or relative to CWD
+    // Since we are in ES modules, __dirname is defined above
+    
+    // Simple check: if it exists as is, use it. If not, try relative to __dirname
+    const resolvePath = (p) => {
+      if (fs.existsSync(p)) return p;
+      const relative = path.join(__dirname, p);
+      if (fs.existsSync(relative)) return relative;
+      return p; // Return original to let readFileSync throw the error with the path
+    };
+    
+    const options = {
+      key: fs.readFileSync(resolvePath(keyPath)),
+      cert: fs.readFileSync(resolvePath(certPath))
+    };
+    httpServer = https.createServer(options, app);
+    console.log('SSL/HTTPS enabled');
+  } catch (error) {
+    console.error('Failed to load SSL certificates:', error);
+    console.warn('Falling back to HTTP');
+    httpServer = http.createServer(app);
+  }
+} else {
+  httpServer = http.createServer(app);
+}
 
 // Use socketIO config from config.js
 const io = new Server(httpServer, config.socketIO);
@@ -160,8 +194,9 @@ const startServer = async () => {
     startMessageConsumer(io);
     
     const { port, host } = config.server;
+    const protocol = config.server.ssl.enabled ? 'https' : 'http';
     httpServer.listen(port, host, () => {
-      console.log(`Server running on http://${host === '::' ? 'localhost' : host}:${port}`);
+      console.log(`Server running on ${protocol}://${host === '::' ? 'localhost' : host}:${port}`);
       console.log(`Environment: ${config.server.env}`);
     });
   } catch (err) {

@@ -23,6 +23,11 @@ export const config = {
     host: process.env.HOST || '::',
     env: process.env.NODE_ENV || 'development',
     trustProxy: process.env.TRUST_PROXY === 'true' ? true : (process.env.TRUST_PROXY === 'false' ? false : false),
+    ssl: {
+      enabled: process.env.SSL_ENABLED === 'true',
+      key: process.env.SSL_KEY,
+      cert: process.env.SSL_CERT,
+    }
   },
 
   // 数据库配置
