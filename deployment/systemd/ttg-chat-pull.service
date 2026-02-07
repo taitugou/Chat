@@ -1,0 +1,14 @@
+[Unit]
+Description=TTG Chat - Git pull (ff-only) and optional post command
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ttg
+Group=ttg
+WorkingDirectory=/opt/ttg-chat
+Environment=REPO_DIR=/opt/ttg-chat
+Environment=POST_PULL_CMD=
+ExecStart=/usr/bin/env bash /opt/ttg-chat/deployment/linux-auto-pull.sh
+
