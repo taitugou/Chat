@@ -2,6 +2,10 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { fileURLToPath, URL } from 'node:url';
 import { VitePWA } from 'vite-plugin-pwa';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
@@ -89,6 +93,10 @@ export default defineConfig({
     port: 8888,
     host: '::',
     allowedHosts: true,
+    https: {
+      key: fs.readFileSync(path.resolve(__dirname, '../certs/localhost-key.pem')),
+      cert: fs.readFileSync(path.resolve(__dirname, '../certs/localhost.pem')),
+    },
     proxy: {
       '/api': {
         target: 'https://localhost:888',
