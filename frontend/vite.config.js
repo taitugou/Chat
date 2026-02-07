@@ -91,17 +91,20 @@ export default defineConfig({
     allowedHosts: true,
     proxy: {
       '/api': {
-        target: 'http://[::1]:888',
+        target: 'https://localhost:888',
         changeOrigin: true,
+        secure: false,
       },
       '/uploads': {
-        target: 'http://[::1]:888',
+        target: 'https://localhost:888',
         changeOrigin: true,
+        secure: false,
       },
       '/socket.io': {
-        target: 'http://[::1]:888',
+        target: 'https://localhost:888',
         ws: true,
         changeOrigin: true,
+        secure: false,
       },
     },
   },
