@@ -5,6 +5,8 @@ const SOCKET_IO_PATH = import.meta.env.VITE_SOCKET_IO_PATH || '/socket.io';
 export let socket: Socket | null = null;
 let heartbeatInterval: any = null;
 let visibilityHandler: (() => void) | null = null;
+let networkOnlineHandler: (() => void) | null = null;
+let networkOfflineHandler: (() => void) | null = null;
 
 const HEARTBEAT_INTERVAL = 10000; // 10s
 
@@ -33,6 +35,7 @@ function startActivityTracking() {
   stopActivityTracking();
 
   visibilityHandler = () => {
+    if (!socket?.connected) return;
     const isVisible = document.visibilityState === 'visible';
     const status = isVisible ? 'online' : 'offline';
     
@@ -49,12 +52,13 @@ function startActivityTracking() {
 
   // 定期心跳：仅在页面可见时维持活跃状态
   heartbeatInterval = setInterval(() => {
-    if (document.visibilityState === 'visible') {
+    if (socket?.connected && document.visibilityState === 'visible') {
       socket?.emit('user:heartbeat', { active: true });
     }
   }, HEARTBEAT_INTERVAL);
 
   // 初始状态同步：使用 user:online 触发完整的上线逻辑
+  if (!socket?.connected) return;
   const initialStatus = document.visibilityState === 'visible' ? 'online' : 'offline';
   socket?.emit('user:online', { status: initialStatus });
   
@@ -76,8 +80,9 @@ function stopActivityTracking() {
 }
 
 export function initSocket(token: string): Socket {
-  if (socket?.connected) {
-    console.log('Socket已连接，返回现有socket');
+  if (socket) {
+    socket.auth = { token };
+    if (!socket.connected) socket.connect();
     return socket;
   }
 
@@ -117,6 +122,16 @@ export function initSocket(token: string): Socket {
     }
   });
 
+  networkOnlineHandler = () => {
+    if (!socket) return;
+    if (!socket.connected) socket.connect();
+  };
+  networkOfflineHandler = () => {
+    stopActivityTracking();
+  };
+  window.addEventListener('online', networkOnlineHandler);
+  window.addEventListener('offline', networkOfflineHandler);
+
   return socket;
 }
 
@@ -130,4 +145,12 @@ export function disconnectSocket() {
     socket = null;
   }
   stopActivityTracking();
+  if (networkOnlineHandler) {
+    window.removeEventListener('online', networkOnlineHandler);
+    networkOnlineHandler = null;
+  }
+  if (networkOfflineHandler) {
+    window.removeEventListener('offline', networkOfflineHandler);
+    networkOfflineHandler = null;
+  }
 }

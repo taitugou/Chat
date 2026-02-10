@@ -44,7 +44,7 @@
         <!-- 功能区 (向左折叠) -->
         <div :class="[
           'border-r border-white/10 bg-white/5 overflow-hidden flex flex-col transition-all duration-300 ease-in-out',
-          collapsed.leftColumn ? 'w-[7vw] min-w-[6vh]' : (isWuziqiGame ? 'w-[22vw] min-w-[18vw] max-w-[30vw]' : 'w-[28vw] min-w-[25vw] max-w-[40vw]')
+          collapsed.leftColumn ? uiProfile.compactPanelWidth : uiProfile.leftPanelWidth
         ]">
           <div class="h-[8vh] px-[1vw] border-b border-white/10 flex items-center" :class="collapsed.leftColumn ? 'justify-center' : 'justify-between px-[1.5vw]'">
             <div v-show="!collapsed.leftColumn" class="text-[2.6vh] font-black whitespace-nowrap">功能区</div>
@@ -346,7 +346,7 @@
         <!-- 房间工具 (向右折叠) -->
         <div :class="[
           'border-l border-white/10 bg-white/5 overflow-hidden flex flex-col transition-all duration-300 ease-in-out',
-          collapsed.rightColumn ? 'w-[7vw] min-w-[6vh]' : (isWuziqiGame ? 'w-[22vw] min-w-[18vw] max-w-[30vw]' : 'w-[28vw] min-w-[25vw] max-w-[40vw]')
+          collapsed.rightColumn ? uiProfile.compactPanelWidth : uiProfile.rightPanelWidth
         ]">
           <div class="h-[8vh] px-[1vw] border-b border-white/10 flex items-center" :class="collapsed.rightColumn ? 'justify-center' : 'justify-between px-[1.5vw]'">
             <div v-show="!collapsed.rightColumn" class="flex items-center gap-[0.5vw] overflow-hidden">
@@ -488,24 +488,26 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch, reactive } from 'vue';
+import { computed, defineAsyncComponent, nextTick, onMounted, onUnmounted, ref, watch, reactive } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/utils/api';
 import { getSocket, initSocket } from '@/utils/socket';
 import { getImageUrl } from '@/utils/imageUrl';
 import { audioManager } from '@/utils/audio';
+import { getGameUiProfile } from '@/games/uiProfile';
 import PokerCard from '@/components/PokerCard.vue';
-import DiceBoard from '@/components/games/boards/DiceBoard.vue';
 import GomokuBoard from '@/components/GomokuBoard.vue';
 import BoardGrid from '@/components/BoardGrid.vue';
 import MahjongTile from '@/components/MahjongTile.vue';
-import PokerControls from '@/components/games/controls/PokerControls.vue';
-import PokerBoard from '@/components/games/boards/PokerBoard.vue';
-import MahjongControls from '@/components/games/controls/MahjongControls.vue';
-import MahjongBoard from '@/components/games/boards/MahjongBoard.vue';
-import ChessControls from '@/components/games/controls/ChessControls.vue';
-import ChessBoard from '@/components/games/boards/ChessBoard.vue';
+
+const DiceBoard = defineAsyncComponent(() => import('@/components/games/boards/DiceBoard.vue'));
+const PokerControls = defineAsyncComponent(() => import('@/components/games/controls/PokerControls.vue'));
+const PokerBoard = defineAsyncComponent(() => import('@/components/games/boards/PokerBoard.vue'));
+const MahjongControls = defineAsyncComponent(() => import('@/components/games/controls/MahjongControls.vue'));
+const MahjongBoard = defineAsyncComponent(() => import('@/components/games/boards/MahjongBoard.vue'));
+const ChessControls = defineAsyncComponent(() => import('@/components/games/controls/ChessControls.vue'));
+const ChessBoard = defineAsyncComponent(() => import('@/components/games/boards/ChessBoard.vue'));
 
 const router = useRouter();
 const route = useRoute();
@@ -630,6 +632,9 @@ const junqiAutoSetupSeed = ref<number>(1);
 const currentUserId = computed(() => authStore.user?.id);
 const isOwner = computed(() => !!room.value && String(room.value.creator_id) === String(currentUserId.value));
 
+const viewportWidth = ref<number>(window.innerWidth);
+const viewportHeight = ref<number>(window.innerHeight);
+
 const collapsed = ref({
   leftColumn: false,
   leftInfo: false,
@@ -648,6 +653,9 @@ const mySeen = computed(() => {
 });
 
 const effectiveGameType = computed(() => room.value?.game_code || gameType.value);
+const uiProfile = computed(() => getGameUiProfile(effectiveGameType.value));
+const isCompactScreen = computed(() => viewportWidth.value < uiProfile.value.autoCollapsePanelsBelowPx);
+const lastAutoCompact = ref<boolean | null>(null);
 
 const isMahjongGame = computed(() => ['sichuan_mahjong', 'guangdong_mahjong', 'guobiao_mahjong', 'ren_mahjong'].includes(effectiveGameType.value));
 const isWeiqiGame = computed(() => effectiveGameType.value === 'weiqi');
@@ -928,7 +936,7 @@ const getNextGameButtonText = computed(() => {
 const isFullscreen = ref(false);
 const isLandscape = ref(true);
 const isMobile = computed(() => window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
-const shouldEnforceFullscreen = computed(() => isMobile.value && (!isFullscreen.value || !isLandscape.value));
+const shouldEnforceFullscreen = computed(() => isMobile.value && uiProfile.value.prefersLandscape && (!isFullscreen.value || !isLandscape.value));
 
 const gameTitle = computed(() => {
   const t = effectiveGameType.value;
@@ -957,8 +965,17 @@ const gameTitle = computed(() => {
 
 function syncViewportState() {
   isFullscreen.value = !!document.fullscreenElement;
-  isLandscape.value = window.innerWidth >= window.innerHeight;
+  viewportWidth.value = window.innerWidth;
+  viewportHeight.value = window.innerHeight;
+  isLandscape.value = viewportWidth.value >= viewportHeight.value;
 }
+
+watch([isCompactScreen, effectiveGameType], ([compact]) => {
+  if (lastAutoCompact.value === compact) return;
+  lastAutoCompact.value = compact;
+  collapsed.value.leftColumn = compact;
+  collapsed.value.rightColumn = compact;
+}, { immediate: true });
 
 async function fetchRoom() {
   const res = await api.get(`/rooms/${roomId.value}`);

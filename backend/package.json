@@ -9,6 +9,7 @@
     "start": "node server.js",
     "build": "echo 'No build step required'",
     "test": "vitest run",
+    "test:games:report": "node scripts/game-test-report.mjs",
     "test:watch": "vitest",
     "admin:dev": "node --watch admin-server.js",
     "admin:start": "node admin-server.js"
