@@ -58,7 +58,7 @@
                   :src="profileBgPreview || getImageUrl(user?.background_image)" 
                   class="w-full h-full object-cover" 
                 />
-                <div v-else class="text-xl text-foreground/20">🖼️</div>
+                <img v-else src="/qitafujian/images/default-cover.svg" class="w-full h-full object-cover opacity-80" />
                 <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                   <span class="text-[10px] text-white font-bold">更换主页背景</span>
                 </div>
@@ -212,6 +212,54 @@
         </div>
       </section>
 
+      <section class="space-y-3">
+        <h3 class="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] px-2">音效</h3>
+        <div class="glass-card divide-y divide-foreground/5 rounded-2xl overflow-hidden">
+          <div class="p-4 flex items-center justify-between">
+            <div class="space-y-0.5">
+              <div class="text-sm font-bold text-white">启用音效</div>
+              <div class="text-[10px] text-foreground/50">包含通知、通话、游戏提示音</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" v-model="soundEnabled" class="sr-only peer">
+              <div class="w-9 h-5 bg-foreground/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+          </div>
+
+          <div class="p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="space-y-0.5">
+                <div class="text-sm font-bold text-white">音量</div>
+                <div class="text-[10px] text-foreground/50">仅影响站内提示音，不影响通话音量</div>
+              </div>
+              <div class="text-xs font-bold text-foreground/60 tabular-nums">{{ Math.round(soundVolume * 100) }}%</div>
+            </div>
+            <input
+              v-model.number="soundVolume"
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              class="w-full"
+            />
+            <div class="flex items-center justify-end gap-2">
+              <button
+                class="glass-btn px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all"
+                @click="testSound"
+              >
+                试听
+              </button>
+              <button
+                class="glass-btn px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all"
+                @click="goAssetsPreview"
+              >
+                资源预览
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- 应用偏好 -->
       <section class="space-y-3">
         <h3 class="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] px-2">应用偏好</h3>
@@ -297,11 +345,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue';
+import { ref, onMounted, reactive, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/utils/api';
 import { useAuthStore } from '@/stores/auth';
 import { getImageUrl } from '@/utils/imageUrl';
+import { audioManager } from '@/utils/audio';
 import GlassSelect from '@/components/GlassSelect.vue';
 import MentionInput from '@/components/MentionInput.vue';
 
@@ -322,6 +371,17 @@ const avatarPreview = ref('');
 const profileBgPreview = ref('');
 const selectedAvatarFile = ref<File | null>(null);
 const selectedProfileBgFile = ref<File | null>(null);
+
+const soundEnabled = ref(!audioManager.getMuted());
+const soundVolume = ref(audioManager.getVolume());
+
+watch(soundEnabled, (v) => {
+  audioManager.setMuted(!v);
+});
+
+watch(soundVolume, (v) => {
+  audioManager.setVolume(Number(v));
+});
 
 const settings = reactive({
   profile: {
@@ -554,6 +614,14 @@ function handleLogout() {
     authStore.logout();
     router.push('/login');
   }
+}
+
+function testSound() {
+  audioManager.play('ui_click', 0.6);
+}
+
+function goAssetsPreview() {
+  router.push('/assets-preview');
 }
 
 onMounted(() => {

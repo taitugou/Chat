@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" viewBox="0 0 390 844">
+  <defs>
+    <linearGradient id="tk-grad-primary" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0A84FF"/>
+      <stop offset="1" stop-color="#64D2FF"/>
+    </linearGradient>
+
+    <filter id="tk-blur-12" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+
+    <symbol id="tk-widget-button-primary" viewBox="0 0 280 56">
+      <rect x="0.5" y="0.5" width="279" height="55" rx="16" fill="url(#tk-grad-primary)" opacity="0.95"/>
+      <rect x="0.5" y="0.5" width="279" height="55" rx="16" fill="none" stroke="rgba(255,255,255,0.18)"/>
+      <text x="140" y="35" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', Arial" font-size="16" font-weight="700" fill="rgba(255,255,255,0.95)">Primary</text>
+    </symbol>
+
+    <symbol id="tk-widget-button-secondary" viewBox="0 0 280 56">
+      <rect x="0.5" y="0.5" width="279" height="55" rx="16" fill="rgba(255,255,255,0.06)"/>
+      <rect x="0.5" y="0.5" width="279" height="55" rx="16" fill="none" stroke="rgba(255,255,255,0.14)"/>
+      <text x="140" y="35" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', Arial" font-size="16" font-weight="700" fill="rgba(255,255,255,0.9)">Secondary</text>
+    </symbol>
+
+    <symbol id="tk-widget-chip" viewBox="0 0 120 60">
+      <g>
+        <rect x="14" y="10" width="92" height="40" rx="20" fill="rgba(0,0,0,0.35)"/>
+        <rect x="14.5" y="10.5" width="91" height="39" rx="19.5" fill="none" stroke="rgba(255,255,255,0.18)"/>
+        <circle cx="34" cy="30" r="10" fill="#FFD60A" opacity="0.95"/>
+        <circle cx="34" cy="30" r="6" fill="rgba(0,0,0,0.25)"/>
+        <text x="74" y="36" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', Arial" font-size="14" font-weight="700" fill="rgba(255,255,255,0.92)">+100</text>
+      </g>
+    </symbol>
+
+    <symbol id="tk-widget-toast" viewBox="0 0 320 64">
+      <rect x="0" y="0" width="320" height="64" rx="18" fill="rgba(20,20,20,0.72)"/>
+      <rect x="0.5" y="0.5" width="319" height="63" rx="17.5" fill="none" stroke="rgba(255,255,255,0.12)"/>
+      <circle cx="28" cy="32" r="10" fill="#30D158"/>
+      <path d="M24 32l3 3 6-7" fill="none" stroke="rgba(0,0,0,0.55)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="52" y="38" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', Arial" font-size="14" font-weight="600" fill="rgba(255,255,255,0.92)">Toast message</text>
+    </symbol>
+
+    <symbol id="tk-widget-bottom-sheet" viewBox="0 0 390 520">
+      <rect x="0" y="0" width="390" height="520" rx="26" fill="rgba(20,20,20,0.78)"/>
+      <rect x="0.5" y="0.5" width="389" height="519" rx="25.5" fill="none" stroke="rgba(255,255,255,0.10)"/>
+      <rect x="150" y="12" width="90" height="5" rx="2.5" fill="rgba(255,255,255,0.22)"/>
+      <text x="24" y="64" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', Arial" font-size="20" font-weight="800" fill="rgba(255,255,255,0.92)">Bottom Sheet</text>
+      <text x="24" y="92" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', Arial" font-size="13" font-weight="500" fill="rgba(255,255,255,0.55)">iOS 风格：圆角、半透明、轻边框</text>
+    </symbol>
+  </defs>
+</svg>
+

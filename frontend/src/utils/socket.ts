@@ -89,6 +89,11 @@ export function initSocket(token: string): Socket {
       token,
     },
     transports: ['websocket'],
+    reconnection: true,
+    reconnectionAttempts: 20,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 8000,
+    timeout: 20000,
   });
 
   socket.on('connect', () => {
@@ -104,9 +109,12 @@ export function initSocket(token: string): Socket {
     }
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', (reason) => {
     console.log('Socket.IO断开连接');
     stopActivityTracking();
+    if (reason === 'io server disconnect' && localStorage.getItem('token')) {
+      socket?.connect();
+    }
   });
 
   return socket;

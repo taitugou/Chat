@@ -118,9 +118,11 @@ export class HandEvaluator {
     const counts = Object.values(rankCounts).sort((a, b) => b - a);
     const isFlush = Object.values(suitCounts).some(count => count >= 5);
     const uniqueRanks = [...new Set(ranks)].sort((a, b) => b - a);
+    const straightHigh = this.getStraightHigh(uniqueRanks);
+    const isStraight = straightHigh !== null;
     
-    if (this.isStraight(uniqueRanks) && isFlush) {
-      return { rank: 9, name: '同花顺', highCard: sortedCards[0] };
+    if (isStraight && isFlush) {
+      return { rank: 9, name: '同花顺', highCard: sortedCards.find(c => c.value === straightHigh) || sortedCards[0] };
     }
     
     if (counts[0] === 4) {
@@ -137,8 +139,8 @@ export class HandEvaluator {
       return { rank: 6, name: '同花', highCard: sortedCards[0] };
     }
     
-    if (this.isStraight(uniqueRanks)) {
-      return { rank: 5, name: '顺子', highCard: sortedCards[0] };
+    if (isStraight) {
+      return { rank: 5, name: '顺子', highCard: sortedCards.find(c => c.value === straightHigh) || sortedCards[0] };
     }
     
     if (counts[0] === 3) {
@@ -159,26 +161,29 @@ export class HandEvaluator {
     return { rank: 1, name: '高牌', highCard: sortedCards[0] };
   }
 
-  static isStraight(ranks) {
-    if (ranks.length < 5) return false;
-    
-    const sortedRanks = [...ranks].sort((a, b) => b - a);
-    
-    for (let i = 0; i < sortedRanks.length - 4; i++) {
-      let consecutive = 1;
-      for (let j = i; j < i + 4; j++) {
-        if (sortedRanks[j] - sortedRanks[j + 1] === 1) {
-          consecutive++;
-        }
-      }
-      if (consecutive >= 4) return true;
+  static getStraightHigh(ranks) {
+    if (!ranks || ranks.length < 5) return null;
+
+    const sortedRanks = [...new Set(ranks)].sort((a, b) => b - a);
+
+    for (let i = 0; i <= sortedRanks.length - 5; i++) {
+      const a = sortedRanks[i];
+      const b = sortedRanks[i + 1];
+      const c = sortedRanks[i + 2];
+      const d = sortedRanks[i + 3];
+      const e = sortedRanks[i + 4];
+      if (a - b === 1 && b - c === 1 && c - d === 1 && d - e === 1) return a;
     }
-    
-    if (sortedRanks.includes(14) && sortedRanks.includes(2) && sortedRanks.includes(3) && sortedRanks.includes(4) && sortedRanks.includes(5)) {
-      return true;
-    }
-    
-    return false;
+
+    const hasWheel =
+      sortedRanks.includes(14) &&
+      sortedRanks.includes(5) &&
+      sortedRanks.includes(4) &&
+      sortedRanks.includes(3) &&
+      sortedRanks.includes(2);
+    if (hasWheel) return 5;
+
+    return null;
   }
 }
 

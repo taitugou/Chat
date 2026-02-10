@@ -1,15 +1,23 @@
 
 export class GenericGame {
-    constructor(playerIds, gameCode) {
-        this.playerIds = playerIds;
+    constructor(playerIds, gameCode, options = {}) {
+        this.playerIds = playerIds.map((x) => Number(x));
         this.gameCode = gameCode;
         this.currentPlayerIndex = 0;
         this.gameState = { message: 'Generic Game Started' };
         this.history = [];
+        this.baseBet = Number(options.baseBet || 10);
         this.playerBets = {};
-        
-        for (const pid of playerIds) {
-            this.playerBets[pid] = 0;
+        this.playerTotalSpent = {};
+        this.playerStatus = {};
+        this.pot = 0;
+        this.gameOver = false;
+
+        for (const pid of this.playerIds) {
+            this.playerBets[pid] = this.baseBet;
+            this.playerTotalSpent[pid] = this.baseBet;
+            this.playerStatus[pid] = 'active';
+            this.pot += this.baseBet;
         }
     }
 
@@ -19,7 +27,9 @@ export class GenericGame {
 
     // Generic action handler
     handleAction(playerId, action, data) {
-        if (playerId != this.getCurrentPlayerId()) throw new Error('Not your turn');
+        if (this.gameOver) throw new Error('游戏已结束');
+        if (String(playerId) != String(this.getCurrentPlayerId())) throw new Error('不是你的回合');
+        if (this.playerStatus[playerId] !== 'active') throw new Error('玩家状态不允许操作');
 
         this.history.push({ playerId, action, data, time: Date.now() });
         this.gameState.lastAction = { playerId, action, data };
@@ -28,7 +38,7 @@ export class GenericGame {
         this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.playerIds.length;
 
         // Check generic end condition (e.g. "finish" action)
-        if (action === 'finish' || action === 'win') {
+        if (action === 'finish' || action === 'win' || action === 'surrender') {
              return this.endGame(playerId);
         }
 
@@ -41,13 +51,16 @@ export class GenericGame {
     fold(playerId) { return this.handleAction(playerId, 'fold', {}); }
 
     endGame(winnerId) {
+        this.gameOver = true;
         return {
             winnerId,
             type: 'generic_win',
-            pot: 0,
+            pot: this.pot,
+            totalPot: this.pot,
             results: this.playerIds.map(pid => ({
                 userId: pid,
-                chipsChange: 0,
+                chipsChange: (pid == winnerId) ? this.pot : 0,
+                totalSpent: this.playerTotalSpent[pid] || 0,
                 position: (pid == winnerId) ? 1 : 2
             }))
         };
@@ -56,8 +69,14 @@ export class GenericGame {
     getGameState() {
         return {
             ...this.gameState,
+            gameCode: this.gameCode,
             currentPlayer: this.getCurrentPlayerId(),
-            history: this.history
+            history: this.history,
+            pot: this.pot,
+            baseBet: this.baseBet,
+            playerBets: this.playerBets,
+            playerStatus: this.playerStatus,
+            gameOver: this.gameOver
         };
     }
 }

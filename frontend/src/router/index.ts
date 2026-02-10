@@ -113,6 +113,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/assets-preview',
+      name: 'AssetsPreview',
+      component: () => import('@/views/AssetsPreview.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/points',
       name: 'Points',
       component: () => import('@/views/Points.vue'),
@@ -281,7 +287,7 @@ router.beforeEach((to, from, next) => {
     if (authStore.isInitialLoading) {
       next();
     } else {
-      next({ name: 'Home' });
+      next({ name: 'Login', query: { redirect: to.fullPath } });
     }
   } else if (to.meta.requiresAdmin && !authStore.isAdmin) {
     // 如果还在初始加载中，先允许进入，由组件内部根据加载后的状态决定是否重定向

@@ -12,7 +12,7 @@
 **测试凭证 (仅用于本地开发)：**
 - **Client ID**: `test_client`
 - **Client Secret**: `test_secret`
-- **Redirect URIs**: `http://taitugou.icu:3000/callback`
+- **Redirect URIs**: `http://localhost:3000/callback`
 
 ## 2. 授权流程说明
 
@@ -21,8 +21,11 @@
 当用户点击“使用 TTG 账号登录”时，您的网站应将用户重定向至本系统的授权地址：
 
 ```
-GET http://taitugou.icu:8888/oauth/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&scope=userinfo&state=YOUR_STATE
+GET https://taitugou.top:888/oauth/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&scope=userinfo&state=YOUR_STATE
 ```
+
+> 说明：`/oauth/authorize` 是 **TTG Chat 的授权页（前端页面）**，不是 API。
+> - 如果用户尚未登录 TTG Chat，会先跳转到 `/login?redirect=...`，登录完成后会自动回到该授权页继续授权。
 
 **参数说明：**
 - `client_id`: 必填，您的 Client ID。
@@ -44,7 +47,7 @@ http://YOUR_REDIRECT_URI?code=AUTHORIZATION_CODE&state=YOUR_STATE
 您的**后端服务器**需要发起一个 POST 请求来换取 Access Token：
 
 ```bash
-POST http://taitugou.icu:888/api/oauth/token
+POST https://taitugou.top:888/api/oauth/token
 Content-Type: application/json
 
 {
@@ -55,6 +58,8 @@ Content-Type: application/json
   "grant_type": "authorization_code"
 }
 ```
+
+> 注意：`redirect_uri` 必须与第一步传入的回调地址保持一致（建议包含 `http://` 或 `https://` 协议头）。
 
 **响应示例：**
 ```json
@@ -70,7 +75,7 @@ Content-Type: application/json
 使用获取到的 `access_token` 调用用户信息接口：
 
 ```bash
-GET http://taitugou.icu:888/api/oauth/userinfo
+GET https://taitugou.top:888/api/oauth/userinfo
 Authorization: Bearer YOUR_ACCESS_TOKEN
 ```
 
@@ -94,6 +99,7 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 | HTTP 状态码 | 错误信息 | 说明 |
 | :--- | :--- | :--- |
 | 400 | `无效的重定向 URI` | `redirect_uri` 与注册时不一致 |
+| 400 | `无效的授权请求参数` | 缺少必填字段或参数不合法 |
 | 400 | `不支持的 grant_type` | `grant_type` 必须为 `authorization_code` |
 | 400 | `无效的授权码` / `授权码已过期` | 授权码错误或已过有效期（10分钟） |
 | 401 | `客户端认证失败` | `client_id` 或 `client_secret` 错误 |
@@ -106,5 +112,19 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 2. **校验 State 参数**：在回调处理中校验 `state` 参数，确保请求是由您的网站发起的。
 3. **HTTPS**：在生产环境中，所有通信必须通过 HTTPS 进行。
 
+## 5. 本地自检（可选）
+
+仓库内提供了一个端到端自检脚本，会按以下链路验证：`guest/login → authorize(code) → token → userinfo`。
+
+```bash
+node backend/scripts/oauth-e2e.mjs
+```
+
+可通过环境变量覆盖参数：
+- `OAUTH_BASE_URL`（默认：`https://localhost:888`）
+- `OAUTH_CLIENT_ID` / `OAUTH_CLIENT_SECRET`（默认：`test_client` / `test_secret`）
+- `OAUTH_REDIRECT_URI`（默认：`http://localhost:3000/callback`）
+- `OAUTH_TEST_ACCOUNT` / `OAUTH_TEST_PASSWORD`（可选：使用真实账号登录代替 guest）
+
 ---
-*注：本地开发环境下，后端地址通常为 `http://taitugou.icu:888`，前端地址为 `http://taitugou.icu:8888`。*
+*注：生产环境统一入口为 `https://taitugou.top:888`（前端与后端同域同端口，API 前缀为 `/api`）。*

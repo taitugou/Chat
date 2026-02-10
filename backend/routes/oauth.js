@@ -14,7 +14,21 @@ const router = express.Router();
  */
 const normalizeUri = (uri) => {
   if (!uri) return '';
-  return uri.replace(/^https?:\/\//i, '').replace(/\/$/, '');
+  return uri.trim().replace(/^https?:\/\//i, '').replace(/\/$/, '');
+};
+
+const parseRedirectUris = (redirectUris) => {
+  if (!redirectUris) return [];
+  return String(redirectUris)
+    .split(',')
+    .map((u) => u.trim())
+    .filter(Boolean);
+};
+
+const isAllowedRedirectUri = (requestedUri, allowedUris) => {
+  if (!requestedUri) return false;
+  const normalizedRequestUri = normalizeUri(requestedUri);
+  return allowedUris.some((u) => normalizeUri(u) === normalizedRequestUri);
 };
 
 /**
@@ -36,6 +50,7 @@ router.get('/client/:clientId', async (req, res) => {
 
     const client = clients[0];
     const blacklist = client.redirect_blacklist ? client.redirect_blacklist.split(',') : [];
+    const allowedUris = parseRedirectUris(client.redirect_uris);
 
     // 使用归一化匹配黑名单
     const normalizedRequestUri = normalizeUri(redirect_uri);
@@ -46,7 +61,13 @@ router.get('/client/:clientId', async (req, res) => {
       });
     }
 
-    const allowedUris = client.redirect_uris.split(',');
+    if (redirect_uri && !isAllowedRedirectUri(redirect_uri, allowedUris)) {
+      return res.status(400).json({
+        error: '无效的重定向 URI',
+        message: '该地址未在白名单中'
+      });
+    }
+
     res.json({
       clientId: client.client_id,
       clientName: client.client_name,
@@ -66,7 +87,9 @@ router.post('/authorize', authenticate, async (req, res) => {
     const { clientId, redirectUri } = req.body;
     const userId = req.user.id;
 
-    console.log(`[OAuth] 收到授权请求: clientId=${clientId}, userId=${userId}, redirectUri=${redirectUri}`);
+    if (!clientId || !redirectUri) {
+      return res.status(400).json({ error: '无效的授权请求参数' });
+    }
 
     // 校验客户端
     const [clients] = await query(
@@ -80,6 +103,7 @@ router.post('/authorize', authenticate, async (req, res) => {
 
     const client = clients[0];
     const blacklist = client.redirect_blacklist ? client.redirect_blacklist.split(',') : [];
+    const allowedUris = parseRedirectUris(client.redirect_uris);
     
     // 使用归一化匹配黑名单
     const normalizedRequestUri = normalizeUri(redirectUri);
@@ -87,6 +111,13 @@ router.post('/authorize', authenticate, async (req, res) => {
       return res.status(400).json({ 
         error: '无效的重定向 URI',
         message: '该地址已被列入黑名单，禁止访问'
+      });
+    }
+
+    if (!isAllowedRedirectUri(redirectUri, allowedUris)) {
+      return res.status(400).json({
+        error: '无效的重定向 URI',
+        message: '该地址未在白名单中'
       });
     }
 
@@ -115,6 +146,10 @@ router.post('/token', async (req, res) => {
 
     if (grant_type !== 'authorization_code') {
       return res.status(400).json({ error: '不支持的 grant_type' });
+    }
+
+    if (!client_id || !client_secret || !code || !redirect_uri) {
+      return res.status(400).json({ error: '无效的授权请求参数' });
     }
 
     // 校验客户端
@@ -146,7 +181,7 @@ router.post('/token', async (req, res) => {
     // 使用归一化进行模糊匹配
     if (normalizeUri(authCode.redirect_uri) !== normalizeUri(redirect_uri)) {
       console.warn(`[OAuth] 重定向 URI 不匹配: 存储值="${authCode.redirect_uri}", 请求值="${redirect_uri}"`);
-      return res.status(400).json({ error: '重定向 URI 不匹配' });
+      return res.status(400).json({ error: '无效的重定向 URI' });
     }
 
     // 删除已使用的授权码

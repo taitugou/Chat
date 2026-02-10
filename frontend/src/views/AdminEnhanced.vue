@@ -89,6 +89,13 @@
                 @change="fetchUsers"
                 class="w-40"
               />
+              <button
+                v-if="canWrite"
+                @click="cleanupInactiveGuests"
+                class="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 transition-all text-sm font-bold"
+              >
+                🧹 清理游客
+              </button>
             </div>
           </div>
 
@@ -1736,6 +1743,28 @@ async function deleteUser(user: any, permanent: boolean = false) {
     fetchUsers();
   } catch (error) {
     console.error('删除用户失败:', error);
+    alert('操作失败');
+  }
+}
+
+async function cleanupInactiveGuests() {
+  try {
+    const previewRes = await api.get('/admin/users/cleanup/guests', { params: { days: 30 } });
+    const candidatesCount = previewRes?.data?.candidates_count || 0;
+    if (!candidatesCount) {
+      alert('没有符合条件的游客账号（30天以上未登录）');
+      return;
+    }
+
+    const confirmMsg = `检测到 ${candidatesCount} 个游客账号超过 30 天未登录。\n确定要彻底删除吗？此操作不可恢复！`;
+    if (!confirm(confirmMsg)) return;
+
+    const res = await api.post('/admin/users/cleanup/guests', { days: 30 });
+    const deletedCount = res?.data?.deleted_count ?? 0;
+    alert(`已彻底删除 ${deletedCount} 个游客账号`);
+    fetchUsers();
+  } catch (error) {
+    console.error('清理游客账号失败:', error);
     alert('操作失败');
   }
 }

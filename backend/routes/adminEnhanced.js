@@ -24,6 +24,162 @@ async function checkAdmin(req, res, next) {
 
 router.use(authenticate);
 
+router.get('/users/cleanup/guests', requirePermission('user:delete'), async (req, res) => {
+  try {
+    const isSuper = await isSuperAdmin(req.user.id);
+    if (!isSuper) {
+      return res.status(403).json({ error: '只有超级管理员可以执行游客账号硬删除' });
+    }
+
+    const days = Math.max(1, Math.min(3650, parseInt(req.query.days) || 30));
+    const limit = Math.max(1, Math.min(200, parseInt(req.query.limit) || 20));
+
+    const activeIds = typeof getActiveUserIds === 'function' ? getActiveUserIds() : [];
+
+    let whereSql = `
+      u.is_guest = 1
+      AND (
+        (u.last_login_at IS NULL AND u.created_at < DATE_SUB(NOW(), INTERVAL ? DAY))
+        OR (u.last_login_at IS NOT NULL AND u.last_login_at < DATE_SUB(NOW(), INTERVAL ? DAY))
+      )
+    `;
+    const params = [days, days];
+
+    if (activeIds.length) {
+      const placeholders = activeIds.map(() => '?').join(',');
+      whereSql += ` AND u.id NOT IN (${placeholders})`;
+      params.push(...activeIds);
+    }
+
+    const [countRows] = await query(
+      `SELECT COUNT(*) AS total FROM users u WHERE ${whereSql}`,
+      params
+    );
+    const total = countRows?.[0]?.total || 0;
+
+    const [candidates] = await query(
+      `
+        SELECT u.id, u.username, u.nickname, u.created_at, u.last_login_at
+        FROM users u
+        WHERE ${whereSql}
+        ORDER BY COALESCE(u.last_login_at, u.created_at) ASC
+        LIMIT ?
+      `,
+      [...params, limit]
+    );
+
+    res.json({
+      days,
+      cutoff: new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString(),
+      candidates_count: total,
+      candidates: Array.isArray(candidates) ? candidates : []
+    });
+  } catch (error) {
+    console.error('预览清理游客账号失败:', error);
+    res.status(500).json({ error: '预览清理游客账号失败', details: error.message });
+  }
+});
+
+router.post('/users/cleanup/guests', requirePermission('user:delete'), async (req, res) => {
+  try {
+    const isSuper = await isSuperAdmin(req.user.id);
+    if (!isSuper) {
+      return res.status(403).json({ error: '只有超级管理员可以执行游客账号硬删除' });
+    }
+
+    const days = Math.max(1, Math.min(3650, parseInt(req.body?.days) || 30));
+    const limit = Math.max(1, Math.min(5000, parseInt(req.body?.limit) || 500));
+    const activeIds = typeof getActiveUserIds === 'function' ? getActiveUserIds() : [];
+
+    let whereSql = `
+      u.is_guest = 1
+      AND (
+        (u.last_login_at IS NULL AND u.created_at < DATE_SUB(NOW(), INTERVAL ? DAY))
+        OR (u.last_login_at IS NOT NULL AND u.last_login_at < DATE_SUB(NOW(), INTERVAL ? DAY))
+      )
+    `;
+    const params = [days, days];
+
+    if (activeIds.length) {
+      const placeholders = activeIds.map(() => '?').join(',');
+      whereSql += ` AND u.id NOT IN (${placeholders})`;
+      params.push(...activeIds);
+    }
+
+    const [countRows] = await query(
+      `SELECT COUNT(*) AS total FROM users u WHERE ${whereSql}`,
+      params
+    );
+    const matchedTotal = countRows?.[0]?.total || 0;
+
+    const [rows] = await query(
+      `
+        SELECT u.id
+        FROM users u
+        WHERE ${whereSql}
+        ORDER BY COALESCE(u.last_login_at, u.created_at) ASC
+        LIMIT ?
+      `,
+      [...params, limit]
+    );
+
+    const ids = Array.isArray(rows) ? rows.map(r => r.id).filter(Boolean) : [];
+    if (!ids.length) {
+      return res.json({
+        success: true,
+        days,
+        matched_total: matchedTotal,
+        deleted_count: 0,
+        deleted_ids: []
+      });
+    }
+
+    await transaction(async (connection) => {
+      const placeholders = ids.map(() => '?').join(',');
+      await connection.query(`DELETE FROM users WHERE id IN (${placeholders})`, ids);
+    });
+
+    await logOperation({
+      user_id: req.user.id,
+      username: req.user.username,
+      action: 'cleanup_inactive_guest_users',
+      module: 'user',
+      description: `清理游客账号(硬删除)：天数阈值=${days}，匹配=${matchedTotal}，实际删除=${ids.length}`,
+      request_method: req.method,
+      request_url: req.originalUrl,
+      request_params: { days, limit },
+      ip_address: req.ip,
+      user_agent: req.get('user-agent'),
+      status: 'success'
+    });
+
+    await logSecurityAudit({
+      audit_type: 'user_cleanup',
+      user_id: req.user.id,
+      username: req.user.username,
+      action: 'permanent_delete_guest_users',
+      resource_type: 'user',
+      resource_id: null,
+      details: { days, matched_total: matchedTotal, deleted_count: ids.length },
+      risk_level: 'high',
+      ip_address: req.ip,
+      user_agent: req.get('user-agent'),
+      status: 'success'
+    });
+
+    res.json({
+      success: true,
+      days,
+      matched_total: matchedTotal,
+      deleted_count: ids.length,
+      deleted_ids: ids
+    });
+  } catch (error) {
+    console.error('清理游客账号失败:', error);
+    res.status(500).json({ error: '清理游客账号失败', details: error.message });
+  }
+});
+
 router.get('/users', requirePermission('user:read'), async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;

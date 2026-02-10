@@ -32,12 +32,13 @@
             <span class="truncate">{{ otherUser?.nickname }}</span>
             <!-- P2P Status Indicator -->
             <span 
-              v-if="p2pTransport?.isConnected" 
-              class="ml-2 px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[0.6rem] rounded-md font-bold flex items-center gap-1"
-              title="IPv6 Host 直连"
+              v-if="p2pBadge"
+              class="ml-2 px-1.5 py-0.5 text-[0.6rem] rounded-md font-bold flex items-center gap-1"
+              :class="p2pBadge.badgeClass"
+              :title="p2pBadge.title"
             >
-              <span class="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></span>
-              V6直连
+              <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="p2pBadge.dotClass"></span>
+              {{ p2pBadge.text }}
             </span>
           </div>
           <div class="text-[0.65rem] text-foreground/40 flex items-center">
@@ -45,6 +46,22 @@
           </div>
         </div>
       </div>
+
+      <button
+        @click="callStore.startCall(otherUserId, 'audio', otherUser)"
+        class="h-10 px-2 flex items-center gap-1 rounded-full text-foreground/40 hover:text-white hover:bg-foreground/10 transition-all mr-1"
+        title="语音通话"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+      </button>
+
+      <button
+        @click="callStore.startCall(otherUserId, 'video', otherUser)"
+        class="h-10 px-2 flex items-center gap-1 rounded-full text-foreground/40 hover:text-white hover:bg-foreground/10 transition-all mr-1"
+        title="视频通话"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+      </button>
 
       <button
         @click="showSettings = true"
@@ -170,9 +187,23 @@
               </template>
  
               <template v-else-if="message.message_type === 'file'">
-                <a v-if="message.file_url" class="text-sm text-primary hover:underline" :href="message.file_url" target="_blank" rel="noreferrer">
-                  📎 {{ message.content || '文件' }}
-                </a>
+                <div v-if="message.file_url" class="space-y-1">
+                  <a
+                    class="text-sm text-primary hover:underline"
+                    :href="message.file_url"
+                    target="_blank"
+                    rel="noreferrer"
+                    @click.prevent="downloadChatFile(message)"
+                  >
+                    📎 {{ message.content || '文件' }}
+                  </a>
+                  <div v-if="downloadingFiles[message.id]?.active" class="text-[0.65rem] text-foreground/40">
+                    下载中 {{ downloadingFiles[message.id]?.progress }}%
+                    <span v-if="downloadingFiles[message.id]?.bytesTotal">
+                      · {{ formatFileSize(downloadingFiles[message.id]?.bytesNow || 0) }} / {{ formatFileSize(downloadingFiles[message.id]?.bytesTotal || 0) }}
+                    </span>
+                  </div>
+                </div>
                 <div v-else class="space-y-1">
                   <div class="text-sm text-white/80">📎 {{ message.content || '文件' }}</div>
                   <div class="text-[0.65rem] text-foreground/40">
@@ -262,6 +293,18 @@
               {{ p2pBytesTotal > 0 ? `${formatFileSize(p2pBytesNow)} / ${formatFileSize(p2pBytesTotal)}` : formatFileSize(p2pBytesNow) }}
             </span>
             <span class="text-[0.65rem] text-blue-400 font-bold">{{ formatSpeed(p2pSpeedBps) }}</span>
+          </div>
+        </div>
+      </Transition>
+
+      <Transition name="fade">
+        <div v-if="uploadingChatFile" class="absolute -top-16 left-4 right-4 glass p-3 rounded-2xl border border-primary/30">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-primary font-bold">⬆️ 上传中</span>
+            <span class="text-[0.65rem] text-primary">{{ uploadingChatFileProgress }}%</span>
+          </div>
+          <div class="w-full h-1.5 bg-primary/10 rounded-full overflow-hidden">
+            <div class="h-full bg-primary transition-all duration-300" :style="{ width: `${uploadingChatFileProgress}%` }"></div>
           </div>
         </div>
       </Transition>
@@ -360,17 +403,17 @@
                   @click="openP2PLargeFilePicker"
                   :class="[
                     'text-xs px-3 py-2 rounded-xl glass-btn-primary',
-                    p2pTransport?.isConnected ? '' : 'opacity-70'
+                    isP2PV6HostDirect ? '' : 'opacity-70'
                   ]"
                 >
-                  {{ p2pTransport?.isConnected ? '选择文件' : '先选文件' }}
+                  {{ isP2PV6HostDirect ? '选择文件' : '先选文件' }}
                 </button>
               </div>
 
               <div class="flex items-center justify-between text-[0.7rem] text-foreground/40">
                 <span>直连状态</span>
-                <span :class="p2pTransport?.isConnected ? 'text-blue-400' : 'text-foreground/40'">
-                  {{ p2pTransport?.isConnected ? 'V6直连' : '未直连' }}
+                <span :class="p2pBadge ? p2pBadge.textClass : 'text-foreground/40'">
+                  {{ p2pBadge ? p2pBadge.text : '未直连' }}
                 </span>
               </div>
 
@@ -481,7 +524,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/utils/api';
@@ -490,10 +533,14 @@ import { formatPostContent } from '@/utils/contentRenderer';
 import { getImageUrl } from '@/utils/imageUrl';
 import MentionInput from '@/components/MentionInput.vue';
 import { P2PConnection, type P2PTransportInfo } from '@/utils/webrtc';
+import { sendChatFileChunked } from '@/utils/chunkedUpload';
+import { downloadToBlobParallel, triggerDownload } from '@/utils/parallelDownload';
+import { useCallStore } from '@/stores/call';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const callStore = useCallStore();
 const otherUserId = parseInt(route.params.userId as string);
 const roomId = route.query.room_id as string | undefined;
 const isReadonly = route.query.readonly === 'true';
@@ -518,6 +565,9 @@ const uploadingBackground = ref(false);
 const showApplyAllModal = ref(false);
 const pendingBackgroundUrl = ref<string | null>(null);
 const p2pLargeFile = ref<HTMLInputElement | null>(null);
+const uploadingChatFile = ref(false);
+const uploadingChatFileProgress = ref(0);
+const downloadingFiles = ref<Record<number, { progress: number; bytesNow: number; bytesTotal: number; active: boolean }>>({});
 
 // P2P State
 const p2pConnection = ref<P2PConnection | null>(null);
@@ -536,6 +586,41 @@ const p2pSpeedBps = ref(0);
 const p2pSpeedSample = ref<{ t: number; bytes: number } | null>(null);
 const p2pTransferring = ref(false);
 const activeP2PMessageId = ref<number | null>(null);
+
+const isP2PV6HostDirect = computed(() => {
+  const info = p2pTransport.value;
+  return !!info?.isConnected && !!info.isDirect && !!info.isIPv6;
+});
+
+const p2pBadge = computed(() => {
+  const info = p2pTransport.value;
+  if (!info?.isConnected) return null;
+  if (info.isDirect && info.isIPv6) {
+    return {
+      text: 'V6直连',
+      title: 'IPv6 Host 直连',
+      badgeClass: 'bg-blue-500/20 text-blue-400',
+      dotClass: 'bg-blue-400',
+      textClass: 'text-blue-400'
+    };
+  }
+  if (info.isDirect) {
+    return {
+      text: '直连',
+      title: 'Host 直连',
+      badgeClass: 'bg-green-500/20 text-green-400',
+      dotClass: 'bg-green-400',
+      textClass: 'text-green-400'
+    };
+  }
+  return {
+    text: '中继',
+    title: '已连接（非 Host 直连）',
+    badgeClass: 'bg-yellow-500/20 text-yellow-300',
+    dotClass: 'bg-yellow-300',
+    textClass: 'text-yellow-300'
+  };
+});
 
 function resetP2PMetrics(direction: 'send' | 'recv', totalBytes: number) {
   p2pDirection.value = direction;
@@ -634,11 +719,14 @@ function initP2P() {
     },
     (state) => {
       p2pState.value = state;
-      console.log('P2P State changed:', state);
+      if (state !== 'connected') {
+        p2pTransport.value = null;
+      }
     },
     (info) => {
       p2pTransport.value = info;
     },
+    { iceServers: [], iceCandidatePoolSize: 4 },
     p2pRoomId,
     myId
   );
@@ -658,6 +746,56 @@ function detectMessageType(file: File): 'image' | 'video' | 'audio' | 'file' {
   return 'file';
 }
 
+async function downloadChatFile(message: any) {
+  const url = message?.file_url;
+  const id = Number(message?.id);
+  if (!url || !Number.isFinite(id)) return;
+
+  const filename = (message?.content && String(message.content).trim()) || 'file';
+
+  downloadingFiles.value = {
+    ...downloadingFiles.value,
+    [id]: { progress: 0, bytesNow: 0, bytesTotal: Number(message?.file_size) || 0, active: true }
+  };
+
+  try {
+    if (typeof url === 'string' && url.startsWith('blob:')) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.rel = 'noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      downloadingFiles.value = { ...downloadingFiles.value, [id]: { progress: 100, bytesNow: Number(message?.file_size) || 0, bytesTotal: Number(message?.file_size) || 0, active: false } };
+      return;
+    }
+
+    const { blob, totalBytes } = await downloadToBlobParallel(String(url), {
+      onProgress: (received, total) => {
+        const progress = total > 0 ? Math.min(100, Math.round((received / total) * 100)) : 0;
+        downloadingFiles.value = {
+          ...downloadingFiles.value,
+          [id]: { progress, bytesNow: received, bytesTotal: total || Number(message?.file_size) || 0, active: true }
+        };
+      }
+    });
+
+    triggerDownload(blob, filename);
+    downloadingFiles.value = {
+      ...downloadingFiles.value,
+      [id]: { progress: 100, bytesNow: totalBytes || Number(message?.file_size) || 0, bytesTotal: totalBytes || Number(message?.file_size) || 0, active: false }
+    };
+  } catch (e) {
+    console.error('下载失败:', e);
+    downloadingFiles.value = {
+      ...downloadingFiles.value,
+      [id]: { progress: 0, bytesNow: 0, bytesTotal: Number(message?.file_size) || 0, active: false }
+    };
+    window.open(String(url), '_blank', 'noreferrer');
+  }
+}
+
 async function sendFileWithServerBackup(event: Event) {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
@@ -665,22 +803,40 @@ async function sendFileWithServerBackup(event: Event) {
 
   try {
     const messageType = detectMessageType(file);
+    uploadingChatFile.value = true;
+    uploadingChatFileProgress.value = 0;
+    const useChunked = file.size >= 8 * 1024 * 1024;
+    let fileHash: string | undefined;
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('receiverId', String(otherUserId));
-    formData.append('messageType', messageType);
     if (file.size < LARGE_FILE_THRESHOLD_BYTES) {
       const buffer = await file.arrayBuffer();
-      const fileHash = await sha256Hex(buffer);
-      formData.append('fileHash', fileHash);
+      fileHash = await sha256Hex(buffer);
     }
 
-    const resp = await api.post('/chat/send-file', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    let saved: any = null;
+    if (useChunked) {
+      saved = await sendChatFileChunked({
+        file,
+        receiverId: otherUserId,
+        messageType,
+        fileHash,
+        onProgress: (uploaded, total) => {
+          uploadingChatFileProgress.value = total > 0 ? Math.min(100, Math.round((uploaded / total) * 100)) : 0;
+        }
+      });
+    } else {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('receiverId', String(otherUserId));
+      formData.append('messageType', messageType);
+      if (fileHash) formData.append('fileHash', fileHash);
 
-    const saved = resp.data?.data;
+      const resp = await api.post('/chat/send-file', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      saved = resp.data?.data;
+    }
+
     if (saved && !messages.value.find(m => m.id === saved.id)) {
       messages.value.push(saved);
       scrollToBottom();
@@ -690,6 +846,8 @@ async function sendFileWithServerBackup(event: Event) {
     console.error('发送文件失败:', e);
     alert('发送文件失败');
   } finally {
+    uploadingChatFile.value = false;
+    uploadingChatFileProgress.value = 0;
     input.value = '';
   }
 }
@@ -716,7 +874,7 @@ async function queueOrSendLargeFile(file: File) {
     return;
   }
 
-  const canDirect = !!p2pTransport.value?.isConnected;
+  const canDirect = isP2PV6HostDirect.value;
   if (canDirect) {
     await sendLargeFileP2POnlyFile(file);
     return;
@@ -725,7 +883,7 @@ async function queueOrSendLargeFile(file: File) {
   pendingLargeFile.value = file;
   pendingLargeFileDeadline.value = Date.now() + 60_000;
   p2pConnection.value?.initiate().catch(() => {});
-  alert('当前未建立 V6直连：已先选择文件，直连后 60 秒内会自动开始快传');
+  alert('当前未建立 IPv6 Host 直连：已先选择文件，直连后 60 秒内会自动开始快传');
 }
 
 async function sendLargeFileP2POnlyFile(file: File) {
@@ -734,7 +892,7 @@ async function sendLargeFileP2POnlyFile(file: File) {
     return;
   }
 
-  const canDirect = !!p2pTransport.value?.isConnected;
+  const canDirect = isP2PV6HostDirect.value;
   if (!canDirect || !p2pConnection.value) {
     alert('当前未建立 IPv6 Host 直连，无法快传');
     return;
@@ -819,7 +977,7 @@ watch(p2pTransport, (info) => {
     return;
   }
 
-  const canDirect = !!info?.isConnected;
+  const canDirect = !!info?.isConnected && !!info.isDirect && !!info.isIPv6;
   if (!canDirect) return;
 
   const file = pendingLargeFile.value;
@@ -833,6 +991,12 @@ watch(p2pTransport, (info) => {
     .finally(() => {
       isSendingLargeFile.value = false;
     });
+});
+
+watch(showSettings, (open) => {
+  if (!open) return;
+  if (!p2pConnection.value) initP2P();
+  p2pConnection.value?.initiate().catch(() => {});
 });
 
 async function fetchChatSettings() {
@@ -976,25 +1140,8 @@ onMounted(async () => {
   await fetchChatSettings();
   await fetchMessages();
   initSocketConnection();
-  initP2P(); // Initialize P2P connection
+  initP2P();
   scrollToBottom();
-});
-
-// 监听在线状态，尝试自动建立 P2P
-watch(otherUserStatus, (newStatus) => {
-  if (newStatus !== 'online') return;
-  if (p2pState.value === 'connected') return;
-  if (!p2pConnection.value) initP2P();
-
-  const myId = authStore.user?.id;
-  if (!myId) return;
-  const p2pRoomId = roomId || [myId, otherUserId].sort().join('_');
-
-  if (myId < otherUserId) {
-    p2pConnection.value?.initiate().catch(() => {});
-  } else {
-    getSocket()?.emit('webrtc:call', { roomId: p2pRoomId, type: 'data' });
-  }
 });
 
 onUnmounted(() => {

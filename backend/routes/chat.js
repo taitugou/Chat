@@ -8,6 +8,13 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
+import {
+  initChunkedUploadSession,
+  getChunkedUploadMeta,
+  listReceivedChunks,
+  writeChunk,
+  finalizeChunkedUpload
+} from '../services/chunkedUploadService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -59,6 +66,138 @@ const upload = multer({
   limits: {
     fileSize: 100 * 1024 * 1024, // 100MB
   },
+});
+
+router.post('/send-file-chunked/init', authenticate, async (req, res, next) => {
+  try {
+    const senderId = req.user.id;
+    const {
+      receiverId,
+      messageType = 'file',
+      fileName,
+      fileSize,
+      mimeType,
+      totalChunks,
+      chunkSize,
+      fileHash,
+      isSnapchat = false,
+      snapchatDuration = 0
+    } = req.body || {};
+
+    if (!receiverId) {
+      return res.status(400).json({ error: '请提供接收者ID' });
+    }
+
+    const [blacklist] = await query(
+      'SELECT id FROM user_blacklist WHERE blocker_id = ? AND blocked_id = ?',
+      [receiverId, senderId]
+    );
+    if (blacklist && blacklist.length > 0) {
+      return res.status(403).json({ error: '你已被对方加入黑名单' });
+    }
+
+    const isSnapchatBool = isSnapchat === 'true' || isSnapchat === true || isSnapchat === 1;
+    if (isSnapchatBool) {
+      if (parseInt(snapchatDuration) > 30) {
+        return res.status(400).json({
+          error: '阅后即焚时长不能超过30秒',
+          maxDuration: 30,
+        });
+      }
+    }
+
+    const meta = await initChunkedUploadSession({
+      senderId,
+      receiverId: Number(receiverId),
+      messageType,
+      fileName,
+      fileSize,
+      mimeType,
+      totalChunks,
+      chunkSize,
+      fileHash,
+      isSnapchat: isSnapchatBool,
+      snapchatDuration
+    });
+
+    res.status(201).json({ uploadId: meta.uploadId, meta });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/send-file-chunked/:uploadId/status', authenticate, async (req, res, next) => {
+  try {
+    const { uploadId } = req.params;
+    const meta = await getChunkedUploadMeta(uploadId);
+    if (meta.senderId !== req.user.id) return res.status(403).json({ error: '无权限' });
+    const received = await listReceivedChunks(uploadId);
+    res.json({ uploadId, received, totalChunks: meta.totalChunks });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put(
+  '/send-file-chunked/:uploadId/chunk',
+  authenticate,
+  express.raw({ type: 'application/octet-stream', limit: '12mb' }),
+  async (req, res, next) => {
+    try {
+      const { uploadId } = req.params;
+      const meta = await getChunkedUploadMeta(uploadId);
+      if (meta.senderId !== req.user.id) return res.status(403).json({ error: '无权限' });
+      const index = Number(req.query.index);
+      await writeChunk(uploadId, index, req.body);
+      res.json({ ok: true, index });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post('/send-file-chunked/:uploadId/complete', authenticate, async (req, res, next) => {
+  try {
+    const { uploadId } = req.params;
+    const meta = await getChunkedUploadMeta(uploadId);
+    if (meta.senderId !== req.user.id) return res.status(403).json({ error: '无权限' });
+
+    const finalized = await finalizeChunkedUpload(uploadId);
+    const conversationId = [finalized.senderId, finalized.receiverId].sort().join('_');
+
+    const [result] = await query(
+      `INSERT INTO messages (sender_id, receiver_id, conversation_id, message_type, content,
+                             file_url, file_size, duration, is_snapchat, snapchat_duration, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+      [
+        finalized.senderId,
+        finalized.receiverId,
+        conversationId,
+        finalized.messageType,
+        finalized.fileName,
+        finalized.fileUrl,
+        finalized.fileSize,
+        0,
+        finalized.isSnapchat ? 1 : 0,
+        finalized.snapchatDuration || 0
+      ]
+    );
+
+    const [rows] = await query('SELECT * FROM messages WHERE id = ?', [result.insertId]);
+    const message = rows?.[0];
+    if (message && req.io) {
+      req.io.to(`user:${finalized.receiverId}`).emit('message:receive', message);
+      req.io.to(`user:${finalized.senderId}`).emit('message:receive', message);
+    }
+
+    res.status(201).json({
+      message: '文件消息发送成功',
+      messageId: result.insertId,
+      data: message
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 // 获取会话列表

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="空状态-无数据">
+<title>空状态-无数据</title>
+<defs>
+    <linearGradient id="e" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+  <rect x="64" y="110" width="384" height="292" rx="26" fill="url(#e)" stroke="#ffffff" stroke-opacity="0.10"/>
+  <path d="M134 196h244" stroke="#ffffff" stroke-opacity="0.10" stroke-width="14" stroke-linecap="round"/>
+  <path d="M134 246h194" stroke="#ffffff" stroke-opacity="0.08" stroke-width="14" stroke-linecap="round"/>
+  <path d="M134 296h224" stroke="#ffffff" stroke-opacity="0.06" stroke-width="14" stroke-linecap="round"/>
+  <path d="M338 326c44 0 80 36 80 80" fill="none" stroke="#93c5fd" stroke-opacity="0.85" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="320" cy="340" r="56" fill="none" stroke="#93c5fd" stroke-opacity="0.85" stroke-width="18"/>
+  <path d="M365 385l56 56" stroke="#93c5fd" stroke-opacity="0.85" stroke-width="18" stroke-linecap="round"/>
+</svg>

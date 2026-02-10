@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 420" width="512" height="512" role="img" aria-label="扑克牌背面">
+<title>扑克牌背面</title>
+<defs>
+    <linearGradient id="cbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <pattern id="p" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(25)">
+      <rect width="28" height="28" fill="none"/>
+      <path d="M0 14h28" stroke="#ffffff" stroke-opacity="0.10" stroke-width="6" stroke-linecap="round"/>
+      <path d="M14 0v28" stroke="#ffffff" stroke-opacity="0.10" stroke-width="6" stroke-linecap="round"/>
+    </pattern>
+  </defs>
+  <rect x="14" y="14" width="272" height="392" rx="26" fill="url(#cbg)"/>
+  <rect x="28" y="28" width="244" height="364" rx="20" fill="url(#p)"/>
+  <rect x="44" y="44" width="212" height="332" rx="16" fill="none" stroke="#ffffff" stroke-opacity="0.28" stroke-width="6"/>
+  <circle cx="150" cy="210" r="62" fill="#ffffff" opacity="0.12"/>
+  <path d="M150 162c18 0 32 14 32 32s-14 32-32 32-32-14-32-32 14-32 32-32z" fill="#93c5fd" opacity="0.55"/>
+</svg>

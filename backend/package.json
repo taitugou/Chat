@@ -8,6 +8,8 @@
     "dev": "node --watch server.js",
     "start": "node server.js",
     "build": "echo 'No build step required'",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "admin:dev": "node --watch admin-server.js",
     "admin:start": "node admin-server.js"
   },
@@ -34,6 +36,8 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.2",
+    "supertest": "^7.1.4",
+    "vitest": "^2.1.9"
   }
 }

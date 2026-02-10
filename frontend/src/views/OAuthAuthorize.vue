@@ -105,10 +105,24 @@ const state = route.query.state as string;
 // 辅助函数：补全重定向 URI 协议
 const getFullRedirectUri = (uri: string) => {
   if (!uri) return '';
-  if (!/^https?:\/\//i.test(uri)) {
-    return 'http://' + uri;
-  }
-  return uri;
+  if (/^https?:\/\//i.test(uri)) return uri;
+  if (uri.startsWith('//')) return `https:${uri}`;
+  const hostPort = uri.split('/')[0]?.trim() || '';
+  const hostname = hostPort.split(':')[0]?.trim().toLowerCase() || '';
+  const isLocalhost =
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '0.0.0.0' ||
+    hostname === '::1' ||
+    hostname.endsWith('.local');
+
+  const isPrivateIpv4 =
+    /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname) ||
+    /^192\.168\.\d{1,3}\.\d{1,3}$/.test(hostname) ||
+    /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname);
+
+  const scheme = isLocalhost || isPrivateIpv4 ? 'http' : 'https';
+  return `${scheme}://${uri}`;
 };
 
 const fullRedirectUri = getFullRedirectUri(redirectUri);
@@ -137,18 +151,12 @@ const handleAuthorize = async () => {
   
   authorizing.value = true;
   error.value = '';
-  
-  console.log('开始授权流程:', { clientId, redirectUri: fullRedirectUri, state });
-  
   try {
     // 发送给后端的 redirectUri 必须是补全协议后的标准地址
     const response = await api.post('/oauth/authorize', {
       clientId,
       redirectUri: fullRedirectUri
     });
-    
-    console.log('收到授权响应:', response.data);
-    
     const { code } = response.data;
     if (!code) {
       throw new Error('服务器未返回授权码');
@@ -160,17 +168,12 @@ const handleAuthorize = async () => {
       if (state) {
         targetUrl.searchParams.append('state', state);
       }
-      
-      console.log('准备重定向至:', targetUrl.toString());
-      
       // 执行重定向
       window.location.href = targetUrl.toString();
     } catch (urlErr) {
-      console.error('URL 解析失败:', urlErr, fullRedirectUri);
       throw new Error(`无效的重定向地址: ${fullRedirectUri}`);
     }
   } catch (err: any) {
-    console.error('授权操作发生错误:', err);
     error.value = err.response?.data?.error || err.message || '授权失败，请重试';
     authorizing.value = false;
   }

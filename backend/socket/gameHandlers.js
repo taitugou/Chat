@@ -4,13 +4,21 @@ import { createGameRecord, updateGameRecord } from '../services/gameService.js';
 import { addChips, deductChips, getUserChips, CHIP_TRANSACTION_TYPES } from '../services/chipsService.js';
 import { createLoan } from '../services/loanService.js';
 import { createGameInstance } from '../services/gameFactory.js';
-import { TexasHoldemGame } from '../services/games/poker/texasHoldem.js'; // Keep old reference if needed, but Factory is preferred
+import { getGame, setGame, hasGame, deleteGame } from '../services/gameRegistry.js';
 
-// In-memory game state storage
-const games = new Map();
+// In-memory game state storage adapter
+const games = {
+  get: getGame,
+  set: setGame,
+  has: hasGame,
+  delete: deleteGame
+};
+
 const readyTimers = new Map();
 
 async function executeStartGame(io, roomId, playerIds) {
+  let game = null;
+  let gameId = null;
   try {
     const room = await getRoomById(roomId);
     if (room.status === 'playing') return;
@@ -18,17 +26,35 @@ async function executeStartGame(io, roomId, playerIds) {
     const [typeResult] = await query('SELECT code FROM game_types WHERE id = ?', [room.game_type_id]);
     const gameTypeCode = typeResult[0]?.code || 'texas_holdem';
 
-    const game = createGameInstance(gameTypeCode, playerIds);
-    const gameId = await createGameRecord(roomId, room.game_type_id, game.getGameState());
+    let roomSettings = {};
+    try {
+      roomSettings = typeof room.settings === 'string' ? JSON.parse(room.settings || '{}') : (room.settings || {});
+    } catch {
+      roomSettings = {};
+    }
+    const gameOptions = roomSettings?.gameOptions && typeof roomSettings.gameOptions === 'object' ? roomSettings.gameOptions : {};
+
+    game = createGameInstance(gameTypeCode, playerIds, gameOptions);
+
+    for (const [pid, amount] of Object.entries(game.playerBets || {})) {
+      const required = Number(amount || 0);
+      if (required <= 0) continue;
+      const chips = await getUserChips(parseInt(pid));
+      if (!chips || Number(chips.balance || 0) < required) {
+        throw new Error('筹码不足，无法开始游戏');
+      }
+    }
+
+    gameId = await createGameRecord(roomId, room.game_type_id, game.getGameState());
     game.gameId = gameId;
     games.set(parseInt(roomId), game);
 
     await query('UPDATE game_rooms SET status = "playing" WHERE id = ?', [roomId]);
 
-    for (const [pid, amount] of Object.entries(game.playerBets)) {
-      if (amount > 0) {
-        await deductChips(parseInt(pid), amount, CHIP_TRANSACTION_TYPES.GAME_LOSS, '底注', gameId, 'game');
-      }
+    for (const [pid, amount] of Object.entries(game.playerBets || {})) {
+      const required = Number(amount || 0);
+      if (required <= 0) continue;
+      await deductChips(parseInt(pid), required, CHIP_TRANSACTION_TYPES.GAME_LOSS, '底注', gameId, 'game');
     }
 
     io.to(`game_room:${roomId}`).emit('game:started', {
@@ -45,8 +71,35 @@ async function executeStartGame(io, roomId, playerIds) {
         s.emit('game:hand', { roomId, hand: game.hands[socketUserId] });
       }
     }
+
+    const immediate = game?.__immediateResult;
+    if (immediate && !game.__finishing) {
+      game.__finishing = true;
+      await finishGame(io, roomId, gameId, immediate);
+    }
   } catch (error) {
     console.error('executeStartGame error:', error);
+    try {
+      if (gameId) {
+        await updateGameRecord(gameId, {
+          status: 'aborted',
+          totalPot: Number(game?.pot || 0),
+          gameData: game?.getGameState?.()
+        });
+      }
+    } catch (e) {
+      console.error('executeStartGame abort record error:', e);
+    }
+    try {
+      await query('UPDATE game_rooms SET status = "waiting" WHERE id = ?', [roomId]);
+      await query('UPDATE game_room_players SET is_ready = FALSE WHERE room_id = ?', [roomId]);
+    } catch (e) {
+      console.error('executeStartGame reset room error:', e);
+    }
+    try {
+      games.delete(parseInt(roomId));
+    } catch {}
+    throw error;
   }
 }
 
@@ -86,6 +139,15 @@ async function attemptStartGame(io, roomId) {
 
 export function initGameSocketHandlers(io, socket) {
   const userId = socket.userId;
+
+  socket.on('disconnecting', () => {
+    for (const roomName of socket.rooms) {
+      if (typeof roomName !== 'string') continue;
+      if (!roomName.startsWith('game_voice:')) continue;
+      const voiceRoomId = roomName.slice('game_voice:'.length);
+      socket.to(roomName).emit('game:voice:left', { roomId: voiceRoomId, userId });
+    }
+  });
 
   socket.on('game:join_room', async (data) => {
     try {
@@ -139,10 +201,45 @@ export function initGameSocketHandlers(io, socket) {
     try {
       const { roomId } = data;
       
+      socket.to(`game_voice:${roomId}`).emit('game:voice:left', { roomId, userId });
+      socket.leave(`game_voice:${roomId}`);
       socket.leave(`game_room:${roomId}`);
       
       // 调用 roomService.leaveRoom，它现在会彻底删除玩家记录
       const result = await leaveRoom(userId, roomId);
+      
+      // 所有人退出后游戏结束逻辑
+      if (result.remainingCount === 0) {
+        if (games.has(parseInt(roomId))) {
+          const game = games.get(parseInt(roomId));
+          console.log(`房间 ${roomId} 所有人已退出，强制结束游戏 ${game.gameId}`);
+          
+          try {
+            const spentMap = game.playerTotalSpent && typeof game.playerTotalSpent === 'object' ? game.playerTotalSpent : {};
+            for (const [pid, spentRaw] of Object.entries(spentMap)) {
+              const spent = Number(spentRaw || 0);
+              if (spent > 0) {
+                await addChips(parseInt(pid), spent, CHIP_TRANSACTION_TYPES.REFUND, '对局中止退款', game.gameId, 'game');
+              }
+            }
+
+            await updateGameRecord(game.gameId, {
+              status: 'aborted',
+              totalPot: game.pot || 0,
+              gameData: game.getGameState()
+            });
+            
+            // 确保房间状态正确
+            await query('UPDATE game_rooms SET status = "waiting", empty_at = NOW() WHERE id = ?', [roomId]);
+            // 清除内存中的游戏
+            games.delete(parseInt(roomId));
+          } catch (e) {
+            console.error('强制结束游戏失败:', e);
+          }
+        }
+        // 既然房间没人了，不需要广播也不需要后续逻辑
+        return;
+      }
       
       io.to(`game_room:${roomId}`).emit('game:player_left', { userId });
       
@@ -159,6 +256,9 @@ export function initGameSocketHandlers(io, socket) {
         // Ideally should call game.fold(userId) if active.
       if (games.has(parseInt(roomId))) {
           const game = games.get(parseInt(roomId));
+          if (game?.__finishing || game?.gameOver) {
+              return;
+          }
           if (game.playerStatus && game.playerStatus[userId] === 'active') {
               try {
                   let result = null;
@@ -169,6 +269,8 @@ export function initGameSocketHandlers(io, socket) {
                   }
                   
                   if (result) {
+                      if (game.__finishing) return;
+                      game.__finishing = true;
                       await finishGame(io, roomId, game.gameId, result);
                   } else {
                       io.to(`game_room:${roomId}`).emit('game:state_update', {
@@ -184,6 +286,60 @@ export function initGameSocketHandlers(io, socket) {
 
     } catch (error) {
       console.error('离开游戏房间失败:', error);
+    }
+  });
+
+  socket.on('game:voice:join', async (data) => {
+    try {
+      const { roomId } = data || {};
+      if (!roomId) return;
+      const [check] = await query('SELECT id FROM game_room_players WHERE room_id = ? AND user_id = ? LIMIT 1', [roomId, userId]);
+      if (!check || check.length === 0) {
+        socket.emit('game:error', { error: '不在房间内，无法加入语音' });
+        return;
+      }
+      const voiceRoom = `game_voice:${roomId}`;
+      socket.join(voiceRoom);
+
+      const sockets = await io.in(voiceRoom).fetchSockets();
+      const userIds = Array.from(new Set(sockets.map((s) => String(s.userId || s.data?.userId)).filter(Boolean)));
+
+      socket.emit('game:voice:participants', { roomId, userIds });
+      socket.to(voiceRoom).emit('game:voice:joined', { roomId, userId });
+    } catch (error) {
+      socket.emit('game:error', { error: '加入语音失败' });
+    }
+  });
+
+  socket.on('game:voice:leave', async (data) => {
+    try {
+      const { roomId } = data || {};
+      if (!roomId) return;
+      const voiceRoom = `game_voice:${roomId}`;
+      socket.to(voiceRoom).emit('game:voice:left', { roomId, userId });
+      socket.leave(voiceRoom);
+    } catch {
+      socket.emit('game:error', { error: '退出语音失败' });
+    }
+  });
+
+  socket.on('game:voice:signal', async (data) => {
+    try {
+      const { roomId, toId, type, signal } = data || {};
+      if (!roomId || !toId || !type) return;
+      const [check] = await query('SELECT id FROM game_room_players WHERE room_id = ? AND user_id = ? LIMIT 1', [roomId, userId]);
+      if (!check || check.length === 0) return;
+      const [checkTo] = await query('SELECT id FROM game_room_players WHERE room_id = ? AND user_id = ? LIMIT 1', [roomId, toId]);
+      if (!checkTo || checkTo.length === 0) return;
+      const voiceRoom = `game_voice:${roomId}`;
+
+      const sockets = await io.in(voiceRoom).fetchSockets();
+      for (const s of sockets) {
+        if (String(s.userId || s.data?.userId) !== String(toId)) continue;
+        s.emit('game:voice:signal', { roomId, fromId: userId, toId, type, signal });
+      }
+    } catch (error) {
+      socket.emit('game:error', { error: '语音信令转发失败' });
     }
   });
 
@@ -239,7 +395,7 @@ export function initGameSocketHandlers(io, socket) {
       await executeStartGame(io, roomId, players.map(p => p.user_id));
     } catch (error) {
       console.error('开始游戏失败:', error);
-      socket.emit('game:error', { error: '开始游戏失败' });
+      socket.emit('game:error', { error: error?.message || '开始游戏失败' });
     }
   });
 
@@ -259,29 +415,6 @@ export function initGameSocketHandlers(io, socket) {
       let result = null;
       let chipsToDeduct = 0;
       const previousBet = Number(game.playerBets?.[userId] || 0);
-      
-      // Generic Handler check
-      if (typeof game.handleAction === 'function' && !['bet', 'call', 'raise', 'check', 'fold', 'compare'].includes(action)) {
-             // Custom action (like 'move' in chess)
-             result = game.handleAction(userId, action, payload);
-             // Broadcast generic action
-             io.to(`game_room:${roomId}`).emit('game:player_action', {
-                userId,
-                action,
-                payload,
-                gameId: game.gameId
-             });
-             
-             if (result) {
-                await finishGame(io, roomId, game.gameId, result);
-             } else {
-                io.to(`game_room:${roomId}`).emit('game:state_update', {
-                    roomId,
-                    gameState: game.getGameState()
-                });
-             }
-             return;
-      }
 
       switch (action) {
           case 'fold':
@@ -332,14 +465,21 @@ export function initGameSocketHandlers(io, socket) {
               }
               result = game.compare(userId, payload.targetId);
               break;
-          case 'move': // Also allow 'move' for board games if not using handleAction
+          case 'move':
               if (typeof game.playMove === 'function') {
-                  result = game.playMove(userId, payload.x, payload.y);
-              } else {
-                  throw new Error('该游戏不支持此操作');
+                result = game.playMove(userId, payload.x, payload.y);
+                break;
               }
-              break;
+              if (typeof game.handleAction === 'function') {
+                result = game.handleAction(userId, action, payload);
+                break;
+              }
+              throw new Error('该游戏不支持此操作');
           default:
+              if (typeof game.handleAction === 'function') {
+                result = game.handleAction(userId, action, payload);
+                break;
+              }
               throw new Error('未知操作');
       }
 
@@ -366,6 +506,8 @@ export function initGameSocketHandlers(io, socket) {
       });
 
       if (result) {
+          if (game.__finishing) return;
+          game.__finishing = true;
           await finishGame(io, roomId, game.gameId, result);
       } else {
           io.to(`game_room:${roomId}`).emit('game:state_update', {
@@ -402,12 +544,17 @@ export function initGameSocketHandlers(io, socket) {
       const [user] = await query('SELECT username, nickname, avatar FROM users WHERE id = ?', [userId]);
       io.to(`game_room:${roomId}`).emit('game:chat_message', {
         id: result.insertId,
+        roomId,
+        room_id: roomId,
         userId,
+        user_id: userId,
         username: user[0].username,
         nickname: user[0].nickname,
         avatar: user[0].avatar,
         message,
+        content: message,
         messageType,
+        message_type: messageType,
         createdAt: new Date()
       });
     } catch (error) {
@@ -474,5 +621,26 @@ async function finishGame(io, roomId, gameId, resultsData) {
 
     } catch (error) {
         console.error('Finish game error:', error);
+        try {
+            await updateGameRecord(gameId, {
+                status: 'aborted',
+                totalPot: Number(resultsData?.totalPot || 0),
+                gameData: games.get(parseInt(roomId))?.getGameState?.()
+            });
+        } catch (e) {
+            console.error('Finish game abort record error:', e);
+        }
+        try {
+            await query('UPDATE game_rooms SET status = "waiting" WHERE id = ?', [roomId]);
+            await query('UPDATE game_room_players SET is_ready = FALSE WHERE room_id = ?', [roomId]);
+        } catch (e) {
+            console.error('Finish game reset room error:', e);
+        }
+        try {
+            games.delete(parseInt(roomId));
+        } catch {}
+        try {
+            io.to(`game_room:${roomId}`).emit('game:error', { error: '结算失败，已中止对局' });
+        } catch {}
     }
 }

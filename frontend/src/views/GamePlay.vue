@@ -44,7 +44,7 @@
         <!-- 功能区 (向左折叠) -->
         <div :class="[
           'border-r border-white/10 bg-white/5 overflow-hidden flex flex-col transition-all duration-300 ease-in-out',
-          collapsed.leftColumn ? 'w-[7vw] min-w-[6vh]' : 'w-[28vw] min-w-[25vw] max-w-[40vw]'
+          collapsed.leftColumn ? 'w-[7vw] min-w-[6vh]' : (isWuziqiGame ? 'w-[22vw] min-w-[18vw] max-w-[30vw]' : 'w-[28vw] min-w-[25vw] max-w-[40vw]')
         ]">
           <div class="h-[8vh] px-[1vw] border-b border-white/10 flex items-center" :class="collapsed.leftColumn ? 'justify-center' : 'justify-between px-[1.5vw]'">
             <div v-show="!collapsed.leftColumn" class="text-[2.6vh] font-black whitespace-nowrap">功能区</div>
@@ -57,7 +57,7 @@
             </button>
           </div>
           <div v-show="!collapsed.leftColumn" class="flex-1 overflow-y-auto p-[1.5vh] space-y-[1.5vh]">
-            <div class="rounded-[1.5vh] border border-white/10 bg-black/40 overflow-hidden">
+            <div v-if="!isWuziqiGame" class="rounded-[1.5vh] border border-white/10 bg-black/40 overflow-hidden">
               <button type="button" class="w-full px-[1.5vw] py-[2vh] flex items-center justify-between" @click="collapsed.leftInfo = !collapsed.leftInfo">
                 <div class="text-[2.2vh] text-white/40">牌局信息</div>
                 <svg class="w-[2.5vh] h-[2.5vh] text-white/40 transition-transform duration-200" :class="collapsed.leftInfo ? '-rotate-90' : 'rotate-0'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,7 +81,7 @@
             <div class="rounded-[1.5vh] border border-white/10 bg-black/40 overflow-hidden">
               <button type="button" class="w-full px-[1.5vw] py-[2vh] flex items-center justify-between" @click="collapsed.leftActions = !collapsed.leftActions">
                 <div class="flex items-center gap-[1vw]">
-                  <div class="text-[2.2vh] text-white/40">下注操作</div>
+                  <div class="text-[2.2vh] text-white/40">{{ isWeiqiGame || isBoardMoveGame || isWuziqiGame ? '棋局操作' : '下注操作' }}</div>
                   <div class="text-[1.8vh] px-[1vw] py-[0.5vh] rounded-full border"
                        :class="isMyTurn ? 'border-green-500/30 bg-green-500/10 text-green-300' : 'border-white/10 bg-white/5 text-white/40'">
                     {{ isMyTurn ? '你的回合' : '等待中' }}
@@ -93,48 +93,95 @@
               </button>
 
               <div v-show="!collapsed.leftActions" class="px-[1.5vw] pb-[2vh]">
-                <!-- Card Game Actions -->
-                <div v-if="['zhajinhua', 'texas_holdem'].includes(effectiveGameType)" class="grid grid-cols-1 gap-[1.5vh]">
-                  <button v-if="effectiveGameType === 'zhajinhua'" class="glass-btn py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] active:scale-95 transition-all disabled:opacity-40"
-                          :disabled="isFinished || mySeen || getPlayerStatus(currentUserId) !== 'active'"
-                          @click="doSee">
-                    看牌（看牌后下注翻倍）
-                  </button>
+                <PokerControls 
+                  v-if="['zhajinhua', 'texas_holdem', 'blackjack', 'niuniu', 'shengji', 'doudizhu', 'paodekuai'].includes(effectiveGameType)"
+                  :game-type="effectiveGameType"
+                  :game-state="stateSnapshot"
+                  :my-user-id="currentUserId"
+                  :is-my-turn="isMyTurn"
+                  :is-finished="isFinished"
+                  :can-act="canAct"
+                  :my-seen="mySeen"
+                  :my-unit-bet="myUnitBet"
+                  :allow-compare="allowCompare"
+                  v-model:bet-amount="betAmount"
+                  :selected-card-ids="selectedCardIds"
+                  @action="emitAction"
+                  @openCompare="openCompare"
+                />
 
-                  <div class="space-y-[1.2vh]">
-                    <div class="flex flex-col gap-[1.2vh]">
-                      <input v-model.number="betAmount" type="number" :min="myUnitBet" class="glass-input w-full text-[2.3vh] py-[1.2vh]" placeholder="下注金额" />
-                      <button class="glass-btn-primary w-full py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] active:scale-95 transition-all disabled:opacity-40"
-                              :disabled="!canAct || !betAmount || betAmount < myUnitBet"
-                              @click="doBet">
-                        {{ betAmount > myUnitBet ? '加注' : (myUnitBet === 0 ? '过牌' : '跟注') }}（{{ betAmount }}）
-                      </button>
-                    </div>
+                <MahjongControls
+                  v-else-if="isMahjongGame"
+                  :game-state="stateSnapshot"
+                  :my-user-id="currentUserId"
+                  :is-finished="isFinished"
+                  :can-act="canAct"
+                  :selected-tile-ids="selectedTileIds"
+                  :hand="handInfo"
+                  :players="roomPlayers"
+                  @action="emitAction"
+                  @clearSelection="selectedTileIds = []"
+                />
+
+                <ChessControls
+                  v-else-if="isWeiqiGame || isBoardMoveGame || effectiveGameType === 'wuziqi'"
+                  :game-type="effectiveGameType"
+                  :game-state="stateSnapshot"
+                  :my-user-id="currentUserId"
+                  :is-finished="isFinished"
+                  :can-act="canAct"
+                  v-model:selected-from="selectedFrom"
+                  v-model:junqi-auto-setup-seed="junqiAutoSetupSeed"
+                  @action="emitAction"
+                />
+
+                <div v-else-if="isDiceBaoGame" class="grid grid-cols-1 gap-[1.2vh]">
+                  <div class="grid grid-cols-3 gap-[0.8vh]">
+                    <button class="glass-btn py-[1.2vh] rounded-[1vh] text-[2.1vh] font-black active:scale-95 transition-all"
+                            :class="diceBaoSelection === 'small' ? 'border-primary/40 bg-primary/10' : ''"
+                            :disabled="isFinished"
+                            @click="diceBaoSelection = 'small'">
+                      小
+                    </button>
+                    <button class="glass-btn py-[1.2vh] rounded-[1vh] text-[2.1vh] font-black active:scale-95 transition-all"
+                            :class="diceBaoSelection === 'big' ? 'border-primary/40 bg-primary/10' : ''"
+                            :disabled="isFinished"
+                            @click="diceBaoSelection = 'big'">
+                      大
+                    </button>
+                    <button class="glass-btn py-[1.2vh] rounded-[1vh] text-[2.1vh] font-black active:scale-95 transition-all"
+                            :class="diceBaoSelection === 'triple' ? 'border-primary/40 bg-primary/10' : ''"
+                            :disabled="isFinished"
+                            @click="diceBaoSelection = 'triple'">
+                      豹子
+                    </button>
                   </div>
-
-                  <button v-if="effectiveGameType === 'zhajinhua'" class="glass-btn py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] active:scale-95 transition-all disabled:opacity-40"
-                          :disabled="!canAct || !allowCompare"
-                          @click="openCompare">
-                    比牌（{{ myUnitBet * 2 }}）
+                  <input v-model.number="diceBaoBetAmount" type="number" min="1" class="glass-input w-full text-[2.3vh] py-[1.2vh]" placeholder="下注金额" />
+                  <button class="glass-btn-primary w-full py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] active:scale-95 transition-all disabled:opacity-40"
+                          :disabled="!canAct || !diceBaoSelection || !diceBaoBetAmount"
+                          @click="emitAction('place_bet', { selection: diceBaoSelection, amount: diceBaoBetAmount })">
+                    下注
                   </button>
+                  <button class="glass-btn py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] active:scale-95 transition-all disabled:opacity-40"
+                          :disabled="isFinished || String(diceBaoRollerId) !== String(currentUserId)"
+                          @click="emitAction('roll')">
+                    开奖
+                  </button>
+                </div>
 
+                <div v-else-if="isErbabanGame" class="grid grid-cols-1 gap-[1.5vh]">
+                  <button class="glass-btn-primary py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] active:scale-95 transition-all disabled:opacity-40"
+                          :disabled="isFinished || !canAct"
+                          @click="emitAction('roll')">
+                    掷骰
+                  </button>
                   <button class="glass-btn py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] text-red-300 active:scale-95 transition-all disabled:opacity-40"
-                          :disabled="!canAct"
-                          @click="doFold">
-                    弃牌
-                  </button>
-                </div>
-
-                <!-- Board Game Actions -->
-                <div v-else-if="effectiveGameType === 'wuziqi'" class="grid grid-cols-1 gap-[1.5vh]">
-                   <button class="glass-btn py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] text-red-300 active:scale-95 transition-all disabled:opacity-40"
                           :disabled="isFinished"
-                          @click="doSurrender">
-                    投降
+                          @click="emitAction('surrender')">
+                    认输
                   </button>
                 </div>
 
-                <!-- Generic Game Actions -->
                 <div v-else class="grid grid-cols-1 gap-[1.5vh]">
                     <div class="text-[1.8vh] text-white/40 text-center py-[2vh]">通用对局模式</div>
                     <button class="glass-btn-primary py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] active:scale-95 transition-all disabled:opacity-40"
@@ -144,7 +191,7 @@
                     </button>
                     <button class="glass-btn py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] text-red-300 active:scale-95 transition-all disabled:opacity-40"
                           :disabled="!canAct"
-                          @click="emitAction('fold')">
+                          @click="emitAction('surrender')">
                       认输/弃牌
                     </button>
                 </div>
@@ -172,7 +219,7 @@
         <!-- 中间游戏区域 (优先展示) -->
         <div class="flex-1 bg-gradient-to-b from-black to-black/80 overflow-hidden">
           <div class="h-full p-[2vh] flex flex-col gap-[2vh]">
-            <div class="rounded-[2vh] border border-white/10 bg-white/5 p-[2vh]">
+            <div v-if="!isWuziqiGame" class="rounded-[2vh] border border-white/10 bg-white/5 p-[2vh]">
               <div class="grid grid-cols-3 items-center gap-[1.5vw]">
                 <div class="min-w-0">
                   <div class="text-[2.1vh] text-white/40 uppercase tracking-wider">上一个玩家</div>
@@ -210,90 +257,75 @@
               </div>
             </div>
 
-            <div class="flex-1 rounded-[2vh] border border-white/10 bg-white/5 p-[2vh] flex flex-col overflow-auto">
-              <div v-if="effectiveGameType === 'wuziqi'" class="flex-1 flex items-center justify-center">
-                <GomokuBoard 
-                  :board="stateSnapshot.board || Array(15).fill(0).map(() => Array(15).fill(0))"
-                  :current-player-id="stateSnapshot.currentPlayer"
-                  :my-user-id="currentUserId"
-                  :game-over="isFinished"
-                  @move="handleMove"
-                />
-              </div>
-              <template v-else>
-                <div class="flex items-center justify-between">
-                  <div class="text-[2.2vh] text-white/40">你的底牌</div>
-                  <div class="flex items-center gap-[3vw]">
-                    <div class="flex flex-col items-end">
-                      <div class="text-[1.8vh] text-white/30 uppercase tracking-tighter">你的最低下注</div>
-                      <div class="text-[2.6vh] font-bold text-green-400">
-                        {{ myUnitBet }}
-                      </div>
-                    </div>
-                    <div class="flex flex-col items-end">
-                      <div class="text-[1.8vh] text-white/30 uppercase tracking-tighter">当前总筹码</div>
-                      <div class="text-[3.8vh] font-black text-yellow-400 flex items-center gap-[0.5vw]">
-                        <span class="text-[2.6vh]">💰</span> {{ pot }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              <div class="mt-[2vh] flex-1 flex flex-col items-center justify-center gap-[4vh]">
-                <!-- Community Cards for Texas Holdem -->
-                <div v-if="effectiveGameType === 'texas_holdem' && stateSnapshot.communityCards?.length > 0" class="flex flex-col items-center gap-[1vh]">
-                  <div class="text-[1.8vh] text-white/30 uppercase tracking-widest">公共牌</div>
-                  <div class="flex gap-[1.5vw]">
-                    <PokerCard
-                      v-for="(card, idx) in stateSnapshot.communityCards"
-                      :key="'comm-'+idx"
-                      :suit="card.suit"
-                      :value="card.rank"
-                      size="md"
-                    />
-                    <!-- Show empty slots if less than 5 cards -->
-                    <div v-for="n in (5 - stateSnapshot.communityCards.length)" :key="'empty-'+n" 
-                         class="w-[8vh] h-[12vh] border border-white/5 bg-white/5 rounded-[1vh] flex items-center justify-center text-white/10 text-[4vh]">
-                      ?
-                    </div>
-                  </div>
-                </div>
+            <div class="flex-1 rounded-[2vh] border border-white/10 bg-white/5 flex flex-col" :class="isWuziqiGame ? 'p-[1vh] overflow-hidden' : 'p-[2vh] overflow-auto'">
+              <PokerBoard
+                v-if="['zhajinhua', 'texas_holdem', 'blackjack', 'niuniu', 'shengji', 'doudizhu', 'paodekuai'].includes(effectiveGameType)"
+                :game-type="effectiveGameType"
+                :game-state="stateSnapshot"
+                :my-user-id="currentUserId"
+                :is-finished="isFinished"
+                :pot="pot"
+                :my-unit-bet="myUnitBet"
+                :display-hand="displayHand"
+                :should-hide-my-hand="shouldHideMyHand"
+                :players="roomPlayers"
+                v-model:selected-card-ids="selectedCardIds"
+              />
 
-                <!-- Player Hand -->
-                <div class="flex flex-col items-center gap-[1vh]">
-                  <div v-if="effectiveGameType === 'texas_holdem'" class="text-[1.8vh] text-white/30 uppercase tracking-widest">你的手牌</div>
-                  <div v-if="displayHand.length > 0" class="flex gap-[2.5vw]">
-                    <PokerCard
-                      v-for="(card, idx) in displayHand"
-                      :key="idx"
-                      :suit="card.suit"
-                      :value="card.rank"
-                      :is-flipped="shouldHideMyHand"
-                      size="lg"
-                    />
-                  </div>
-                  <div v-else class="text-center text-white/30">
-                    <div v-if="effectiveGameType === 'zhajinhua'" class="flex gap-[2.5vw] justify-center">
-                      <PokerCard v-for="n in 3" :key="n" :is-flipped="true" size="lg" />
-                    </div>
-                    <template v-else>
-                      <div class="text-[8vh]">🃏</div>
-                      <div class="mt-[1vh] text-[2.2vh]">等待发牌...</div>
-                    </template>
+              <MahjongBoard
+                v-else-if="isMahjongGame"
+                :game-state="stateSnapshot"
+                :my-user-id="currentUserId"
+                :display-hand="displayHand"
+                :selected-tile-ids="selectedTileIds"
+                :players="roomPlayers"
+                @update:selectedTileIds="val => selectedTileIds = val"
+              />
+
+              <ChessBoard
+                v-else-if="isWeiqiGame || isBoardMoveGame || effectiveGameType === 'wuziqi'"
+                :game-type="effectiveGameType"
+                :game-state="stateSnapshot"
+                :my-user-id="currentUserId"
+                :is-finished="isFinished"
+                :can-act="canAct"
+                v-model:selected-from="selectedFrom"
+                @action="emitAction"
+              />
+
+              <DiceBoard
+                v-else-if="isDiceBaoGame || isErbabanGame"
+                :game-type="effectiveGameType"
+                :game-state="stateSnapshot"
+                :my-user-id="currentUserId"
+                :players="roomPlayers"
+              />
+
+              <div v-else class="flex-1 flex flex-col overflow-auto">
+                <div class="flex items-center justify-between">
+                  <div class="text-[2.2vh] text-white/40">通用对局模式</div>
+                  <div class="text-[3.8vh] font-black text-yellow-400 flex items-center gap-[0.5vw]">
+                    <span class="text-[2.6vh]">💰</span> {{ pot }}
                   </div>
                 </div>
+                <div class="mt-[2vh] flex-1 flex flex-col items-center justify-center gap-[4vh]">
+                   <div class="text-center text-white/30">
+                      <div class="text-[8vh]">🎲</div>
+                      <div class="mt-[1vh] text-[2.2vh]">等待游戏数据...</div>
+                   </div>
+                </div>
               </div>
-              </template>
             </div>
 
-            <div class="rounded-[2vh] border border-white/10 bg-white/5 p-[2vh]">
+            <div v-if="!isWuziqiGame" class="rounded-[2vh] border border-white/10 bg-white/5 p-[2vh]">
               <div class="flex items-center justify-between">
-                <div class="text-[2.2vh] text-white/40">牌局状态</div>
+                <div class="text-[2.2vh] text-white/40">{{ isWeiqiGame || isBoardMoveGame || isWuziqiGame ? '棋局状态' : '牌局状态' }}</div>
                 <div class="text-[1.8vh] px-[1vw] py-[0.5vh] rounded-full border"
                      :class="isFinished ? 'border-red-500/30 bg-red-500/10 text-red-300' : 'border-green-500/30 bg-green-500/10 text-green-300'">
                   {{ isFinished ? '已结束' : '进行中' }}
                 </div>
               </div>
-              <div class="mt-[1.5vh] grid grid-cols-3 gap-[1.5vw] text-[2.3vh]">
+              <div class="mt-[1.5vh] grid gap-[1.5vw] text-[2.3vh]" :class="isWuziqiGame ? 'grid-cols-2' : 'grid-cols-3'">
                 <div class="rounded-[1.5vh] bg-black/30 p-[1.5vh]">
                   <div class="text-[1.8vh] text-white/40">在线玩家</div>
                   <div class="mt-[0.5vh] font-black">{{ onlineCount }}</div>
@@ -302,7 +334,7 @@
                   <div class="text-[1.8vh] text-white/40">存活玩家</div>
                   <div class="mt-[0.5vh] font-black">{{ activeCount }}</div>
                 </div>
-                <div class="rounded-[1.5vh] bg-black/30 p-[1.5vh]">
+                <div v-if="!isWuziqiGame" class="rounded-[1.5vh] bg-black/30 p-[1.5vh]">
                   <div class="text-[1.8vh] text-white/40">你的下注</div>
                   <div class="mt-[0.5vh] font-black">{{ myBet }}</div>
                 </div>
@@ -314,7 +346,7 @@
         <!-- 房间工具 (向右折叠) -->
         <div :class="[
           'border-l border-white/10 bg-white/5 overflow-hidden flex flex-col transition-all duration-300 ease-in-out',
-          collapsed.rightColumn ? 'w-[7vw] min-w-[6vh]' : 'w-[28vw] min-w-[25vw] max-w-[40vw]'
+          collapsed.rightColumn ? 'w-[7vw] min-w-[6vh]' : (isWuziqiGame ? 'w-[22vw] min-w-[18vw] max-w-[30vw]' : 'w-[28vw] min-w-[25vw] max-w-[40vw]')
         ]">
           <div class="h-[8vh] px-[1vw] border-b border-white/10 flex items-center" :class="collapsed.rightColumn ? 'justify-center' : 'justify-between px-[1.5vw]'">
             <div v-show="!collapsed.rightColumn" class="flex items-center gap-[0.5vw] overflow-hidden">
@@ -443,22 +475,56 @@
         </div>
       </div>
     </div>
+
+    <div v-if="toast.show" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[110] animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <div :class="[
+        'px-6 py-3 rounded-2xl shadow-xl backdrop-blur-md border font-bold text-sm',
+        toast.type === 'success' ? 'bg-green-500/20 border-green-500/30 text-green-400' : 'bg-red-500/20 border-red-500/30 text-red-400'
+      ]">
+        {{ toast.message }}
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch, reactive } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/utils/api';
 import { getSocket, initSocket } from '@/utils/socket';
 import { getImageUrl } from '@/utils/imageUrl';
+import { audioManager } from '@/utils/audio';
 import PokerCard from '@/components/PokerCard.vue';
+import DiceBoard from '@/components/games/boards/DiceBoard.vue';
 import GomokuBoard from '@/components/GomokuBoard.vue';
+import BoardGrid from '@/components/BoardGrid.vue';
+import MahjongTile from '@/components/MahjongTile.vue';
+import PokerControls from '@/components/games/controls/PokerControls.vue';
+import PokerBoard from '@/components/games/boards/PokerBoard.vue';
+import MahjongControls from '@/components/games/controls/MahjongControls.vue';
+import MahjongBoard from '@/components/games/boards/MahjongBoard.vue';
+import ChessControls from '@/components/games/controls/ChessControls.vue';
+import ChessBoard from '@/components/games/boards/ChessBoard.vue';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+
+const toast = reactive({
+  show: false,
+  message: '',
+  type: 'success' as 'success' | 'error',
+});
+
+function showToast(message: string, type: 'success' | 'error' = 'success') {
+  toast.message = message;
+  toast.type = type;
+  toast.show = true;
+  setTimeout(() => {
+    toast.show = false;
+  }, 3000);
+}
 
 const INACTIVITY_TIMEOUT = 10 * 60 * 1000;
 let inactivityTimer: any = null;
@@ -553,6 +619,13 @@ const kickMode = ref(false);
 const compareMode = ref(false);
 
 const betAmount = ref<number>(10);
+const diceBaoBetAmount = ref<number>(10);
+const diceBaoSelection = ref<'big' | 'small' | 'triple' | ''>('');
+
+const selectedCardIds = ref<string[]>([]);
+const selectedTileIds = ref<string[]>([]);
+const selectedFrom = ref<{ x: number; y: number } | null>(null);
+const junqiAutoSetupSeed = ref<number>(1);
 
 const currentUserId = computed(() => authStore.user?.id);
 const isOwner = computed(() => !!room.value && String(room.value.creator_id) === String(currentUserId.value));
@@ -576,6 +649,20 @@ const mySeen = computed(() => {
 
 const effectiveGameType = computed(() => room.value?.game_code || gameType.value);
 
+const isMahjongGame = computed(() => ['sichuan_mahjong', 'guangdong_mahjong', 'guobiao_mahjong', 'ren_mahjong'].includes(effectiveGameType.value));
+const isWeiqiGame = computed(() => effectiveGameType.value === 'weiqi');
+const isXiangqiGame = computed(() => effectiveGameType.value === 'xiangqi');
+const isInternationalChessGame = computed(() => effectiveGameType.value === 'international_chess');
+const isJunqiGame = computed(() => effectiveGameType.value === 'junqi');
+const isWuziqiGame = computed(() => effectiveGameType.value === 'wuziqi');
+const isBoardMoveGame = computed(() => isXiangqiGame.value || isInternationalChessGame.value || isJunqiGame.value);
+const isCardSelectPlayGame = computed(() => ['doudizhu', 'paodekuai'].includes(effectiveGameType.value));
+const isShengjiGame = computed(() => effectiveGameType.value === 'shengji');
+const isBlackjackGame = computed(() => effectiveGameType.value === 'blackjack');
+const isNiuniuGame = computed(() => effectiveGameType.value === 'niuniu');
+const isErbabanGame = computed(() => effectiveGameType.value === 'erbaban');
+const isDiceBaoGame = computed(() => effectiveGameType.value === 'touzi_bao');
+
 const shouldHideMyHand = computed(() => {
   if (isFinished.value) return false;
   if (effectiveGameType.value !== 'zhajinhua') return false;
@@ -592,6 +679,212 @@ const displayHand = computed(() => {
   }
   return hand;
 });
+
+const boardCols = computed(() => Number(stateSnapshot.value?.boardW || (isXiangqiGame.value ? 9 : isJunqiGame.value ? 5 : 8)));
+const boardRows = computed(() => Number(stateSnapshot.value?.boardH || (isXiangqiGame.value ? 10 : isJunqiGame.value ? 12 : 8)));
+
+const boardCellSize = computed(() => {
+  if (isXiangqiGame.value) return '4.9vh';
+  if (isInternationalChessGame.value) return '5.4vh';
+  if (isJunqiGame.value) return '4.4vh';
+  return '5.2vh';
+});
+
+const boardDisplay = computed(() => {
+  const b = stateSnapshot.value?.board;
+  if (!Array.isArray(b)) return [];
+  if (!isJunqiGame.value) return b;
+  const me = String(currentUserId.value || '');
+  const myColor = String(stateSnapshot.value?.redId) === me ? 'red' : String(stateSnapshot.value?.blackId) === me ? 'black' : null;
+  return b.map((row: any[]) =>
+    (row || []).map((cell: any) => {
+      if (!cell) return null;
+      if (!myColor) return cell;
+      const s = String(cell);
+      const isRed = s === s.toUpperCase() || s.startsWith('R');
+      const isMine = myColor === 'red' ? isRed : !isRed;
+      if (!isMine) return '?';
+      return cell;
+    })
+  );
+});
+
+function toggleCardSelection(cardId: any) {
+  const id = String(cardId || '');
+  if (!id) return;
+  if (isShengjiGame.value) {
+    selectedCardIds.value = selectedCardIds.value[0] === id ? [] : [id];
+    return;
+  }
+  if (!isCardSelectPlayGame.value) return;
+  if (selectedCardIds.value.includes(id)) selectedCardIds.value = selectedCardIds.value.filter((x) => x !== id);
+  else selectedCardIds.value = [...selectedCardIds.value, id];
+}
+
+function toggleTileSelection(tileId: any) {
+  const id = String(tileId || '');
+  if (!id) return;
+  if (!isMahjongGame.value) return;
+  if (selectedTileIds.value.includes(id)) selectedTileIds.value = selectedTileIds.value.filter((x) => x !== id);
+  else selectedTileIds.value = [...selectedTileIds.value, id];
+}
+
+function boardCellLabel(value: any) {
+  if (!value) return '';
+  if (value === '?') return '?';
+  if (isXiangqiGame.value) {
+    const p = String(value);
+    const isRed = p === p.toUpperCase();
+    const lower = p.toLowerCase();
+    const mapRed: Record<string, string> = { r: '车', n: '马', b: '相', a: '仕', k: '帅', c: '炮', p: '兵' };
+    const mapBlack: Record<string, string> = { r: '车', n: '马', b: '象', a: '士', k: '将', c: '炮', p: '卒' };
+    return isRed ? (mapRed[lower] || p) : (mapBlack[lower] || p);
+  }
+  if (isInternationalChessGame.value) {
+    const p = String(value);
+    const isWhite = p === p.toUpperCase();
+    const lower = p.toLowerCase();
+    const w: Record<string, string> = { k: '♔', q: '♕', r: '♖', b: '♗', n: '♘', p: '♙' };
+    const b: Record<string, string> = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
+    return isWhite ? (w[lower] || p) : (b[lower] || p);
+  }
+  if (isJunqiGame.value) {
+    const p = String(value);
+    const lower = p.toLowerCase();
+    if (lower === 'f') return '旗';
+    if (lower === 'm') return '雷';
+    if (lower === 'b') return '炸';
+    if (lower === 'e') return '工';
+    if (lower.length === 2 && lower[0] === 'r' && /^[2-9]$/.test(lower[1])) return lower[1];
+    return p;
+  }
+  return String(value);
+}
+
+function boardCellClass(value: any) {
+  if (!value) return 'text-white/20';
+  if (value === '?') return 'text-white/50';
+  const s = String(value);
+  if (isXiangqiGame.value) return s === s.toUpperCase() ? 'text-red-300' : 'text-white/90';
+  if (isInternationalChessGame.value) return s === s.toUpperCase() ? 'text-white' : 'text-white/90';
+  if (isJunqiGame.value) {
+    const isRed = s === s.toUpperCase() || s.startsWith('R');
+    return isRed ? 'text-red-300' : 'text-white/90';
+  }
+  return 'text-white';
+}
+
+function handleBoardCellClick(payload: { x: number; y: number }) {
+  if (isFinished.value) return;
+  if (!canAct.value) return;
+  if (!selectedFrom.value) {
+    selectedFrom.value = { x: payload.x, y: payload.y };
+    return;
+  }
+  const from = selectedFrom.value;
+  const to = { x: payload.x, y: payload.y };
+  selectedFrom.value = null;
+  emitAction('move', { from, to });
+}
+
+function handleWeiqiCellClick(payload: { x: number; y: number }) {
+  if (isFinished.value) return;
+  if (!canAct.value) return;
+  emitAction('place', { x: payload.x, y: payload.y });
+}
+
+function mahjongTileText(tile: any) {
+  if (!tile) return '';
+  const suit = String(tile.suit);
+  const rank = Number(tile.rank);
+  if (suit === 'm') return `${rank}万`;
+  if (suit === 'p') return `${rank}筒`;
+  if (suit === 's') return `${rank}条`;
+  if (suit === 'z') {
+    const map: Record<number, string> = { 1: '东', 2: '南', 3: '西', 4: '北', 5: '中', 6: '发', 7: '白' };
+    return map[rank] || `字${rank}`;
+  }
+  return `${suit}${tile.rank}`;
+}
+
+const mahjongLastDiscardTile = computed(() => stateSnapshot.value?.lastDiscard?.tile || null);
+const mahjongLastDiscardFrom = computed(() => stateSnapshot.value?.lastDiscard?.playerId || null);
+const mahjongSameTileIds = computed(() => {
+  const d = mahjongLastDiscardTile.value;
+  if (!d) return [];
+  if (String(mahjongLastDiscardFrom.value) === String(currentUserId.value)) return [];
+  const hand = Array.isArray(handInfo.value) ? handInfo.value : [];
+  return hand.filter((t: any) => String(t.suit) === String(d.suit) && Number(t.rank) === Number(d.rank)).map((t: any) => String(t.id));
+});
+
+const mahjongAutoPengIds = computed(() => mahjongSameTileIds.value.slice(0, 2));
+const mahjongAutoGangIds = computed(() => mahjongSameTileIds.value.slice(0, 3));
+const canMahjongPeng = computed(() => mahjongAutoPengIds.value.length === 2);
+const canMahjongGang = computed(() => mahjongAutoGangIds.value.length === 3);
+
+const mahjongAutoChiIds = computed(() => {
+  const d = mahjongLastDiscardTile.value;
+  if (!d) return [];
+  if (String(d.suit) === 'z') return [];
+  if (!canAct.value) return [];
+  if (String(mahjongLastDiscardFrom.value) === String(currentUserId.value)) return [];
+  const hand = Array.isArray(handInfo.value) ? handInfo.value : [];
+  const rank = Number(d.rank);
+  const suit = String(d.suit);
+  const pickId = (r: number) => String(hand.find((t: any) => String(t.suit) === suit && Number(t.rank) === r)?.id || '');
+
+  const candidates: Array<[number, number]> = [
+    [rank - 2, rank - 1],
+    [rank - 1, rank + 1],
+    [rank + 1, rank + 2]
+  ];
+  for (const [a, b] of candidates) {
+    if (a < 1 || b > 9) continue;
+    const id1 = pickId(a);
+    const id2 = pickId(b);
+    if (id1 && id2) return [id1, id2];
+  }
+  return [];
+});
+
+const canMahjongChi = computed(() => mahjongAutoChiIds.value.length === 2);
+
+const junqiMyReady = computed(() => {
+  if (!isJunqiGame.value) return true;
+  const r = stateSnapshot.value?.ready || {};
+  const me = String(currentUserId.value || '');
+  if (String(stateSnapshot.value?.redId) === me) return !!r.red;
+  if (String(stateSnapshot.value?.blackId) === me) return !!r.black;
+  return true;
+});
+
+function junqiAutoSetup() {
+  const me = String(currentUserId.value || '');
+  const isRed = String(stateSnapshot.value?.redId) === me;
+  const isBlack = String(stateSnapshot.value?.blackId) === me;
+  if (!isRed && !isBlack) return;
+  const pieces = ['F', 'B', 'B', 'M', 'M', 'M', 'E', '9', '8', '7', '6', '5', '4', '3', '2'];
+  const w = 5;
+  const h = 12;
+  const yMin = isRed ? 6 : 0;
+  const yMax = isRed ? 11 : 5;
+  const cells: Array<{ x: number; y: number }> = [];
+  for (let y = yMin; y <= yMax; y++) for (let x = 0; x < w; x++) cells.push({ x, y });
+
+  let seed = Math.max(1, Number(junqiAutoSetupSeed.value || 1));
+  const rand = () => {
+    seed = (seed * 48271) % 2147483647;
+    return seed / 2147483647;
+  };
+
+  for (let i = cells.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [cells[i], cells[j]] = [cells[j], cells[i]];
+  }
+
+  const placements = pieces.map((p, i) => ({ x: cells[i].x, y: cells[i].y, piece: p }));
+  emitAction('setup', { placements });
+}
 
 const myUnitBet = computed(() => {
   const base = Number(stateSnapshot.value?.currentBet || 0);
@@ -699,6 +992,11 @@ const sortedPlayers = computed(() => {
   return list;
 });
 
+const diceBaoRollerId = computed(() => {
+  const first = sortedPlayers.value[0];
+  return first?.user_id || first?.id || null;
+});
+
 function getPlayerNickname(userId: number | string) {
   if (!userId) return '未知';
   const p = roomPlayers.value.find(p => String(p.user_id || p.id) === String(userId));
@@ -727,6 +1025,11 @@ watch(() => stateSnapshot.value, (newVal) => {
   if (myUnitBet.value && (!betAmount.value || betAmount.value < myUnitBet.value)) {
     betAmount.value = myUnitBet.value;
   }
+
+  const hand = Array.isArray(handInfo.value) ? handInfo.value : [];
+  const idSet = new Set(hand.map((c: any) => String(c?.id || '')).filter(Boolean));
+  if (selectedCardIds.value.length) selectedCardIds.value = selectedCardIds.value.filter((id) => idSet.has(String(id)));
+  if (selectedTileIds.value.length) selectedTileIds.value = selectedTileIds.value.filter((id) => idSet.has(String(id)));
 }, { deep: true });
 
 function getPlayerBet(userId: number | string) {
@@ -840,6 +1143,8 @@ function ensureSocket() {
   return s;
 }
 
+let socketConnectHandler: (() => void) | null = null;
+
 function addLog(text: string) {
   actionLog.value.unshift({ id: `${Date.now()}-${Math.random()}`, text });
 }
@@ -848,12 +1153,25 @@ function bindSocketEvents() {
   const s = ensureSocket();
   if (!s) return;
 
-  s.emit('game:join_room', { roomId: roomId.value });
+  const joinSocketRoom = () => {
+    s.emit('game:join_room', { roomId: roomId.value });
+  };
 
-  s.on('game:player_joined', fetchRoomSafe);
+  socketConnectHandler = () => joinSocketRoom();
+  s.on('connect', socketConnectHandler);
+
+  joinSocketRoom();
+
+  s.on('game:player_joined', (payload: any) => {
+    audioManager.play('game_join');
+    fetchRoomSafe();
+  });
   s.on('game:player_left', fetchRoomSafe);
 
   s.on('game:player_ready', (data: any) => {
+    if (String(data.userId) !== String(currentUserId.value)) {
+      audioManager.play('game_ready');
+    }
     if (String(data.userId) === String(currentUserId.value)) {
       isReady.value = !!data.isReady;
     }
@@ -864,6 +1182,7 @@ function bindSocketEvents() {
 
   s.on('game:started', (payload: any) => {
     console.log('新对局已开始:', payload);
+    audioManager.play('game_start');
     if (resultTimer) clearInterval(resultTimer);
     if (startTimer) clearInterval(startTimer);
     startCountdown.value = null;
@@ -872,6 +1191,9 @@ function bindSocketEvents() {
     isReady.value = false;
     gameResult.value = null;
     handInfo.value = [];
+    selectedCardIds.value = [];
+    selectedTileIds.value = [];
+    selectedFrom.value = null;
     actionLog.value = [];
     if (payload.gameState) {
       stateSnapshot.value = payload.gameState;
@@ -882,6 +1204,7 @@ function bindSocketEvents() {
   });
 
   s.on('game:player_bet', (data: any) => {
+    audioManager.play('game_chip');
     const p = roomPlayers.value.find(p => String(p.user_id || p.id) === String(data.userId));
     if (p && data.chipsDeducted) {
       p.total_chips = Math.max(0, (p.total_chips || 0) - data.chipsDeducted);
@@ -889,6 +1212,9 @@ function bindSocketEvents() {
   });
 
   s.on('game:countdown', (data: any) => {
+    if (data.seconds <= 5) {
+      audioManager.play('game_timer');
+    }
     startCountdown.value = data.seconds;
     if (startTimer) clearInterval(startTimer);
     startTimer = setInterval(() => {
@@ -917,13 +1243,49 @@ function bindSocketEvents() {
     let text = `${name} 执行 ${action}`;
     if (action === 'call') text = `${name} 跟注 ${Number(amount || 0)}`;
     if (action === 'raise') text = `${name} 加注 ${Number(amount || 0)}`;
-    if (action === 'fold') text = `${name} 弃牌`;
+    if (action === 'fold') {
+      text = `${name} 弃牌`;
+      audioManager.play('game_fold');
+    }
     if (action === 'compare') text = `${name} 发起比牌`;
     if (action === 'see') text = `${name} 看牌`;
+    if (action === 'bid') text = `${name} 叫分 ${Number(payload.payload?.points ?? 0)}`;
+    if (action === 'play') {
+      const n = Array.isArray(payload.payload?.cardIds) ? payload.payload.cardIds.length : (payload.payload?.cardId ? 1 : 0);
+      text = `${name} 出牌 ${n ? `(${n})` : ''}`.trim();
+    }
+    if (action === 'pass') text = `${name} 过牌`;
+    if (action === 'surrender') text = `${name} 认输`;
+    if (action === 'move') text = `${name} 移动`;
+    if (action === 'place') text = `${name} 落子`;
+    if (action === 'discard') text = `${name} 弃牌`;
+    if (action === 'hu') {
+      text = `${name} 自摸胡`;
+      audioManager.play('game_win');
+    }
+    if (action === 'ron') {
+      text = `${name} 点炮胡`;
+      audioManager.play('game_win');
+    }
+    if (action === 'peng') text = `${name} 碰`;
+    if (action === 'chi') text = `${name} 吃`;
+    if (action === 'gang') text = `${name} 杠`;
+    if (action === 'hit') text = `${name} 要牌`;
+    if (action === 'stand') text = `${name} 停牌`;
+    if (action === 'double') text = `${name} 加倍`;
+    if (action === 'reveal') text = `${name} 亮牌`;
+    if (action === 'settle') text = `${name} 结算`;
+    if (action === 'roll') text = `${name} 掷骰`;
+    if (action === 'place_bet') {
+      text = `${name} 下注 ${payload.payload?.selection || ''} ${Number(payload.payload?.amount || 0)}`.trim();
+      audioManager.play('game_bet');
+    }
+    if (action === 'setup') text = `${name} 布阵`;
     actionLog.value.unshift({ id: `${Date.now()}-${Math.random()}`, text });
   });
 
   s.on('game:chat_message', (m: any) => {
+    audioManager.play('notify_msg');
     const id = String(m.id || `${Date.now()}-${Math.random()}`);
     const senderName = m.nickname || m.username || `用户${m.userId}`;
     chatMessages.value.push({ id, senderName, message: String(m.message || '') });
@@ -940,6 +1302,12 @@ function bindSocketEvents() {
     gameResult.value = result;
     showResultModal.value = true;
     resultCountdown.value = 10;
+    
+    if (String(result.winnerId) === String(currentUserId.value)) {
+      audioManager.play('game_win');
+    } else {
+      audioManager.play('game_lose');
+    }
     
     // 更新本场盈亏记录
     if (result && Array.isArray(result.results)) {
@@ -981,13 +1349,20 @@ function bindSocketEvents() {
   });
 
   s.on('game:error', (e: any) => {
-    if (e?.error) addLog(`错误：${e.error}`);
+    audioManager.play('ui_error');
+    const msg = String(e?.error || '操作失败');
+    addLog(`错误：${msg}`);
+    showToast(msg, 'error');
   });
 }
 
 function unbindSocketEvents() {
   const s = getSocket();
   if (!s) return;
+  if (socketConnectHandler) {
+    s.off('connect', socketConnectHandler);
+    socketConnectHandler = null;
+  }
   s.off('game:started');
   s.off('game:state_update');
   s.off('game:hand');

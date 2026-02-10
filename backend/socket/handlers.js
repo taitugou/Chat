@@ -642,7 +642,7 @@ export function initSocketHandlers(io, socket) {
   // WebRTC P2P Signaling
   socket.on('webrtc:signal', (data) => {
     (async () => {
-      const { targetId, signal, type, roomId } = data || {};
+      const { targetId, signal, type, roomId, usage } = data || {};
       if (!targetId && !roomId) return;
 
       const payload = {
@@ -650,6 +650,7 @@ export function initSocketHandlers(io, socket) {
         signal,
         type,
         roomId,
+        usage,
         timestamp: Date.now()
       };
 

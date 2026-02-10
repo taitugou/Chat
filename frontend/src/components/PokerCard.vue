@@ -66,6 +66,11 @@ const suitMap: Record<string, string> = {
 };
 
 const cardName = computed(() => {
+  if (String(props.suit).toUpperCase() === 'JOKER') {
+    const v = String(props.value || '').toUpperCase();
+    if (v === 'BJ') return 'joker_red';
+    return 'joker_black';
+  }
   const suitName = suitMap[props.suit] || props.suit;
   return `${suitName}_${props.value}`.toLowerCase();
 });

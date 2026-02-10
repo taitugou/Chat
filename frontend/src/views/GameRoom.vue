@@ -43,6 +43,7 @@
             <div class="space-y-2">
               <div class="text-xs text-white/40">玩法</div>
               <div class="text-sm font-semibold text-white/90">{{ room?.game_name || '未知' }}</div>
+              <div class="text-[10px] text-white/30 font-mono">{{ formatDateTime(room?.last_active_at) }}</div>
             </div>
             <div class="space-y-2">
               <div class="text-xs text-white/40">人数</div>
@@ -108,6 +109,68 @@
 
       <div class="space-y-6">
         <div class="glass-card p-6">
+          <div class="flex items-center justify-between">
+            <div class="text-base font-bold text-white/90">语音聊天</div>
+            <div class="flex items-center gap-2">
+              <button
+                class="glass-btn px-3 py-1.5 rounded-lg text-xs font-bold active:scale-95 transition-all"
+                @click="toggleVoice"
+              >
+                {{ voiceStarted ? '退出语音' : '加入语音' }}
+              </button>
+              <button
+                v-if="voiceStarted"
+                class="glass-btn px-3 py-1.5 rounded-lg text-xs font-bold active:scale-95 transition-all"
+                @click="toggleVoiceMute"
+              >
+                {{ voiceMuted ? '取消静音' : '静音' }}
+              </button>
+            </div>
+          </div>
+          <div class="mt-3 text-[12px] text-white/60">
+            已连接 {{ voicePeerIds.length }} 人
+          </div>
+          <div class="mt-2 text-[12px] text-white/40">
+            首次加入会请求麦克风权限
+          </div>
+        </div>
+
+        <div class="glass-card p-6">
+          <div class="flex items-center justify-between">
+            <div class="text-base font-bold text-white/90">房间聊天</div>
+            <div class="text-[12px] text-white/40">
+              {{ chatMessages.length }} 条
+            </div>
+          </div>
+          <div ref="chatListEl" class="mt-3 space-y-2 max-h-[240px] overflow-auto pr-1">
+            <div v-for="m in chatMessages" :key="m.id || (m.user_id + '-' + m.created_at)" class="text-[12px]">
+              <span class="text-white/70 font-semibold">
+                {{ m.nickname || m.username || ('用户' + m.user_id) }}
+              </span>
+              <span class="text-white/20 mx-2">·</span>
+              <span class="text-white/40">{{ formatDateTime(m.created_at || m.createdAt) }}</span>
+              <div class="text-white/80 mt-1 whitespace-pre-wrap break-words">{{ m.content || m.message }}</div>
+            </div>
+            <div v-if="chatLoading" class="text-[12px] text-white/30">加载中...</div>
+          </div>
+          <div class="mt-3 flex items-center gap-2">
+            <input
+              v-model="chatInput"
+              class="flex-1 glass px-3 py-2 rounded-xl text-[12px] outline-none"
+              placeholder="说点什么…"
+              @keydown.enter="sendRoomChat"
+            />
+            <button
+              class="glass-btn-primary px-4 py-2 rounded-xl text-[12px] font-bold active:scale-95 transition-all disabled:opacity-50"
+              :disabled="!chatInput.trim()"
+              @click="sendRoomChat"
+            >
+              发送
+            </button>
+          </div>
+        </div>
+
+        <div class="glass-card p-6">
           <div class="text-base font-bold text-white/90 mb-3">状态快照</div>
           <pre class="text-xs bg-black/40 p-3 rounded-xl overflow-auto max-h-[320px]">{{ safeJson(stateSnapshot) }}</pre>
         </div>
@@ -121,19 +184,44 @@
         </div>
       </div>
     </div>
+
+    <div v-if="toast.show" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <div :class="[
+        'px-6 py-3 rounded-2xl shadow-xl backdrop-blur-md border font-bold text-sm',
+        toast.type === 'success' ? 'bg-green-500/20 border-green-500/30 text-green-400' : 'bg-red-500/20 border-red-500/30 text-red-400'
+      ]">
+        {{ toast.message }}
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { ref, onMounted, onUnmounted, computed, nextTick, reactive } from 'vue';
+import { onBeforeRouteLeave, useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/utils/api';
 import { getSocket, initSocket } from '@/utils/socket';
+import { GameVoiceMesh } from '@/utils/gameVoice';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+
+const toast = reactive({
+  show: false,
+  message: '',
+  type: 'success' as 'success' | 'error',
+});
+
+function showToast(message: string, type: 'success' | 'error' = 'success') {
+  toast.message = message;
+  toast.type = type;
+  toast.show = true;
+  setTimeout(() => {
+    toast.show = false;
+  }, 3000);
+}
 
 // 无操作自动退出逻辑
 const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10分钟无操作自动退出
@@ -164,6 +252,9 @@ function removeInactivityListeners() {
 
 async function leaveRoomAndExit() {
   try {
+    voiceManager.value?.stop().catch(() => {});
+    const s = getSocket();
+    if (s) s.emit('game:leave_room', { roomId: roomId.value });
     await api.post('/rooms/leave-all');
   } catch (e) {
     console.warn('自动退出房间失败', e);
@@ -179,8 +270,19 @@ const recentEvents = ref<string[]>([]);
 const stateSnapshot = ref<any>({});
 const isOwner = ref(false);
 const refreshTimer = ref<any>(null);
+let socketConnectHandler: (() => void) | null = null;
 
 const currentUserId = computed(() => authStore.user?.id);
+
+const chatMessages = ref<any[]>([]);
+const chatInput = ref('');
+const chatLoading = ref(false);
+const chatListEl = ref<HTMLElement | null>(null);
+
+const voiceManager = ref<GameVoiceMesh | null>(null);
+const voiceStarted = ref(false);
+const voiceMuted = ref(false);
+const voicePeerIds = ref<string[]>([]);
 
 const isReady = computed(() => {
   const me = players.value.find(p => String(p.user_id) === String(currentUserId.value));
@@ -215,6 +317,14 @@ function safeJson(obj: any) {
   } catch {
     return String(obj);
   }
+}
+
+function formatDateTime(value: any) {
+  if (!value) return '-';
+  const d = value instanceof Date ? value : new Date(String(value));
+  if (Number.isNaN(d.getTime())) return String(value);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
 async function fetchRoom() {
@@ -258,6 +368,23 @@ async function fetchRoom() {
   }
 }
 
+async function fetchRoomChat() {
+  chatLoading.value = true;
+  try {
+    const res = await api.get(`/rooms/${roomId.value}/chat?limit=50`);
+    const messages = res.data?.messages;
+    if (Array.isArray(messages)) {
+      chatMessages.value = messages;
+      await nextTick();
+      if (chatListEl.value) chatListEl.value.scrollTop = chatListEl.value.scrollHeight;
+    }
+  } catch (e) {
+    console.warn('获取房间聊天记录失败', e);
+  } finally {
+    chatLoading.value = false;
+  }
+}
+
 function ensureSocket() {
   let s = getSocket();
   if (!s) {
@@ -267,12 +394,64 @@ function ensureSocket() {
   return s;
 }
 
+function ensureVoiceManager() {
+  const s = ensureSocket();
+  const uid = currentUserId.value;
+  if (!s || !uid) return null;
+  if (voiceManager.value) return voiceManager.value;
+  voiceManager.value = new GameVoiceMesh({
+    socket: s,
+    roomId: roomId.value,
+    selfId: uid,
+    onParticipantsChange: (ids) => {
+      voicePeerIds.value = ids;
+    },
+    onStatusChange: (st) => {
+      voiceStarted.value = st.started;
+      voiceMuted.value = st.muted;
+    }
+  });
+  return voiceManager.value;
+}
+
+async function toggleVoice() {
+  const mgr = ensureVoiceManager();
+  if (!mgr) return;
+  if (mgr.isStarted()) {
+    await mgr.stop();
+    return;
+  }
+  await mgr.start();
+}
+
+function toggleVoiceMute() {
+  const mgr = ensureVoiceManager();
+  if (!mgr) return;
+  mgr.setMuted(!mgr.isMuted());
+}
+
+async function sendRoomChat() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+  const s = ensureSocket();
+  if (!s) return;
+  s.emit('game:chat', { roomId: roomId.value, message: text, messageType: 'text' });
+  chatInput.value = '';
+}
+
 function bindSocketEvents() {
   const s = ensureSocket();
   if (!s) return;
 
-  s.emit('game:join_room', { roomId: roomId.value });
-  recentEvents.value.unshift(`emit game:join_room ${roomId.value}`);
+  const joinSocketRoom = () => {
+    s.emit('game:join_room', { roomId: roomId.value });
+    recentEvents.value.unshift(`emit game:join_room ${roomId.value}`);
+  };
+
+  socketConnectHandler = () => joinSocketRoom();
+  s.on('connect', socketConnectHandler);
+
+  joinSocketRoom();
 
   s.on('game:player_joined', (payload: any) => {
     recentEvents.value.unshift(`[player_joined] ${payload.userId}`);
@@ -348,11 +527,28 @@ function bindSocketEvents() {
     recentEvents.value.unshift(`[finished] ${safeJson(result)}`);
     stateSnapshot.value = { finished: true, result };
   });
+
+  s.on('game:chat_message', async (msg: any) => {
+    if (!msg || String(msg.roomId || msg.room_id) !== String(roomId.value)) return;
+    chatMessages.value.push(msg);
+    await nextTick();
+    if (chatListEl.value) chatListEl.value.scrollTop = chatListEl.value.scrollHeight;
+  });
+
+  s.on('game:error', (e: any) => {
+    const msg = String(e?.error || '操作失败');
+    recentEvents.value.unshift(`[error] ${msg}`);
+    showToast(msg, 'error');
+  });
 }
 
 function unbindSocketEvents() {
   const s = getSocket();
   if (!s) return;
+  if (socketConnectHandler) {
+    s.off('connect', socketConnectHandler);
+    socketConnectHandler = null;
+  }
   s.off('game:player_joined');
   s.off('game:player_left');
   s.off('game:owner_changed');
@@ -360,6 +556,8 @@ function unbindSocketEvents() {
   s.off('game:started');
   s.off('game:state_update');
   s.off('game:finished');
+  s.off('game:chat_message');
+  s.off('game:error');
 }
 
 function handleStartGame() {
@@ -384,6 +582,8 @@ function goToGameplay() {
 
 async function leaveRoom() {
   try {
+    const s = getSocket();
+    if (s) s.emit('game:leave_room', { roomId: roomId.value });
     await api.post('/rooms/leave-all');
   } catch (e) {
     console.warn('离开房间失败', e);
@@ -394,6 +594,7 @@ async function leaveRoom() {
 
 onMounted(async () => {
   await fetchRoom();
+  await fetchRoomChat();
   bindSocketEvents();
   setupInactivityListeners();
   resetInactivityTimer();
@@ -401,10 +602,19 @@ onMounted(async () => {
   // 每秒自动无感刷新房间数据
   refreshTimer.value = setInterval(() => {
     fetchRoom();
-  }, 1000);
+  }, 3000);
+});
+
+onBeforeRouteLeave((to) => {
+  if (to.name === 'GamePlay') return;
+  try {
+    const s = getSocket();
+    if (s) s.emit('game:leave_room', { roomId: roomId.value });
+  } catch {}
 });
 
 onUnmounted(() => {
+  voiceManager.value?.stop().catch(() => {});
   unbindSocketEvents();
   removeInactivityListeners();
   if (refreshTimer.value) {

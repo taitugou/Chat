@@ -7,6 +7,10 @@ const __dirname = dirname(__filename);
 
 dotenv.config({ path: join(__dirname, '.env') });
 
+const nodeEnv = process.env.NODE_ENV || 'development';
+const isProduction = nodeEnv === 'production';
+const ipv6Only = process.env.IPV6_ONLY === 'true';
+
 const rawCorsOrigins = process.env.CORS_ORIGIN || '*';
 const normalizedCorsOrigins = rawCorsOrigins
   .split(',')
@@ -16,12 +20,31 @@ const corsOrigin = normalizedCorsOrigins.length <= 1
   ? (normalizedCorsOrigins[0] || '*')
   : normalizedCorsOrigins;
 
+const resolveCorsOriginOption = (originOption) => {
+  if (originOption === '*') {
+    return (origin, callback) => callback(null, true);
+  }
+  return originOption;
+};
+
+const resolveServerHost = () => {
+  const rawHost = (process.env.HOST || '').trim();
+  if (!rawHost) return ipv6Only ? '::' : '0.0.0.0';
+
+  if (!isProduction && (rawHost === 'localhost' || rawHost === '127.0.0.1' || rawHost === '::1')) {
+    return ipv6Only ? '::' : '0.0.0.0';
+  }
+
+  return rawHost;
+};
+
 export const config = {
   // 服务器配置
   server: {
     port: parseInt(process.env.PORT || '888', 10),
-    host: process.env.HOST || '::',
-    env: process.env.NODE_ENV || 'development',
+    host: resolveServerHost(),
+    env: nodeEnv,
+    ipv6Only,
     trustProxy: process.env.TRUST_PROXY === 'true' ? true : (process.env.TRUST_PROXY === 'false' ? false : false),
     ssl: {
       enabled: process.env.SSL_ENABLED === 'true',
@@ -73,7 +96,7 @@ export const config = {
 
   // CORS配置
   cors: {
-    origin: corsOrigin,
+    origin: resolveCorsOriginOption(corsOrigin),
     credentials: true,
   },
 
@@ -81,7 +104,7 @@ export const config = {
   socketIO: {
     path: process.env.SOCKET_IO_PATH || '/socket.io',
     cors: {
-      origin: corsOrigin,
+      origin: resolveCorsOriginOption(corsOrigin),
       credentials: true,
     },
     transports: ['websocket'],

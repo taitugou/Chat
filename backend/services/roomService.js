@@ -195,7 +195,7 @@ export async function leaveRoom(userId, roomId) {
     }
     
     const [roomInfo] = await connection.query(
-      'SELECT creator_id, status FROM game_rooms WHERE id = ?',
+      'SELECT creator_id, status FROM game_rooms WHERE id = ? FOR UPDATE',
       [roomId]
     );
     const room = roomInfo[0];

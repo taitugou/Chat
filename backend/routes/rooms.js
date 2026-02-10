@@ -74,6 +74,7 @@ export default function roomsRoutes(io) {
       if (error.message === '房间不存在或已开始游戏' || 
           error.message === '房间已满' || 
           error.message === '房间密码错误' || 
+          error.message === '该房间需要房主同意才能进入' ||
           error.message === '已在房间中') {
         res.status(400).json({ success: false, message: error.message });
       } else {
@@ -233,34 +234,73 @@ export default function roomsRoutes(io) {
     try {
       const userId = req.user.id;
       const { roomId } = req.params;
-      
-      const [rooms] = await query(
-        'SELECT * FROM game_rooms WHERE id = ?',
-        [roomId]
-      );
-      
-      if (!rooms || rooms.length === 0) {
-        return res.status(404).json({ success: false, message: '房间不存在' });
+
+      const result = await transaction(async (connection) => {
+        const [rooms] = await connection.query(
+          'SELECT * FROM game_rooms WHERE id = ? FOR UPDATE',
+          [roomId]
+        );
+
+        if (!rooms || rooms.length === 0) {
+          return { status: 404, body: { success: false, message: '房间不存在' } };
+        }
+
+        const room = rooms[0];
+
+        if (String(room.creator_id) !== String(userId)) {
+          return { status: 403, body: { success: false, message: '只有创建者可以销毁房间' } };
+        }
+
+        await connection.query('DELETE FROM game_room_players WHERE room_id = ?', [roomId]);
+        await connection.query('DELETE FROM game_chat_messages WHERE room_id = ?', [roomId]);
+        await connection.query('DELETE FROM game_rooms WHERE id = ?', [roomId]);
+
+        return { status: 200, body: { success: true, message: '房间已销毁' } };
+      });
+
+      if (result.status !== 200) {
+        return res.status(result.status).json(result.body);
       }
-      
-      const room = rooms[0];
-      
-      if (room.creator_id !== userId) {
-        return res.status(403).json({ success: false, message: '只有创建者可以销毁房间' });
-      }
-      
-      await query('DELETE FROM game_room_players WHERE room_id = ?', [roomId]);
-      await query('DELETE FROM game_chat_messages WHERE room_id = ?', [roomId]);
-      await query('DELETE FROM game_rooms WHERE id = ?', [roomId]);
-      
+
       if (io) {
-        io.to(`game_room:${roomId}`).emit('game:room_destroyed', { roomId });
+        io.to(`game_room:${roomId}`).emit('game:room_destroyed', { roomId: parseInt(roomId) });
       }
-      
-      res.json({ success: true, message: '房间已销毁' });
+
+      res.json(result.body);
     } catch (error) {
       console.error('销毁房间失败:', error);
       res.status(500).json({ success: false, message: '销毁房间失败' });
+    }
+  });
+
+  router.get('/:roomId/chat', authenticate, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { roomId } = req.params;
+      const limitRaw = String(req.query.limit || '50');
+      const limit = Math.max(1, Math.min(200, parseInt(limitRaw, 10) || 50));
+
+      const [check] = await query('SELECT id FROM game_room_players WHERE room_id = ? AND user_id = ? LIMIT 1', [roomId, userId]);
+      if (!check || check.length === 0) {
+        return res.status(403).json({ success: false, message: '无权查看该房间聊天记录' });
+      }
+
+      const [rows] = await query(
+        `SELECT m.id, m.room_id, m.user_id, m.message_type, m.content, m.created_at,
+                u.username, u.nickname, u.avatar
+           FROM game_chat_messages m
+           JOIN users u ON u.id = m.user_id
+          WHERE m.room_id = ?
+          ORDER BY m.id DESC
+          LIMIT ?`,
+        [roomId, limit]
+      );
+
+      const messages = Array.isArray(rows) ? rows.slice().reverse() : [];
+      res.json({ success: true, messages });
+    } catch (error) {
+      console.error('获取房间聊天记录失败:', error);
+      res.status(500).json({ success: false, message: '获取聊天记录失败' });
     }
   });
 

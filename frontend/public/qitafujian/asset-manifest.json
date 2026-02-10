@@ -1,0 +1,50 @@
+{
+  "baseDir": "qitafujian",
+  "images": {
+    "brandLogo": "images/brand-logo.svg",
+    "svgs": [
+      "images/card-back.svg",
+      "images/chip-icon.svg",
+      "images/default-avatar.svg",
+      "images/default-cover.svg",
+      "images/empty-chat.svg",
+      "images/empty-data.svg",
+      "images/empty-game.svg",
+      "images/placeholder-post.svg",
+      "images/table-bg.svg"
+    ]
+  },
+  "audio": {
+    "wavs": [
+      "audio/call_busy.wav",
+      "audio/call_connect.wav",
+      "audio/call_end.wav",
+      "audio/call_ring_in.wav",
+      "audio/call_ring_out.wav",
+      "audio/game_allin.wav",
+      "audio/game_bet.wav",
+      "audio/game_card.wav",
+      "audio/game_check.wav",
+      "audio/game_chip.wav",
+      "audio/game_deal.wav",
+      "audio/game_fold.wav",
+      "audio/game_join.wav",
+      "audio/game_lose.wav",
+      "audio/game_ready.wav",
+      "audio/game_start.wav",
+      "audio/game_timer.wav",
+      "audio/game_turn.wav",
+      "audio/game_win.wav",
+      "audio/notify_match.wav",
+      "audio/notify_msg.wav",
+      "audio/notify_sys.wav",
+      "audio/pay_success.wav",
+      "audio/social_gift.wav",
+      "audio/social_like.wav",
+      "audio/social_vip.wav",
+      "audio/ui_click.wav",
+      "audio/ui_error.wav",
+      "audio/ui_success.wav"
+    ]
+  }
+}

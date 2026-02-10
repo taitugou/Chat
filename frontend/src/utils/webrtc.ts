@@ -1,4 +1,5 @@
 import { socket } from './socket';
+import { buildRtcConfiguration } from './rtcConfig';
 
 export interface P2PSignal {
   fromId: number;
@@ -6,6 +7,7 @@ export interface P2PSignal {
   type: 'offer' | 'answer' | 'candidate';
   roomId?: string;
   timestamp: number;
+  usage?: 'data' | 'media';
 }
 
 export interface P2PTransportInfo {
@@ -48,18 +50,14 @@ export class P2PConnection {
   private statsInterval: number | null = null;
   private onTransportInfo?: (info: P2PTransportInfo) => void;
 
-  private config: RTCConfiguration = {
-    iceServers: [],
-    iceCandidatePoolSize: 2,
-    bundlePolicy: 'max-bundle',
-    rtcpMuxPolicy: 'require'
-  };
+  private config: RTCConfiguration;
 
   constructor(
     targetId: number,
     onMessage: (data: any) => void,
     onStateChange: (state: RTCPeerConnectionState) => void,
     onTransportInfo?: (info: P2PTransportInfo) => void,
+    rtcConfigOverrides?: Partial<RTCConfiguration>,
     roomId?: string,
     selfId?: number
   ) {
@@ -67,6 +65,7 @@ export class P2PConnection {
     this.onMessageCallback = onMessage;
     this.onConnectionStateChange = onStateChange;
     this.onTransportInfo = onTransportInfo;
+    this.config = buildRtcConfiguration(rtcConfigOverrides || {});
     this.roomId = roomId;
     this.selfId = selfId;
     if (typeof selfId === 'number') {
@@ -89,6 +88,7 @@ export class P2PConnection {
 
     socket.on('webrtc:signal', async (data: P2PSignal) => {
       if (data.fromId !== this.targetId) return;
+      if (data.usage === 'media') return; // Ignore media signals
 
       try {
         if (data.type === 'offer') {
@@ -105,6 +105,7 @@ export class P2PConnection {
 
     socket.on('webrtc:call', (data: any) => {
       if (data.fromId === this.targetId) {
+        if (data.type && data.type !== 'data') return;
         if (this.pc?.connectionState === 'connected') return;
         const shouldInitiate = typeof this.selfId === 'number' ? this.selfId < this.targetId : true;
         if (shouldInitiate) {
@@ -119,10 +120,8 @@ export class P2PConnection {
 
     this.pc.onicecandidate = (event) => {
       if (event.candidate) {
-        const cand = event.candidate;
-        if (isIPv6HostCandidate(cand)) {
-          this.sendSignal('candidate', cand);
-        }
+        const candidateInit: RTCIceCandidateInit = (event.candidate as any)?.toJSON ? (event.candidate as any).toJSON() : (event.candidate as any);
+        this.sendSignal('candidate', candidateInit);
       }
     };
 
@@ -301,7 +300,6 @@ export class P2PConnection {
 
   private async handleCandidate(candidate: RTCIceCandidateInit) {
     if (!this.pc) return;
-    if (!isIPv6HostCandidate(candidate)) return;
     if (this.ignoreOffer) return;
     if (!this.pc.remoteDescription) {
       this.pendingCandidates.push(candidate);
@@ -526,15 +524,15 @@ export class P2PConnection {
   }
 
   public disconnect() {
-    if (this.dataChannel) this.dataChannel.close();
+    if (this.controlChannel) this.controlChannel.close();
     if (this.pc) this.pc.close();
     this.stopStatsMonitor();
     this.pc = null;
-    this.dataChannel = null;
+    this.controlChannel = null;
   }
 }
 
-function isIPv6HostCandidate(candidate: any): boolean {
+export function isIPv6HostCandidate(candidate: any): boolean {
   const candStr = typeof candidate === 'string' ? candidate : candidate?.candidate;
   if (!candStr || typeof candStr !== 'string') return false;
   if (!/\btyp\s+host\b/.test(candStr)) return false;

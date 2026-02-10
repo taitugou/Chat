@@ -426,6 +426,18 @@ async function ensureDatabaseColumns() {
       console.log('✓ 已添加 game_rooms.empty_at 字段');
     }
 
+    const [lastActiveColumns] = await connection.query(
+      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'game_rooms' AND COLUMN_NAME = 'last_active_at'`
+    );
+    
+    if (!lastActiveColumns || lastActiveColumns.length === 0) {
+      await connection.query(
+        `ALTER TABLE game_rooms ADD COLUMN last_active_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '最后活动时间'`
+      );
+      console.log('✓ 已添加 game_rooms.last_active_at 字段');
+    }
+
     // 检查并添加 is_visible 字段到核心表
     const coreTables = [
       'users', 'posts', 'post_comments', 'topics', 'roles', 'chat_groups', 'sponsorships',
@@ -448,6 +460,48 @@ async function ensureDatabaseColumns() {
           console.log(`✓ 已为 ${table} 表添加 is_visible 字段`);
         }
       }
+    }
+
+    const [oauthClientsTable] = await connection.query(`SHOW TABLES LIKE 'oauth_clients'`);
+    if (!oauthClientsTable || oauthClientsTable.length === 0) {
+      await connection.query(`
+        CREATE TABLE oauth_clients (
+          id BIGINT PRIMARY KEY AUTO_INCREMENT,
+          client_id VARCHAR(100) NOT NULL UNIQUE,
+          client_secret VARCHAR(255) NOT NULL,
+          client_name VARCHAR(100) NOT NULL,
+          redirect_uris TEXT NOT NULL,
+          redirect_blacklist TEXT DEFAULT NULL COMMENT '重定向地址黑名单，逗号分隔',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+      console.log('✓ 已创建 oauth_clients 表');
+    }
+
+    const [oauthCodesTable] = await connection.query(`SHOW TABLES LIKE 'oauth_codes'`);
+    if (!oauthCodesTable || oauthCodesTable.length === 0) {
+      await connection.query(`
+        CREATE TABLE oauth_codes (
+          id BIGINT PRIMARY KEY AUTO_INCREMENT,
+          code VARCHAR(100) NOT NULL UNIQUE,
+          client_id VARCHAR(100) NOT NULL,
+          user_id BIGINT NOT NULL,
+          redirect_uri TEXT NOT NULL,
+          expires_at TIMESTAMP NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+      console.log('✓ 已创建 oauth_codes 表');
+    }
+
+    if (config.server.env === 'development') {
+      await connection.query(
+        `INSERT INTO oauth_clients (client_id, client_secret, client_name, redirect_uris)
+         VALUES ('test_client', 'test_secret', '测试第三方应用', 'http://localhost:3000/callback')
+         ON DUPLICATE KEY UPDATE client_name = VALUES(client_name), redirect_uris = VALUES(redirect_uris);`
+      );
     }
 
     connection.release();
@@ -476,17 +530,34 @@ export async function query(sql, params) {
 
 export async function transaction(callback) {
   const pool = getPool();
-  const connection = await pool.getConnection();
-  
-  try {
-    await connection.beginTransaction();
-    const result = await callback(connection);
-    await connection.commit();
-    return result;
-  } catch (error) {
-    await connection.rollback();
-    throw error;
-  } finally {
-    connection.release();
+  const maxAttempts = 3;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      const result = await callback(connection);
+      await connection.commit();
+      return result;
+    } catch (error) {
+      try {
+        await connection.rollback();
+      } catch {}
+
+      const code = error?.code;
+      const errno = error?.errno;
+      const sqlState = error?.sqlState;
+      const isDeadlock = code === 'ER_LOCK_DEADLOCK' || errno === 1213 || sqlState === '40001';
+
+      if (isDeadlock && attempt < maxAttempts) {
+        const delayMs = 50 * attempt;
+        await new Promise((r) => setTimeout(r, delayMs));
+        continue;
+      }
+
+      throw error;
+    } finally {
+      connection.release();
+    }
   }
 }

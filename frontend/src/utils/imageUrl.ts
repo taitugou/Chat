@@ -6,7 +6,7 @@
  */
 export function getImageUrl(url: string | undefined | null, defaultUrl?: string): string {
   if (!url) {
-    return defaultUrl || '/api/user/avatar/default/U';
+    return defaultUrl || '/qitafujian/images/default-avatar.svg';
   }
   
   // 如果已经是绝对路径，直接返回

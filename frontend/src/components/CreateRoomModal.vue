@@ -107,21 +107,25 @@
             </div>
           </div>
 
-          <div class="flex gap-4 pt-4">
-            <button 
-              type="button" 
-              @click="$emit('close')" 
-              class="glass-btn flex-1 py-3"
-            >
-              取消
-            </button>
-            <button 
-              type="submit" 
-              class="glass-btn-primary flex-1 py-3"
-              :disabled="!isFormValid"
-            >
-              立即创建
-            </button>
+          <div class="flex flex-col gap-2 pt-4">
+            <div v-if="errorMsg" class="text-red-400 text-sm text-center animate-pulse">
+              {{ errorMsg }}
+            </div>
+            <div class="flex gap-4">
+              <button 
+                type="button" 
+                @click="$emit('close')" 
+                class="glass-btn flex-1 py-3"
+              >
+                取消
+              </button>
+              <button 
+                type="submit" 
+                class="glass-btn-primary flex-1 py-3"
+              >
+                立即创建
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -138,6 +142,8 @@ const emit = defineEmits<{
   (e: 'close'): void;
   (e: 'create', data: any): void;
 }>();
+
+const errorMsg = ref('');
 
 const games = ref([]);
 const selectedCategory = ref<string | null>(null);
@@ -210,11 +216,16 @@ async function fetchGames() {
 }
 
 watch(selectedCategory, () => {
+  if (errorMsg.value) errorMsg.value = '';
   if (!selectedCategory.value) return;
   if (!filteredGames.value.some((game: any) => Number(game.id) === Number(form.gameTypeId))) {
     form.gameTypeId = null;
   }
 });
+
+watch(form, () => {
+  if (errorMsg.value) errorMsg.value = '';
+}, { deep: true });
 
 watch(() => form.gameTypeId, (newId) => {
   if (!newId) return;
@@ -230,7 +241,40 @@ watch(() => form.gameTypeId, (newId) => {
 });
 
 function handleSubmit() {
-  if (!isFormValid.value) return;
+  errorMsg.value = '';
+
+  if (!form.name || form.name.trim().length < 2 || form.name.length > 20) {
+    errorMsg.value = "房间名称长度需要在2-20个字符之间";
+    return;
+  }
+
+  if (!form.gameTypeId) {
+    errorMsg.value = "请选择游戏";
+    return;
+  }
+
+  const playersValid = form.maxPlayers >= (selectedGame.value?.min_players || 2) && 
+                      form.maxPlayers <= (selectedGame.value?.max_players || 10);
+  if (!playersValid) {
+    errorMsg.value = `人数必须在 ${selectedGame.value?.min_players || 2}-${selectedGame.value?.max_players || 10} 之间`;
+    return;
+  }
+
+  if (form.minBet < 0 || form.maxBet < 0) {
+    errorMsg.value = "筹码限制不能为负数";
+    return;
+  }
+
+  if (form.maxBet > 0 && form.minBet > form.maxBet) {
+    errorMsg.value = "最低筹码不能大于最高筹码";
+    return;
+  }
+
+  if (!isFormValid.value) {
+    errorMsg.value = "请检查填写的信息是否正确";
+    return;
+  }
+
   emit('create', { ...form });
 }
 

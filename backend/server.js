@@ -35,6 +35,7 @@ import { socketAuth } from './middleware/socketAuth.js';
 import { startMessageConsumer } from './services/messageQueue.js';
 import { ensureDefaultGameTypes } from './services/ensureGameTypes.js';
 import { startRoomCleanupService } from './services/roomCleanupService.js';
+import { resetAllRoomPresence, startGameRoomPresenceService } from './services/gameRoomPresenceService.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -181,6 +182,11 @@ const startServer = async () => {
     await initDatabase();
     await ensureDefaultGameTypes();
     startRoomCleanupService();
+    try {
+      await resetAllRoomPresence();
+    } catch (error) {
+      console.error('[gameRoomPresence] 初始化离线重置失败:', error);
+    }
     
     // Initialize Redis connection
     await initRedis();
@@ -189,13 +195,14 @@ const startServer = async () => {
     const pubClient = createRedisClient();
     const subClient = pubClient.duplicate();
     io.adapter(createAdapter(pubClient, subClient));
+    startGameRoomPresenceService(io);
 
     // Start async message consumer
     startMessageConsumer(io);
     
-    const { port, host } = config.server;
+    const { port, host, ipv6Only } = config.server;
     const protocol = config.server.ssl.enabled ? 'https' : 'http';
-    httpServer.listen(port, host, () => {
+    httpServer.listen({ port, host, ipv6Only }, () => {
       console.log(`Server running on ${protocol}://${host === '::' ? 'localhost' : host}:${port}`);
       console.log(`Environment: ${config.server.env}`);
     });

@@ -83,6 +83,7 @@
                       <div class="space-y-1">
                         <h3 class="text-white font-bold group-hover:text-primary transition-colors">{{ room.name }}</h3>
                         <p class="text-white/40 text-xs tracking-wide uppercase">{{ room.game_name }}</p>
+                        <p class="text-white/30 text-[10px] font-mono">{{ formatDateTime(room.last_active_at) }}</p>
                       </div>
                       <div 
                         class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
@@ -314,6 +315,14 @@ function formatNumber(num: number) {
     return (num / 10000).toFixed(1) + '万';
   }
   return num.toString();
+}
+
+function formatDateTime(value: any) {
+  if (!value) return '-';
+  const d = value instanceof Date ? value : new Date(String(value));
+  if (Number.isNaN(d.getTime())) return String(value);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
 function goToProfile(username: string) {

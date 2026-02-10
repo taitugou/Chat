@@ -2,7 +2,7 @@
 
 ## 基础信息
 
-- **Base URL**: `http://localhost:3000/api`
+- **Base URL**: `https://taitugou.top:888/api`
 - **认证方式**: Bearer Token (JWT)
 - **请求格式**: JSON
 - **响应格式**: JSON

@@ -1,6 +1,9 @@
 import { query } from '../database/connection.js';
+import { getGame, deleteGame } from './gameRegistry.js';
+import { updateGameRecord } from './gameService.js';
 
-const DEFAULT_EMPTY_ROOM_TTL_HOURS = 6;
+const DEFAULT_EMPTY_ROOM_TTL_HOURS = 24;
+const DEFAULT_IDLE_ROOM_TTL_HOURS = 24;
 const DEFAULT_CLEANUP_INTERVAL_MS = 10 * 60 * 1000;
 
 let cleanupTimer = null;
@@ -36,18 +39,104 @@ async function cleanupExpiredEmptyRooms({ emptyRoomTtlHours }) {
   );
 }
 
+async function cleanupIdleRooms({ idleRoomTtlHours }) {
+  const ttlHours = Number(idleRoomTtlHours);
+  if (!Number.isFinite(ttlHours) || ttlHours <= 0) return;
+
+  const threshold = toMySqlDateTime(Date.now() - ttlHours * 60 * 60 * 1000);
+  const [expiredRooms] = await query(
+    `SELECT id, room_code
+     FROM game_rooms
+     WHERE last_active_at IS NOT NULL
+       AND last_active_at <= ?`,
+    [threshold]
+  );
+
+  if (!expiredRooms || expiredRooms.length === 0) return;
+
+  const roomIds = expiredRooms.map(r => r.id);
+  const placeholders = roomIds.map(() => '?').join(',');
+
+  await query(`DELETE FROM game_rooms WHERE id IN (${placeholders})`, roomIds);
+
+  console.log(
+    `[roomCleanup] 已清理闲置房间: ${expiredRooms.length} 个 (TTL=${ttlHours}h)`
+  );
+}
+
+async function fixZombieRooms() {
+  try {
+    // 查找状态为 playing 的房间
+    const [playingRooms] = await query(
+      `SELECT gr.id, gr.current_players,
+              (SELECT COUNT(*) FROM game_room_players WHERE room_id = gr.id) as real_player_count
+       FROM game_rooms gr
+       WHERE gr.status = 'playing'`
+    );
+
+    if (!playingRooms || playingRooms.length === 0) return;
+
+    for (const room of playingRooms) {
+      const roomId = room.id;
+      const realCount = room.real_player_count;
+      
+      // Case 1: 房间内无人 (real_player_count == 0)
+      if (realCount === 0) {
+        console.log(`[roomCleanup] 发现僵尸房间 ${roomId} (0人但显示游戏中)，正在修复...`);
+        
+        // 尝试清理内存游戏实例并结束游戏记录
+        const game = getGame(roomId);
+        if (game) {
+            try {
+                await updateGameRecord(game.gameId, {
+                  status: 'aborted',
+                  totalPot: game.pot || 0,
+                  gameData: (typeof game.getGameState === 'function') ? game.getGameState() : {}
+                });
+            } catch(e) {
+                console.error(`[roomCleanup] 结束僵尸游戏记录失败:`, e);
+            }
+            deleteGame(roomId);
+        }
+        
+        // 强制重置房间状态
+        await query(
+          `UPDATE game_rooms 
+           SET status = 'waiting', current_players = 0, empty_at = NOW(), last_active_at = NOW() 
+           WHERE id = ?`, 
+          [roomId]
+        );
+      } 
+      // Case 2: 数据库显示 playing，但内存中没有游戏实例 (可能是服务器重启导致)
+      else if (!getGame(roomId)) {
+         console.log(`[roomCleanup] 发现状态不一致房间 ${roomId} (数据库playing但内存无实例)，重置为waiting...`);
+         await query(
+          `UPDATE game_rooms SET status = 'waiting' WHERE id = ?`, 
+          [roomId]
+        );
+      }
+    }
+  } catch (error) {
+    console.error('[roomCleanup] 修复僵尸房间失败:', error);
+  }
+}
+
 export function startRoomCleanupService(options = {}) {
   const emptyRoomTtlHours =
     options.emptyRoomTtlHours ?? DEFAULT_EMPTY_ROOM_TTL_HOURS;
+  const idleRoomTtlHours =
+    options.idleRoomTtlHours ?? DEFAULT_IDLE_ROOM_TTL_HOURS;
   const intervalMs = options.intervalMs ?? DEFAULT_CLEANUP_INTERVAL_MS;
 
   if (cleanupTimer) return;
 
   const tick = async () => {
     try {
+      await fixZombieRooms();
       await cleanupExpiredEmptyRooms({ emptyRoomTtlHours });
+      await cleanupIdleRooms({ idleRoomTtlHours });
     } catch (error) {
-      console.error('[roomCleanup] 清理空房间失败:', error);
+      console.error('[roomCleanup] 清理房间失败:', error);
     }
   };
 
