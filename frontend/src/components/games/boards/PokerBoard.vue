@@ -67,7 +67,12 @@
              <button class="text-[1.8vh] text-white/50 hover:text-white bg-black/20 px-[1vh] rounded" @click="sortHand('rank')">按点数排序</button>
              <button class="text-[1.8vh] text-white/50 hover:text-white bg-black/20 px-[1vh] rounded" @click="sortHand('suit')">按花色排序</button>
           </div>
-          <transition-group name="deal" tag="div" class="flex flex-wrap justify-center gap-[2vw]">
+          <transition-group
+            name="deal"
+            tag="div"
+            class="flex flex-wrap justify-center"
+            :class="gameType === 'zhajinhua' ? 'gap-[1vw]' : 'gap-[2vw]'"
+          >
             <div
               v-for="(card, idx) in sortedDisplayHand"
               :key="card.id || idx"
@@ -78,7 +83,7 @@
                 :suit="card.suit"
                 :value="card.rank"
                 :is-flipped="shouldHideMyHand"
-                size="lg"
+                :size="handCardSize"
                 :clickable="isCardSelectPlayGame || isShengjiGame"
                 @click="toggleCardSelection(card.id)"
               />
@@ -86,8 +91,8 @@
           </transition-group>
         </div>
         <div v-else class="text-center text-white/30">
-          <div v-if="gameType === 'zhajinhua'" class="flex gap-[2.5vw] justify-center">
-            <PokerCard v-for="n in 3" :key="n" :is-flipped="true" size="lg" />
+          <div v-if="gameType === 'zhajinhua'" class="flex gap-[1.8vw] justify-center">
+            <PokerCard v-for="n in 3" :key="n" :is-flipped="true" :size="handCardSize" />
           </div>
           <template v-else>
             <div class="text-[8vh]">🃏</div>
@@ -158,6 +163,11 @@ watch(() => props.gameState?.communityCards?.length, (newVal, oldVal) => {
 const emit = defineEmits(['update:selectedCardIds']);
 
 const sortMode = ref<'rank' | 'suit'>('rank');
+
+const handCardSize = computed<'sm' | 'md' | 'lg'>(() => {
+  if (props.gameType === 'zhajinhua') return 'md';
+  return 'lg';
+});
 
 const sortedDisplayHand = computed(() => {
   if (!props.displayHand) return [];

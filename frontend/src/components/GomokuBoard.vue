@@ -234,12 +234,15 @@ onUnmounted(() => {
       >
         <div
           class="grid w-full h-full"
-          :style="{ gridTemplateColumns: `repeat(${boardSize}, 1fr)` }"
+          :style="{
+            gridTemplateColumns: `repeat(${boardSize}, 1fr)`,
+            gridTemplateRows: `repeat(${boardSize}, 1fr)`
+          }"
         >
           <div
             v-for="(_, i) in boardSize * boardSize"
             :key="i"
-            class="relative border border-black/20 flex items-center justify-center cursor-pointer hover:bg-black/5"
+            class="relative border border-black/20 flex items-center justify-center cursor-pointer hover:bg-black/5 aspect-square"
             @click="handleMouseCellClick($event, i % boardSize, Math.floor(i / boardSize))"
             @pointerup="handleCellPointerUp($event, i % boardSize, Math.floor(i / boardSize))"
           >

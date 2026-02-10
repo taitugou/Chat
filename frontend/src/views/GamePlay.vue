@@ -317,29 +317,6 @@
               </div>
             </div>
 
-            <div v-if="!isWuziqiGame" class="rounded-[2vh] border border-white/10 bg-white/5 p-[2vh]">
-              <div class="flex items-center justify-between">
-                <div class="text-[2.2vh] text-white/40">{{ isWeiqiGame || isBoardMoveGame || isWuziqiGame ? '棋局状态' : '牌局状态' }}</div>
-                <div class="text-[1.8vh] px-[1vw] py-[0.5vh] rounded-full border"
-                     :class="isFinished ? 'border-red-500/30 bg-red-500/10 text-red-300' : 'border-green-500/30 bg-green-500/10 text-green-300'">
-                  {{ isFinished ? '已结束' : '进行中' }}
-                </div>
-              </div>
-              <div class="mt-[1.5vh] grid gap-[1.5vw] text-[2.3vh]" :class="isWuziqiGame ? 'grid-cols-2' : 'grid-cols-3'">
-                <div class="rounded-[1.5vh] bg-black/30 p-[1.5vh]">
-                  <div class="text-[1.8vh] text-white/40">在线玩家</div>
-                  <div class="mt-[0.5vh] font-black">{{ onlineCount }}</div>
-                </div>
-                <div class="rounded-[1.5vh] bg-black/30 p-[1.5vh]">
-                  <div class="text-[1.8vh] text-white/40">存活玩家</div>
-                  <div class="mt-[0.5vh] font-black">{{ activeCount }}</div>
-                </div>
-                <div v-if="!isWuziqiGame" class="rounded-[1.5vh] bg-black/30 p-[1.5vh]">
-                  <div class="text-[1.8vh] text-white/40">你的下注</div>
-                  <div class="mt-[0.5vh] font-black">{{ myBet }}</div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 

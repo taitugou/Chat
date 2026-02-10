@@ -1,13 +1,15 @@
-# 测试素材库说明（SVG Testkit）
+# 测试素材库说明（SVG Testkit，历史文档）
 文档版本：v0.1.0  
 关联应用版本：ttg-chat v1.0.0  
-最后更新：2026-02-08  
+最后更新：2026-02-10  
 范围：仅“房间对局模块”（房间页/对局页/语音/局内聊天/状态与错误提示）
 
-素材目录：
-- [testkit-icons.svg](file:///f:/C/frontend/src/assets/testkit/testkit-icons.svg)
-- [testkit-widgets.svg](file:///f:/C/frontend/src/assets/testkit/testkit-widgets.svg)
-- [testkit-overlays.svg](file:///f:/C/frontend/src/assets/testkit/testkit-overlays.svg)
+说明：仓库内的 SVG Testkit 素材已移除（未被生产代码引用），本文仅保留为“测试占位素材命名与用法规范”的参考。
+
+素材文件（已移除，名称保留）：
+- testkit-icons.svg
+- testkit-widgets.svg
+- testkit-overlays.svg
 
 ---
 
@@ -65,5 +67,4 @@
 
 ## 4. 资产使用方式（测试建议）
 - 这些 SVG 是“测试占位素材库”，用于：视觉回归截图、交互热区核对、错误态/弱网态覆盖。
-- 默认不要求接入生产 UI；若需要接入，可把 symbol 引用进组件或在测试环境下替换图标源。
-
+- 默认不要求接入生产 UI；若需要重新引入，可在 `frontend/src/assets/` 下新增 `testkit/` 目录并按本文命名导入或以 symbol 方式使用。

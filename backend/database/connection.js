@@ -499,7 +499,7 @@ async function ensureDatabaseColumns() {
     if (config.server.env === 'development') {
       await connection.query(
         `INSERT INTO oauth_clients (client_id, client_secret, client_name, redirect_uris)
-         VALUES ('test_client', 'test_secret', '测试第三方应用', 'http://localhost:3000/callback')
+         VALUES ('test_client', 'test_secret', '测试第三方应用', '*')
          ON DUPLICATE KEY UPDATE client_name = VALUES(client_name), redirect_uris = VALUES(redirect_uris);`
       );
     }

@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS oauth_codes (
 -- 插入一个测试客户端
 -- Client ID: test_client
 -- Client Secret: test_secret
--- Redirect URI: http://localhost:3000/callback (示例：第三方应用自己的回调地址，可按需修改为生产域名)
+-- Redirect URI: * (允许任意回调地址；生产环境建议配置为精确回调地址或前缀通配)
 INSERT INTO oauth_clients (client_id, client_secret, client_name, redirect_uris)
-VALUES ('test_client', 'test_secret', '测试第三方应用', 'http://localhost:3000/callback')
+VALUES ('test_client', 'test_secret', '测试第三方应用', '*')
 ON DUPLICATE KEY UPDATE client_name = VALUES(client_name), redirect_uris = VALUES(redirect_uris);

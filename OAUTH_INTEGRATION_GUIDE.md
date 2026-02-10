@@ -20,7 +20,7 @@
 
 当用户点击“使用 TTG 账号登录”时，您的网站应将用户重定向至本系统的授权地址：
 
-```
+```http
 GET https://taitugou.top:888/oauth/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&scope=userinfo&state=YOUR_STATE
 ```
 
@@ -38,8 +38,8 @@ GET https://taitugou.top:888/oauth/authorize?client_id=YOUR_CLIENT_ID&redirect_u
 
 用户同意授权后，本系统会重定向回您的 `redirect_uri`，并带上 `code` 参数：
 
-```
-http://YOUR_REDIRECT_URI?code=AUTHORIZATION_CODE&state=YOUR_STATE
+```text
+YOUR_REDIRECT_URI?code=AUTHORIZATION_CODE&state=YOUR_STATE
 ```
 
 ### 第三步：使用授权码换取 Access Token
@@ -105,6 +105,17 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 | 401 | `客户端认证失败` | `client_id` 或 `client_secret` 错误 |
 | 401 | `未提供认证令牌` / `无效的令牌` | Access Token 缺失、错误 or 已过期 |
 | 404 | `客户端不存在` | 找不到对应的 `client_id` |
+
+### 重定向 URI 白名单规则
+
+服务端会对 `redirect_uri` 做白名单/黑名单校验，避免授权码被劫持到非预期地址：
+
+- 白名单来源：`oauth_clients.redirect_uris`（逗号分隔）
+- 黑名单来源：`oauth_clients.redirect_blacklist`（逗号分隔，优先级高于白名单）
+- 支持通配：
+  - `*`：允许任意 `redirect_uri`
+  - 以 `*` 结尾：按前缀匹配，例如 `http://localhost:3000/*`
+- 全局放开（不推荐生产）：设置环境变量 `OAUTH_ALLOW_ANY_REDIRECT_URI=true`，跳过白名单校验（仍建议保留黑名单兜底）
 
 ## 4. 安全建议
 

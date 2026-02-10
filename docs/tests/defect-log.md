@@ -5,8 +5,8 @@
 范围：仅“房间对局模块”
 
 使用说明：
-- 每个缺陷必须关联至少 1 条规则条目（gamerules）或用例（test_cases）。
-- 每次修复合入后，在本表更新“状态/修复版本/验证结果”，并在 fix_verification.md 留痕。
+- 每个缺陷必须关联至少 1 条规则条目（[游戏规则总览](../../gamerules.md)）或用例（[测试用例](./test-cases.md)）。
+- 每次修复合入后，在本表更新“状态/修复版本/验证结果”，并在 [修复与回归验证报告](./fix-verification.md) 留痕。
 
 状态枚举：New / Triaged / In Progress / Fixed / Verified / Won’t Fix / Duplicate
 

@@ -14,7 +14,7 @@ const router = express.Router();
  */
 const normalizeUri = (uri) => {
   if (!uri) return '';
-  return uri.trim().replace(/^https?:\/\//i, '').replace(/\/$/, '');
+  return uri.trim().replace(/^https?:\/\//i, '').replace(/\/+$/, '');
 };
 
 const parseRedirectUris = (redirectUris) => {
@@ -25,10 +25,25 @@ const parseRedirectUris = (redirectUris) => {
     .filter(Boolean);
 };
 
+const normalizeRedirectPattern = (uri) => {
+  const raw = String(uri || '').trim();
+  if (!raw) return '';
+  if (raw === '*') return '*';
+  if (raw.endsWith('*')) return `${normalizeUri(raw.slice(0, -1))}*`;
+  return normalizeUri(raw);
+};
+
 const isAllowedRedirectUri = (requestedUri, allowedUris) => {
+  if (config.oauth?.allowAnyRedirectUri) return true;
   if (!requestedUri) return false;
   const normalizedRequestUri = normalizeUri(requestedUri);
-  return allowedUris.some((u) => normalizeUri(u) === normalizedRequestUri);
+  return allowedUris.some((u) => {
+    const pattern = normalizeRedirectPattern(u);
+    if (!pattern) return false;
+    if (pattern === '*') return true;
+    if (pattern.endsWith('*')) return normalizedRequestUri.startsWith(pattern.slice(0, -1));
+    return pattern === normalizedRequestUri;
+  });
 };
 
 /**

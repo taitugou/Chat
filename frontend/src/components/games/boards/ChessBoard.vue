@@ -31,7 +31,7 @@
       >
         <template #cell="{ value }">
           <transition name="chess-piece" mode="out-in">
-             <span :key="value" class="text-[2.4vh] font-black inline-block" :class="boardCellClass(value)">{{ boardCellLabel(value) }}</span>
+             <span :key="value" class="text-[2.4vh] font-black inline-block leading-none" :class="boardCellClass(value)">{{ boardCellLabel(value) }}</span>
           </transition>
         </template>
       </BoardGrid>

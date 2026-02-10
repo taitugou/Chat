@@ -87,15 +87,16 @@ export class JunqiGame extends AbstractBoardGame {
         i += 1;
       }
     };
-    const redPiecesTop = ['M', 'E', '7', 'M', '6'];
-    const redPiecesBottom = ['4', 'F', 'B', 'B', '5'];
-    const blackPiecesTop = ['4', 'f', 'b', 'b', '5'];
-    const blackPiecesBottom = ['m', 'e', '7', 'm', '6'];
+    const redPieces = [...this.requiredPieces];
+    const blackPieces = [...this.requiredPieces];
 
-    placeRow(11, redPiecesBottom, 'red');
-    placeRow(10, redPiecesTop, 'red');
-    placeRow(0, blackPiecesTop, 'black');
-    placeRow(1, blackPiecesBottom, 'black');
+    placeRow(11, redPieces.slice(0, 5), 'red');
+    placeRow(10, redPieces.slice(5, 10), 'red');
+    placeRow(9, redPieces.slice(10, 15), 'red');
+
+    placeRow(0, blackPieces.slice(0, 5), 'black');
+    placeRow(1, blackPieces.slice(5, 10), 'black');
+    placeRow(2, blackPieces.slice(10, 15), 'black');
 
     this.ready = { red: true, black: true };
     this.phase = 'playing';

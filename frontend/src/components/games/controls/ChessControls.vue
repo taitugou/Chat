@@ -13,7 +13,7 @@
               @click="$emit('action', 'settle')">
         数子结算
       </button>
-      <button class="glass-btn py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] text-red-300 active:scale-95 transition-all disabled:opacity-40"
+      <button class="glass-btn w-full px-[2.6vh] py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] text-red-300 active:scale-95 transition-all disabled:opacity-40"
               :disabled="isFinished"
               @click="$emit('action', 'surrender')">
         认输
@@ -37,7 +37,7 @@
       </div>
       <div v-else class="space-y-[1.2vh]">
         <div class="text-[1.9vh] text-white/50 text-center">点击棋盘选择起点，再点终点移动</div>
-        <button class="glass-btn py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] text-red-300 active:scale-95 transition-all disabled:opacity-40"
+        <button class="glass-btn w-full px-[2.6vh] py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] text-red-300 active:scale-95 transition-all disabled:opacity-40"
                 :disabled="isFinished"
                 @click="$emit('action', 'surrender')">
           认输

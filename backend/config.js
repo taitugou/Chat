@@ -116,6 +116,10 @@ export const config = {
     httpCompression: true,
     maxHttpBufferSize: 1e7
   },
+
+  oauth: {
+    allowAnyRedirectUri: process.env.OAUTH_ALLOW_ANY_REDIRECT_URI === 'true',
+  },
 };
 
 export default config;

@@ -8,7 +8,7 @@
         v-for="cell in cells"
         :key="cell.key"
         type="button"
-        class="relative flex items-center justify-center rounded-[0.9vh] border border-white/10 bg-white/5 text-[2.1vh] font-black transition-all active:scale-95"
+        class="relative flex items-center justify-center rounded-[0.9vh] border border-white/10 bg-white/5 p-0 text-center text-[2.1vh] font-black leading-none transition-all active:scale-95"
         :class="isSelected(cell.x, cell.y) ? 'ring-2 ring-primary/70 border-primary/40 bg-primary/10' : ''"
         :style="{ width: cellSize, height: cellSize }"
         @click="$emit('cellClick', { x: cell.x, y: cell.y, value: cell.value })"
@@ -58,4 +58,3 @@ function isSelected(x: number, y: number) {
   return !!props.selected && props.selected.x === x && props.selected.y === y;
 }
 </script>
-

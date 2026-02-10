@@ -5,11 +5,11 @@
 范围：仅“房间对局模块”（房间、对局、筹码、语音、局内聊天、断线重连、多端并发）
 
 关联文档：
-- [gamerules.md](file:///f:/C/gamerules.md)
-- [rules_research.md](file:///f:/C/rules_research.md)
-- [test_baseline.md](file:///f:/C/test_baseline.md)
-- [ui_spec_ios.md](file:///f:/C/ui_spec_ios.md)
-- [assets_guide.md](file:///f:/C/assets_guide.md)
+- [游戏规则总览](../../gamerules.md)
+- [通行规则差异登记](../../rules_research.md)
+- [测试基线](./test-baseline.md)
+- [iOS UI 规范](../ui/ios-ui-spec.md)
+- [测试素材（历史）](./assets-testkit-history.md)
 
 ---
 

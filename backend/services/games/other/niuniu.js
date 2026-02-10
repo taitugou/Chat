@@ -85,11 +85,13 @@ export class NiuniuGame {
 
     for (const pid of this.playerIds) {
       this.hands[pid] = this.deck.dealMultiple(5);
-      this.playerBets[pid] = this.baseBet;
-      this.playerTotalSpent[pid] = this.baseBet;
+      const isBanker = String(pid) === String(this.bankerId);
+      const bet = isBanker ? this.baseBet * Math.max(1, this.playerIds.length - 1) : this.baseBet;
+      this.playerBets[pid] = bet;
+      this.playerTotalSpent[pid] = bet;
       this.playerStatus[pid] = 'active';
       this.playerRevealed[pid] = false;
-      this.pot += this.baseBet;
+      this.pot += bet;
     }
   }
 
@@ -112,33 +114,35 @@ export class NiuniuGame {
     const bankerId = this.bankerId;
     const bankerHand = this.hands[bankerId];
     const results = [];
-
-    let bankerNet = 0;
+    let paidOut = 0;
     for (const pid of this.playerIds) {
       if (String(pid) === String(bankerId)) continue;
       const bet = Number(this.playerBets[pid] || 0);
       const cmp = compareHands(this.hands[pid], bankerHand);
       if (cmp > 0) {
+        const payout = bet * 2;
         results.push({
           userId: pid,
-          chipsChange: bet * 2,
+          chipsChange: payout,
           totalSpent: this.playerTotalSpent[pid] || 0,
           position: 2,
           status: 'win',
           niu: bestNiuValue(this.hands[pid]),
           hand: this.hands[pid],
         });
-        bankerNet -= bet;
+        paidOut += payout;
       } else if (cmp === 0) {
+        const payout = bet;
         results.push({
           userId: pid,
-          chipsChange: bet,
+          chipsChange: payout,
           totalSpent: this.playerTotalSpent[pid] || 0,
           position: 2,
           status: 'push',
           niu: bestNiuValue(this.hands[pid]),
           hand: this.hands[pid],
         });
+        paidOut += payout;
       } else {
         results.push({
           userId: pid,
@@ -149,12 +153,11 @@ export class NiuniuGame {
           niu: bestNiuValue(this.hands[pid]),
           hand: this.hands[pid],
         });
-        bankerNet += bet;
       }
     }
 
-    const bankerBet = Number(this.playerBets[bankerId] || 0);
-    const bankerPayout = Math.max(0, bankerBet + bankerNet + bankerBet);
+    const bankerPayout = Math.max(0, Number(this.pot || 0) - paidOut);
+    paidOut += bankerPayout;
 
     results.push({
       userId: bankerId,
@@ -212,4 +215,3 @@ export class NiuniuGame {
     };
   }
 }
-

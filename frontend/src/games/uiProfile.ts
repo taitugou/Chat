@@ -48,6 +48,17 @@ export function getGameUiProfile(gameType: string): GameUiProfile {
     };
   }
 
+  if (t === 'zhajinhua') {
+    return {
+      category,
+      prefersLandscape: true,
+      autoCollapsePanelsBelowPx: 1100,
+      leftPanelWidth: 'w-[24vw] min-w-[20vw] max-w-[34vw]',
+      rightPanelWidth: 'w-[24vw] min-w-[20vw] max-w-[34vw]',
+      compactPanelWidth: 'w-[7vw] min-w-[6vh]',
+    };
+  }
+
   if (category === 'chess') {
     return {
       category,
@@ -101,4 +112,3 @@ export function getGameUiProfile(gameType: string): GameUiProfile {
     compactPanelWidth: 'w-[7vw] min-w-[6vh]',
   };
 }
-
