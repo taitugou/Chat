@@ -33,8 +33,35 @@ const normalizeRedirectPattern = (uri) => {
   return normalizeUri(raw);
 };
 
+const isLocalOrPrivateRedirectUri = (uri) => {
+  try {
+    const url = new URL(String(uri));
+    const hostname = (url.hostname || '').trim().toLowerCase();
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '0.0.0.0' ||
+      hostname === '::1' ||
+      hostname.endsWith('.local')
+    ) {
+      return true;
+    }
+
+    const isPrivateIpv4 =
+      /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname) ||
+      /^192\.168\.\d{1,3}\.\d{1,3}$/.test(hostname) ||
+      /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname);
+    if (isPrivateIpv4) return true;
+
+    return false;
+  } catch {
+    return false;
+  }
+};
+
 const isAllowedRedirectUri = (requestedUri, allowedUris) => {
   if (config.oauth?.allowAnyRedirectUri) return true;
+  if (config.oauth?.allowLocalRedirectUri && isLocalOrPrivateRedirectUri(requestedUri)) return true;
   if (!requestedUri) return false;
   const normalizedRequestUri = normalizeUri(requestedUri);
   return allowedUris.some((u) => {

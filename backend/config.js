@@ -119,6 +119,7 @@ export const config = {
 
   oauth: {
     allowAnyRedirectUri: process.env.OAUTH_ALLOW_ANY_REDIRECT_URI === 'true',
+    allowLocalRedirectUri: (process.env.OAUTH_ALLOW_LOCAL_REDIRECT_URI || '').trim().toLowerCase() !== 'false',
   },
 };
 

@@ -115,7 +115,8 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 - 支持通配：
   - `*`：允许任意 `redirect_uri`
   - 以 `*` 结尾：按前缀匹配，例如 `http://localhost:3000/*`
-- 全局放开（不推荐生产）：设置环境变量 `OAUTH_ALLOW_ANY_REDIRECT_URI=true`，跳过白名单校验（仍建议保留黑名单兜底）
+- 全局放开：设置环境变量 `OAUTH_ALLOW_ANY_REDIRECT_URI=true`，跳过白名单校验
+- 开发友好：默认允许 `localhost/127.0.0.1/::1/内网 IP` 作为回调地址（可用 `OAUTH_ALLOW_LOCAL_REDIRECT_URI=false` 关闭）
 
 ## 4. 安全建议
 
