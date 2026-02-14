@@ -5,8 +5,7 @@
     :class="{ 'snapping': isSnapping }"
     :style="buttonStyle"
     @mousedown="startDrag"
-    @touchstart="startDrag"
-    @click="handleClick"
+    @touchstart.passive="startDragTouch"
   >
     <div class="button-inner" :class="{ playing: isPlaying, loading: isLoading }">
       <div v-if="isLoading" class="loading-spinner">
@@ -49,7 +48,7 @@ const emit = defineEmits<{
 
 const buttonRef = ref<HTMLElement | null>(null);
 
-const position = ref({ x: 20, y: 100 });
+const position = ref({ x: window.innerWidth - 76, y: window.innerHeight - 156 });
 const isDragging = ref(false);
 const dragStart = ref({ x: 0, y: 0 });
 const hasMoved = ref(false);
@@ -60,11 +59,10 @@ const isSnapping = ref(false);
 let clickTimer: ReturnType<typeof setTimeout> | null = null;
 let idleTimer: ReturnType<typeof setTimeout> | null = null;
 const IDLE_TIMEOUT = 10000;
-const SNAP_MARGIN = 20;
 
 const buttonStyle = computed(() => ({
-  right: `${position.value.x}px`,
-  bottom: `${position.value.y}px`
+  left: `${position.value.x}px`,
+  top: `${position.value.y}px`
 }));
 
 function showHint(text: string) {
@@ -87,14 +85,14 @@ function resetIdleTimer() {
 function snapToEdge() {
   const windowWidth = window.innerWidth;
   const buttonSize = 56;
-  const centerX = windowWidth / 2;
+  const halfButton = buttonSize / 2;
   
   isSnapping.value = true;
   
-  if (position.value.x > centerX - buttonSize / 2) {
-    position.value.x = SNAP_MARGIN;
+  if (position.value.x + buttonSize / 2 > windowWidth / 2) {
+    position.value.x = windowWidth - halfButton;
   } else {
-    position.value.x = SNAP_MARGIN;
+    position.value.x = -halfButton;
   }
   
   setTimeout(() => {
@@ -102,13 +100,12 @@ function snapToEdge() {
   }, 300);
 }
 
-function startDrag(e: MouseEvent | TouchEvent) {
+function startDrag(e: MouseEvent) {
   e.preventDefault();
-  
   resetIdleTimer();
   
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+  const clientX = e.clientX;
+  const clientY = e.clientY;
   
   isDragging.value = true;
   hasMoved.value = false;
@@ -119,18 +116,56 @@ function startDrag(e: MouseEvent | TouchEvent) {
   
   document.addEventListener('mousemove', onDrag);
   document.addEventListener('mouseup', endDrag);
-  document.addEventListener('touchmove', onDrag, { passive: false });
-  document.addEventListener('touchend', endDrag);
 }
 
-function onDrag(e: MouseEvent | TouchEvent) {
+function startDragTouch(e: TouchEvent) {
+  resetIdleTimer();
+  
+  const clientX = e.touches[0].clientX;
+  const clientY = e.touches[0].clientY;
+  
+  isDragging.value = true;
+  hasMoved.value = false;
+  dragStart.value = {
+    x: clientX - position.value.x,
+    y: clientY - position.value.y
+  };
+  
+  document.addEventListener('touchmove', onDragTouch, { passive: false });
+  document.addEventListener('touchend', endDragTouch);
+}
+
+function onDrag(e: MouseEvent) {
   if (!isDragging.value) return;
   
   e.preventDefault();
   resetIdleTimer();
   
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+  const newX = e.clientX - dragStart.value.x;
+  const newY = e.clientY - dragStart.value.y;
+  
+  if (Math.abs(newX - position.value.x) > 5 || Math.abs(newY - position.value.y) > 5) {
+    hasMoved.value = true;
+  }
+  
+  const buttonSize = 56;
+  const maxX = window.innerWidth - buttonSize / 2;
+  const maxY = window.innerHeight - 100;
+  
+  position.value = {
+    x: Math.max(-buttonSize / 2, Math.min(maxX, newX)),
+    y: Math.max(60, Math.min(maxY, newY))
+  };
+}
+
+function onDragTouch(e: TouchEvent) {
+  if (!isDragging.value) return;
+  
+  e.preventDefault();
+  resetIdleTimer();
+  
+  const clientX = e.touches[0].clientX;
+  const clientY = e.touches[0].clientY;
   
   const newX = clientX - dragStart.value.x;
   const newY = clientY - dragStart.value.y;
@@ -139,27 +174,43 @@ function onDrag(e: MouseEvent | TouchEvent) {
     hasMoved.value = true;
   }
   
-  const maxX = window.innerWidth - 60;
-  const maxY = window.innerHeight - 120;
+  const buttonSize = 56;
+  const maxX = window.innerWidth - buttonSize / 2;
+  const maxY = window.innerHeight - 100;
   
   position.value = {
-    x: Math.max(0, Math.min(maxX, newX)),
+    x: Math.max(-buttonSize / 2, Math.min(maxX, newX)),
     y: Math.max(60, Math.min(maxY, newY))
   };
 }
 
 function endDrag() {
+  if (!hasMoved.value) {
+    handleClick();
+  }
+  
   isDragging.value = false;
   
   document.removeEventListener('mousemove', onDrag);
   document.removeEventListener('mouseup', endDrag);
-  document.removeEventListener('touchmove', onDrag);
-  document.removeEventListener('touchend', endDrag);
   
   resetIdleTimer();
 }
 
-function handleClick(e: MouseEvent) {
+function endDragTouch() {
+  if (!hasMoved.value) {
+    handleClick();
+  }
+  
+  isDragging.value = false;
+  
+  document.removeEventListener('touchmove', onDragTouch);
+  document.removeEventListener('touchend', endDragTouch);
+  
+  resetIdleTimer();
+}
+
+function handleClick() {
   if (hasMoved.value) return;
   
   resetIdleTimer();
@@ -190,14 +241,23 @@ onMounted(() => {
   const savedPosition = localStorage.getItem('ttg:music:buttonPosition');
   if (savedPosition) {
     try {
-      position.value = JSON.parse(savedPosition);
-    } catch {}
+      const saved = JSON.parse(savedPosition);
+      const buttonSize = 56;
+      const maxX = window.innerWidth - buttonSize / 2;
+      const maxY = window.innerHeight - 100;
+      position.value = {
+        x: Math.max(-buttonSize / 2, Math.min(maxX, saved.x || 0)),
+        y: Math.max(60, Math.min(maxY, saved.y || 0))
+      };
+    } catch {
+      position.value = { x: window.innerWidth - 76, y: window.innerHeight - 156 };
+    }
   }
   resetIdleTimer();
 });
 
 onUnmounted(() => {
-  localStorage.setItem('ttc:music:buttonPosition', JSON.stringify(position.value));
+  localStorage.setItem('ttg:music:buttonPosition', JSON.stringify(position.value));
   if (idleTimer) {
     clearTimeout(idleTimer);
   }
@@ -211,11 +271,10 @@ onUnmounted(() => {
   cursor: grab;
   user-select: none;
   touch-action: none;
-  transition: right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .music-floating-button.snapping {
-  transition: right 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition: left 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .music-floating-button:active {
