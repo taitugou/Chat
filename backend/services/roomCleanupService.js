@@ -35,7 +35,7 @@ async function cleanupExpiredEmptyRooms({ emptyRoomTtlHours }) {
   await query(`DELETE FROM game_rooms WHERE id IN (${placeholders})`, roomIds);
 
   console.log(
-    `[roomCleanup] 已清理空房间: ${expiredRooms.length} 个 (TTL=${ttlHours}h)`
+    `[roomCleanup] 已清理空房间: ${expiredRooms.length} 个 (TTL=${ttlHours}h, 清理阈值: ${threshold})`
   );
 }
 
@@ -60,13 +60,12 @@ async function cleanupIdleRooms({ idleRoomTtlHours }) {
   await query(`DELETE FROM game_rooms WHERE id IN (${placeholders})`, roomIds);
 
   console.log(
-    `[roomCleanup] 已清理闲置房间: ${expiredRooms.length} 个 (TTL=${ttlHours}h)`
+    `[roomCleanup] 已清理闲置房间: ${expiredRooms.length} 个 (TTL=${ttlHours}h, 清理阈值: ${threshold})`
   );
 }
 
 async function fixZombieRooms() {
   try {
-    // 查找状态为 playing 的房间
     const [playingRooms] = await query(
       `SELECT gr.id, gr.current_players,
               (SELECT COUNT(*) FROM game_room_players WHERE room_id = gr.id) as real_player_count
@@ -80,11 +79,9 @@ async function fixZombieRooms() {
       const roomId = room.id;
       const realCount = room.real_player_count;
       
-      // Case 1: 房间内无人 (real_player_count == 0)
       if (realCount === 0) {
         console.log(`[roomCleanup] 发现僵尸房间 ${roomId} (0人但显示游戏中)，正在修复...`);
         
-        // 尝试清理内存游戏实例并结束游戏记录
         const game = getGame(roomId);
         if (game) {
             try {
@@ -99,7 +96,6 @@ async function fixZombieRooms() {
             deleteGame(roomId);
         }
         
-        // 强制重置房间状态
         await query(
           `UPDATE game_rooms 
            SET status = 'waiting', current_players = 0, empty_at = NOW(), last_active_at = NOW() 
@@ -107,7 +103,6 @@ async function fixZombieRooms() {
           [roomId]
         );
       } 
-      // Case 2: 数据库显示 playing，但内存中没有游戏实例 (可能是服务器重启导致)
       else if (!getGame(roomId)) {
          console.log(`[roomCleanup] 发现状态不一致房间 ${roomId} (数据库playing但内存无实例)，重置为waiting...`);
          await query(
@@ -127,6 +122,8 @@ export function startRoomCleanupService(options = {}) {
   const idleRoomTtlHours =
     options.idleRoomTtlHours ?? DEFAULT_IDLE_ROOM_TTL_HOURS;
   const intervalMs = options.intervalMs ?? DEFAULT_CLEANUP_INTERVAL_MS;
+
+  console.log(`[roomCleanup] 启动房间清理服务: 空房间TTL=${emptyRoomTtlHours}h, 闲置房间TTL=${idleRoomTtlHours}h, 间隔=${intervalMs/1000}s`);
 
   if (cleanupTimer) return;
 

@@ -30,6 +30,7 @@ import groupRoutes from './routes/group.js';
 import matchRoutes from './routes/match.js';
 import loanRoutes from './routes/loans.js';
 import adminEnhancedRoutes from './routes/adminEnhanced.js';
+import musicRoutes from './routes/music.js';
 import { initSocketHandlers } from './socket/handlers.js';
 import { socketAuth } from './middleware/socketAuth.js';
 import { startMessageConsumer } from './services/messageQueue.js';
@@ -49,19 +50,12 @@ if (config.server.ssl.enabled) {
   try {
     const keyPath = config.server.ssl.key;
     const certPath = config.server.ssl.cert;
-    
-    // Ensure we handle both absolute and relative paths correctly
-    // If paths are from .env they might be absolute or relative to CWD
-    // Since we are in ES modules, __dirname is defined above
-    
-    // Simple check: if it exists as is, use it. If not, try relative to __dirname
     const resolvePath = (p) => {
       if (fs.existsSync(p)) return p;
       const relative = path.join(__dirname, p);
       if (fs.existsSync(relative)) return relative;
-      return p; // Return original to let readFileSync throw the error with the path
+      return p;
     };
-    
     const options = {
       key: fs.readFileSync(resolvePath(keyPath)),
       cert: fs.readFileSync(resolvePath(certPath))
@@ -77,10 +71,8 @@ if (config.server.ssl.enabled) {
   httpServer = http.createServer(app);
 }
 
-// Use socketIO config from config.js
 const io = new Server(httpServer, config.socketIO);
 
-// Middleware
 app.set('trust proxy', config.server.trustProxy);
 app.use(cors(config.cors));
 app.use(compression());
@@ -90,7 +82,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Request logging
 app.use((req, res, next) => {
   if (config.server.env === 'development') {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
@@ -98,7 +89,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomRoutes(io));
 app.use('/api/chips', chipRoutes);
@@ -120,35 +110,31 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/match', matchRoutes);
 app.use('/api/loans', loanRoutes);
 app.use('/api/admin', adminEnhancedRoutes);
+app.use('/api/music', musicRoutes);
 
-// Socket.io handlers
 io.use(socketAuth);
 
 io.on('connection', (socket) => {
   initSocketHandlers(io, socket);
 });
 
-// Static files for frontend with caching
 const distPath = path.join(__dirname, '../frontend/dist');
 app.use(express.static(distPath, {
   maxAge: '1d',
-  setHeaders: (res, path) => {
-    if (path.endsWith('.html')) {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
       res.setHeader('Cache-Control', 'no-cache');
-    } else if (path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
+    } else if (filePath.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     }
   }
 }));
 
-// Uploads directory static serving with caching
 const uploadsPath = path.join(__dirname, 'uploads');
 app.use('/uploads', express.static(uploadsPath, {
   maxAge: '7d',
   setHeaders: (res, filePath) => {
     res.setHeader('Cache-Control', 'public, max-age=604800');
-    
-    // 为 posts 目录下的非媒体文件设置强制下载
     if (filePath.includes('posts')) {
       const ext = path.extname(filePath).toLowerCase();
       const mediaExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.mp4', '.webm', '.ogg', '.mp3', '.wav'];
@@ -159,7 +145,6 @@ app.use('/uploads', express.static(uploadsPath, {
   }
 }));
 
-// Fallback for SPA
 app.get('*', (req, res) => {
   if (req.url.startsWith('/api')) {
     return res.status(404).json({ success: false, message: 'API endpoint not found' });
@@ -167,7 +152,6 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(`Error processing request ${req.method} ${req.url}:`, err);
   res.status(err.status || 500).json({
@@ -178,7 +162,6 @@ app.use((err, req, res, next) => {
 
 const startServer = async () => {
   try {
-    // Initialize DB connection
     await initDatabase();
     await ensureDefaultGameTypes();
     startRoomCleanupService();
@@ -187,19 +170,12 @@ const startServer = async () => {
     } catch (error) {
       console.error('[gameRoomPresence] 初始化离线重置失败:', error);
     }
-    
-    // Initialize Redis connection
     await initRedis();
-
-    // Setup Socket.IO Redis adapter for multi-instance synchronization
     const pubClient = createRedisClient();
     const subClient = pubClient.duplicate();
     io.adapter(createAdapter(pubClient, subClient));
     startGameRoomPresenceService(io);
-
-    // Start async message consumer
     startMessageConsumer(io);
-    
     const { port, host, ipv6Only } = config.server;
     const protocol = config.server.ssl.enabled ? 'https' : 'http';
     httpServer.listen({ port, host, ipv6Only }, () => {

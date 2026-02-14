@@ -1,14 +1,14 @@
 <template>
-  <div class="relative glass-select" ref="containerRef">
+  <div class="relative ios-select" ref="containerRef">
     <div 
       @click="toggleDropdown"
-      class="glass-input w-full py-3 px-5 rounded-2xl flex items-center justify-between transition-all"
+      class="ios-input w-full py-3 px-5 rounded-2xl flex items-center justify-between transition-all"
       :class="disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer active:scale-[0.98]'"
       :aria-disabled="disabled ? 'true' : 'false'"
     >
-      <span v-if="selectedLabel" class="text-white font-bold">{{ selectedLabel }}</span>
-      <span v-else class="text-white/30">{{ placeholder }}</span>
-      <span class="text-white/20 transition-transform duration-300" :class="{ 'rotate-180': isOpen }">▼</span>
+      <span v-if="selectedLabel" class="text-ios-label-primary font-bold">{{ selectedLabel }}</span>
+      <span v-else class="text-ios-label-quaternary">{{ placeholder }}</span>
+      <span class="text-ios-label-quaternary transition-transform duration-300" :class="{ 'rotate-180': isOpen }">▼</span>
     </div>
 
     <Teleport to="body">
@@ -16,11 +16,11 @@
         <div 
           v-if="isOpen && canOpen" 
           ref="dropdownRef"
-          class="fixed z-[9999] glass-modal rounded-2xl overflow-hidden shadow-2xl border border-white/5"
+          class="fixed z-[9999] ios-modal rounded-2xl overflow-hidden shadow-2xl border border-ios-separator"
           :style="dropdownStyle"
         >
-          <div class="max-h-[300px] overflow-y-auto custom-scrollbar bg-black/40 backdrop-blur-xl">
-          <div v-if="normalizedOptions.length === 0" class="px-5 py-4 text-sm text-white/40">
+          <div class="max-h-[300px] overflow-y-auto custom-scrollbar bg-ios-systemGray5/80 backdrop-blur-xl">
+          <div v-if="normalizedOptions.length === 0" class="px-5 py-4 text-sm text-ios-label-tertiary">
             暂无可选项
           </div>
           <template v-else>
@@ -28,13 +28,13 @@
               v-for="(option, index) in normalizedOptions"
               :key="index"
               @click="selectOption(option)"
-              class="px-5 py-4 hover:bg-white/5 transition-colors cursor-pointer flex items-center justify-between border-b border-white/5 last:border-0"
-              :class="{ 'bg-primary/30': modelValue === option.value }"
+              class="px-5 py-4 hover:bg-ios-systemGray5 transition-colors cursor-pointer flex items-center justify-between border-b border-ios-separator last:border-0"
+              :class="{ 'bg-ios-blue/30': modelValue === option.value }"
             >
-              <span class="text-sm font-bold" :class="modelValue === option.value ? 'text-primary' : 'text-white/90'">
+              <span class="text-sm font-bold" :class="modelValue === option.value ? 'text-ios-blue' : 'text-ios-label-primary'">
                 {{ option.label }}
               </span>
-              <span v-if="modelValue === option.value" class="text-primary text-xs">✓</span>
+              <span v-if="modelValue === option.value" class="text-ios-blue text-xs">✓</span>
             </div>
           </template>
         </div>

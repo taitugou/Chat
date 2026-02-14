@@ -1,10 +1,10 @@
 <template>
-  <div class="h-screen flex flex-col overflow-hidden bg-background text-foreground transition-colors duration-300">
+  <div class="h-screen flex flex-col overflow-hidden bg-ios-systemGray6 text-ios-label-primary transition-colors duration-300">
     <!-- 顶部导航 - iOS 风格 -->
-    <div class="glass px-4 py-3 flex items-center z-50 shadow-sm border-b border-foreground/5">
+    <div class="ios-glass px-4 py-3 flex items-center z-50 shadow-sm border-b border-ios-separator">
       <button
         @click="goBackOneLevel"
-        class="p-2 -ml-2 rounded-full text-foreground/70 hover:text-white hover:bg-foreground/10 transition-all active:scale-90"
+        class="p-2 -ml-2 rounded-full text-ios-label-secondary hover:text-ios-label-primary hover:bg-ios-systemGray5 transition-all active:scale-90"
         title="返回上一页"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -28,7 +28,7 @@
           ></span>
         </div>
         <div class="ml-3 flex-1 min-w-0">
-          <div class="font-bold flex items-center text-white">
+          <div class="font-bold flex items-center text-ios-label-primary">
             <span class="truncate">{{ otherUser?.nickname }}</span>
             <!-- P2P Status Indicator -->
             <span 
@@ -41,7 +41,7 @@
               {{ p2pBadge.text }}
             </span>
           </div>
-          <div class="text-[0.65rem] text-foreground/40 flex items-center">
+          <div class="text-[0.65rem] text-ios-label-tertiary flex items-center">
             {{ otherUserStatus === 'online' ? '当前在线' : '离线' }}
           </div>
         </div>
@@ -49,7 +49,7 @@
 
       <button
         @click="callStore.startCall(otherUserId, 'audio', otherUser)"
-        class="h-10 px-2 flex items-center gap-1 rounded-full text-foreground/40 hover:text-white hover:bg-foreground/10 transition-all mr-1"
+        class="h-10 px-2 flex items-center gap-1 rounded-full text-ios-label-tertiary hover:text-ios-label-primary hover:bg-ios-systemGray5 transition-all mr-1"
         title="语音通话"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
@@ -57,7 +57,7 @@
 
       <button
         @click="callStore.startCall(otherUserId, 'video', otherUser)"
-        class="h-10 px-2 flex items-center gap-1 rounded-full text-foreground/40 hover:text-white hover:bg-foreground/10 transition-all mr-1"
+        class="h-10 px-2 flex items-center gap-1 rounded-full text-ios-label-tertiary hover:text-ios-label-primary hover:bg-ios-systemGray5 transition-all mr-1"
         title="视频通话"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
@@ -65,7 +65,7 @@
 
       <button
         @click="showSettings = true"
-        class="h-10 px-3 flex items-center gap-1 rounded-full text-foreground/40 hover:text-white hover:bg-foreground/10 transition-all"
+        class="h-10 px-3 flex items-center gap-1 rounded-full text-ios-label-tertiary hover:text-ios-label-primary hover:bg-ios-systemGray5 transition-all"
       >
         <span class="text-xs font-bold">更多</span>
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +85,7 @@
         }"
       >
         <!-- 背景蒙层，确保文字清晰 -->
-        <div class="absolute inset-0 bg-black/40"></div>
+        <div class="absolute inset-0 bg-ios-black/40"></div>
       </div>
 
       <!-- 滚动消息容器 -->
@@ -103,7 +103,7 @@
         >
           <!-- 时间分割 -->
           <div v-if="shouldShowTime(message, index)" class="relative z-10 w-full flex justify-center my-4">
-            <span class="text-[0.65rem] px-3 py-1 glass rounded-full text-foreground/30">
+            <span class="text-[0.65rem] px-3 py-1 ios-glass rounded-full text-ios-label-tertiary">
               {{ formatFullTime(message.created_at) }}
             </span>
           </div>
@@ -112,8 +112,8 @@
             :class="[
               'max-w-[80%] px-4 py-2.5 rounded-2xl relative group transition-all',
               message.sender_id === currentUserId
-                ? 'glass-btn-primary rounded-tr-none'
-                : 'glass rounded-tl-none',
+                ? 'ios-btn-primary rounded-tr-none'
+                : 'ios-glass rounded-tl-none',
               message.is_snapchat ? 'border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.15)]' : ''
             ]"
           >
@@ -121,7 +121,7 @@
             <div v-if="message.is_snapchat && message.is_read && !message.is_burned" class="absolute -top-7 right-0 bg-red-500 text-white text-[0.6rem] px-2 py-0.5 rounded-full font-bold animate-pulse">
               {{ snapchatTimers[message.id] || message.snapchat_duration }}s
             </div>
-            <div v-if="message.is_snapchat && !message.is_burned" class="absolute -top-3 -right-3 bg-red-500 text-white text-[0.6rem] px-2 py-0.5 rounded-full shadow-lg z-10 border border-foreground/20">
+            <div v-if="message.is_snapchat && !message.is_burned" class="absolute -top-3 -right-3 bg-red-500 text-white text-[0.6rem] px-2 py-0.5 rounded-full shadow-lg z-10 border border-ios-separator">
               阅后即焚
             </div>
             
@@ -133,7 +133,7 @@
                   @click="handleSnapchatMessageClick(message)"
                   :class="[
                     'cursor-pointer select-none text-sm sm:text-base break-words leading-relaxed',
-                    message.is_snapchat && !message.is_read ? 'text-foreground/40 italic flex items-center gap-2' : 'text-white',
+                    message.is_snapchat && !message.is_read ? 'text-ios-label-tertiary italic flex items-center gap-2' : 'text-white',
                     message.is_burned ? 'opacity-50' : ''
                   ]"
                 >
@@ -146,13 +146,13 @@
               
               <!-- 图片消息 -->
               <template v-else-if="message.message_type === 'image'">
-                <div v-if="message.is_burned && !authStore.isAdmin" class="text-foreground/40 italic text-sm">
+                <div v-if="message.is_burned && !authStore.isAdmin" class="text-ios-label-tertiary italic text-sm">
                   [图片已焚毁]
                 </div>
                 <template v-else>
                   <div 
                     v-if="!message.is_snapchat || message.is_read" 
-                    class="overflow-hidden rounded-xl bg-foreground/5"
+                    class="overflow-hidden rounded-xl bg-ios-systemGray5"
                     :class="{ 'opacity-50': message.is_burned }"
                   >
                     <img
@@ -164,7 +164,7 @@
                   </div>
                   <div 
                     v-else 
-                    class="text-foreground/60 cursor-pointer flex flex-col items-center gap-2 py-4 px-8 border border-foreground/10 rounded-xl glass" 
+                    class="text-ios-label-secondary cursor-pointer flex flex-col items-center gap-2 py-4 px-8 border border-ios-separator rounded-xl ios-glass" 
                     @click="handleSnapchatMessageClick(message)"
                   >
                     <span class="text-2xl">🖼️</span>
@@ -175,21 +175,21 @@
  
               <template v-else-if="message.message_type === 'video'">
                 <video v-if="message.file_url" class="max-w-full rounded-xl" controls playsinline :src="message.file_url"></video>
-                <div v-else class="text-foreground/40 italic text-sm">[视频不可用]</div>
+                <div v-else class="text-ios-label-tertiary italic text-sm">[视频不可用]</div>
               </template>
  
               <template v-else-if="message.message_type === 'audio'">
                 <div v-if="message.file_url" class="flex items-center gap-3">
-                  <button class="glass px-3 py-2 rounded-xl text-white" @click="playAudio(message)">播放</button>
-                  <div class="text-xs text-foreground/50 truncate">{{ message.content || '音频' }}</div>
+                  <button class="ios-glass px-3 py-2 rounded-xl text-white" @click="playAudio(message)">播放</button>
+                  <div class="text-xs text-ios-label-tertiary truncate">{{ message.content || '音频' }}</div>
                 </div>
-                <div v-else class="text-foreground/40 italic text-sm">[音频不可用]</div>
+                <div v-else class="text-ios-label-tertiary italic text-sm">[音频不可用]</div>
               </template>
  
               <template v-else-if="message.message_type === 'file'">
                 <div v-if="message.file_url" class="space-y-1">
                   <a
-                    class="text-sm text-primary hover:underline"
+                    class="text-sm text-ios-blue hover:underline"
                     :href="message.file_url"
                     target="_blank"
                     rel="noreferrer"
@@ -197,7 +197,7 @@
                   >
                     📎 {{ message.content || '文件' }}
                   </a>
-                  <div v-if="downloadingFiles[message.id]?.active" class="text-[0.65rem] text-foreground/40">
+                  <div v-if="downloadingFiles[message.id]?.active" class="text-[0.65rem] text-ios-label-tertiary">
                     下载中 {{ downloadingFiles[message.id]?.progress }}%
                     <span v-if="downloadingFiles[message.id]?.bytesTotal">
                       · {{ formatFileSize(downloadingFiles[message.id]?.bytesNow || 0) }} / {{ formatFileSize(downloadingFiles[message.id]?.bytesTotal || 0) }}
@@ -205,8 +205,8 @@
                   </div>
                 </div>
                 <div v-else class="space-y-1">
-                  <div class="text-sm text-white/80">📎 {{ message.content || '文件' }}</div>
-                  <div class="text-[0.65rem] text-foreground/40">
+                  <div class="text-sm text-ios-label-primary">📎 {{ message.content || '文件' }}</div>
+                  <div class="text-[0.65rem] text-ios-label-tertiary">
                     {{ message.sender_id === currentUserId ? '快传中（文件不经服务器）' : '对方正在直传（文件不经服务器）' }}
                     <span v-if="message.file_size"> · {{ formatFileSize(message.file_size) }}</span>
                   </div>
@@ -215,7 +215,7 @@
                       <div class="h-full bg-blue-500 transition-all duration-300" :style="{ width: `${p2pProgress}%` }"></div>
                     </div>
                     <div class="flex items-center justify-between">
-                      <span class="text-[0.65rem] text-foreground/50">
+                      <span class="text-[0.65rem] text-ios-label-tertiary">
                         {{ p2pBytesTotal > 0 ? `${formatFileSize(p2pBytesNow)} / ${formatFileSize(p2pBytesTotal)}` : formatFileSize(p2pBytesNow) }}
                       </span>
                       <span class="text-[0.65rem] text-blue-400 font-bold">{{ formatSpeed(p2pSpeedBps) }}</span>
@@ -225,13 +225,13 @@
               </template>
             </div>
 
-            <div v-else-if="message.is_deleted" class="text-foreground/30 italic text-sm flex items-center gap-2">
+            <div v-else-if="message.is_deleted" class="text-ios-label-tertiary italic text-sm flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
               消息已删除
             </div>
-            <div v-else-if="message.is_recalled" class="text-foreground/30 italic text-sm flex items-center gap-2">
+            <div v-else-if="message.is_recalled" class="text-ios-label-tertiary italic text-sm flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
               </svg>
@@ -251,7 +251,7 @@
             <button
               v-if="message.sender_id === currentUserId && !message.is_deleted && !message.is_recalled && canRecall(message)"
               @click="recallMessage(message)"
-              class="absolute -left-12 top-1/2 -translate-y-1/2 p-2 rounded-full glass opacity-0 group-hover:opacity-100 transition-all hover:text-red-400"
+              class="absolute -left-12 top-1/2 -translate-y-1/2 p-2 rounded-full ios-glass opacity-0 group-hover:opacity-100 transition-all hover:text-red-400"
               title="撤回消息"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,23 +262,23 @@
         </div>
 
         <div v-if="typing" class="relative z-10 flex justify-start">
-          <div class="glass px-4 py-2 rounded-2xl rounded-tl-none animate-pulse flex items-center gap-2">
+          <div class="ios-glass px-4 py-2 rounded-2xl rounded-tl-none animate-pulse flex items-center gap-2">
             <div class="flex gap-1">
               <div class="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce"></div>
               <div class="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce [animation-delay:0.2s]"></div>
               <div class="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce [animation-delay:0.4s]"></div>
             </div>
-            <span class="text-xs text-foreground/40 font-medium">对方正在输入</span>
+            <span class="text-xs text-ios-label-tertiary font-medium">对方正在输入</span>
           </div>
         </div>
       </div>
     </div>
 
     <!-- 输入区域 -->
-    <div v-if="!isReadonly" class="glass-modal border-t border-foreground/10 px-4 py-4 pb-8 sm:pb-6 relative z-50">
+    <div v-if="!isReadonly" class="ios-modal border-t border-ios-separator px-4 py-4 pb-8 sm:pb-6 relative z-50">
       <!-- P2P 传输进度 -->
       <Transition name="fade">
-        <div v-if="p2pTransferring" class="absolute -top-16 left-4 right-4 glass p-3 rounded-2xl border border-blue-500/30">
+        <div v-if="p2pTransferring" class="absolute -top-16 left-4 right-4 ios-glass p-3 rounded-2xl border border-blue-500/30">
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs text-blue-400 font-bold">
               🚀 P2P{{ p2pDirection === 'send' ? '发送' : (p2pDirection === 'recv' ? '接收' : '') }}: {{ p2pFileName }}
@@ -289,7 +289,7 @@
             <div class="h-full bg-blue-500 transition-all duration-300" :style="{ width: `${p2pProgress}%` }"></div>
           </div>
           <div class="mt-2 flex items-center justify-between">
-            <span class="text-[0.65rem] text-foreground/50">
+            <span class="text-[0.65rem] text-ios-label-tertiary">
               {{ p2pBytesTotal > 0 ? `${formatFileSize(p2pBytesNow)} / ${formatFileSize(p2pBytesTotal)}` : formatFileSize(p2pBytesNow) }}
             </span>
             <span class="text-[0.65rem] text-blue-400 font-bold">{{ formatSpeed(p2pSpeedBps) }}</span>
@@ -298,29 +298,29 @@
       </Transition>
 
       <Transition name="fade">
-        <div v-if="uploadingChatFile" class="absolute -top-16 left-4 right-4 glass p-3 rounded-2xl border border-primary/30">
+        <div v-if="uploadingChatFile" class="absolute -top-16 left-4 right-4 ios-glass p-3 rounded-2xl border border-ios-blue/30">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs text-primary font-bold">⬆️ 上传中</span>
-            <span class="text-[0.65rem] text-primary">{{ uploadingChatFileProgress }}%</span>
+            <span class="text-xs text-ios-blue font-bold">⬆️ 上传中</span>
+            <span class="text-[0.65rem] text-ios-blue">{{ uploadingChatFileProgress }}%</span>
           </div>
-          <div class="w-full h-1.5 bg-primary/10 rounded-full overflow-hidden">
-            <div class="h-full bg-primary transition-all duration-300" :style="{ width: `${uploadingChatFileProgress}%` }"></div>
+          <div class="w-full h-1.5 bg-ios-blue/10 rounded-full overflow-hidden">
+            <div class="h-full bg-ios-blue transition-all duration-300" :style="{ width: `${uploadingChatFileProgress}%` }"></div>
           </div>
         </div>
       </Transition>
 
       <!-- 阅后即焚设置浮层 (仅在勾选时显示) -->
       <Transition name="fade">
-        <div v-if="isSnapchat" class="absolute -top-12 left-4 flex items-center gap-3 glass px-4 py-2 rounded-full border border-red-500/30">
+        <div v-if="isSnapchat" class="absolute -top-12 left-4 flex items-center gap-3 ios-glass px-4 py-2 rounded-full border border-red-500/30">
           <span class="text-xs text-red-400 font-bold">🔥 阅后即焚:</span>
           <input
             v-model.number="snapchatDuration"
             type="number"
             min="5"
             :max="maxSnapchatDuration"
-            class="bg-transparent w-12 text-xs text-white focus:outline-none"
+            class="bg-transparent w-12 text-xs text-ios-label-primary focus:outline-none"
           />
-          <span class="text-[0.65rem] text-foreground/40">秒后销毁</span>
+          <span class="text-[0.65rem] text-ios-label-tertiary">秒后销毁</span>
         </div>
       </Transition>
 
@@ -328,7 +328,7 @@
         <!-- P2P 文件传输按钮 -->
         <button 
           @click="$refs.p2pFile?.click()" 
-          class="p-3 rounded-2xl transition-all active:scale-90 glass text-foreground/40 hover:text-white hover:bg-foreground/10"
+          class="p-3 rounded-2xl transition-all active:scale-90 ios-glass text-ios-label-tertiary hover:text-ios-label-primary hover:bg-ios-systemGray5"
           title="发送文件（经服务器）"
         >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -341,7 +341,7 @@
           @click="isSnapchat = !isSnapchat" 
           :class="[
             'p-3 rounded-2xl transition-all active:scale-90',
-            isSnapchat ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'glass text-foreground/40'
+            isSnapchat ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'ios-glass text-ios-label-tertiary'
           ]"
           title="阅后即焚"
         >
@@ -357,13 +357,13 @@
             :showCharCount="false"
             @keyup.enter="sendMessage()"
             @input="handleTyping"
-            class="glass-input rounded-2xl min-h-[44px] max-h-32 transition-all"
+            class="ios-input rounded-2xl min-h-[44px] max-h-32 transition-all"
           />
         </div>
 
         <button
           @click="sendMessage"
-          class="glass-btn-primary p-3 rounded-2xl min-w-[50px] transition-all active:scale-90 shadow-lg shadow-primary/20"
+          class="ios-btn-primary p-3 rounded-2xl min-w-[50px] transition-all active:scale-90 shadow-lg shadow-ios"
           :disabled="!inputMessage.trim()"
         >
           <svg class="w-6 h-6 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -373,7 +373,7 @@
       </div>
       
       <div class="flex items-center justify-end mt-2 px-1">
-        <div class="text-[0.65rem] text-foreground/40">
+        <div class="text-[0.65rem] text-ios-label-tertiary">
           {{ inputMessage.length }}/1000
         </div>
       </div>
@@ -386,23 +386,23 @@
         class="fixed inset-0 z-[100] flex items-end"
         @click="showSettings = false"
       >
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-        <div class="glass-modal w-full rounded-t-[32px] p-6 pb-12 relative z-[101] shadow-2xl border-t border-foreground/10" @click.stop>
-          <div class="w-12 h-1.5 bg-foreground/20 rounded-full mx-auto mb-6"></div>
+        <div class="absolute inset-0 bg-ios-black/60 backdrop-blur-sm"></div>
+        <div class="ios-modal w-full rounded-t-[32px] p-6 pb-12 relative z-[101] shadow-2xl border-t border-ios-separator" @click.stop>
+          <div class="w-12 h-1.5 bg-ios-systemGray5 rounded-full mx-auto mb-6"></div>
           
-          <h3 class="text-xl font-bold mb-6 text-white text-center">聊天设置</h3>
+          <h3 class="text-xl font-bold mb-6 text-ios-label-primary text-center">聊天设置</h3>
           
           <div class="space-y-4">
-            <div class="glass p-4 rounded-2xl space-y-3">
+            <div class="ios-glass p-4 rounded-2xl space-y-3">
               <div class="flex items-center justify-between">
                 <div class="flex flex-col">
-                  <span class="text-white font-medium">文件快传（大文件）</span>
-                  <span class="text-[0.7rem] text-foreground/40">仅 IPv6 Host 直连；文件内容不经服务器</span>
+                  <span class="text-ios-label-primary font-medium">文件快传（大文件）</span>
+                  <span class="text-[0.7rem] text-ios-label-tertiary">仅 IPv6 Host 直连；文件内容不经服务器</span>
                 </div>
                 <button
                   @click="openP2PLargeFilePicker"
                   :class="[
-                    'text-xs px-3 py-2 rounded-xl glass-btn-primary',
+                    'text-xs px-3 py-2 rounded-xl ios-btn-primary',
                     isP2PV6HostDirect ? '' : 'opacity-70'
                   ]"
                 >
@@ -410,9 +410,9 @@
                 </button>
               </div>
 
-              <div class="flex items-center justify-between text-[0.7rem] text-foreground/40">
+              <div class="flex items-center justify-between text-[0.7rem] text-ios-label-tertiary">
                 <span>直连状态</span>
-                <span :class="p2pBadge ? p2pBadge.textClass : 'text-foreground/40'">
+                <span :class="p2pBadge ? p2pBadge.textClass : 'text-ios-label-tertiary'">
                   {{ p2pBadge ? p2pBadge.text : '未直连' }}
                 </span>
               </div>
@@ -420,20 +420,20 @@
               <input ref="p2pLargeFile" type="file" class="hidden" @change="sendLargeFileP2POnly" />
             </div>
 
-            <div class="glass p-4 rounded-2xl flex items-center justify-between">
-              <span class="text-white font-medium">置顶聊天</span>
-              <input v-model="chatSettings.isPinned" type="checkbox" class="w-6 h-6 rounded-full border-foreground/20 bg-foreground/5 text-primary focus:ring-primary transition-all cursor-pointer" />
+            <div class="ios-glass p-4 rounded-2xl flex items-center justify-between">
+              <span class="text-ios-label-primary font-medium">置顶聊天</span>
+              <input v-model="chatSettings.isPinned" type="checkbox" class="w-6 h-6 rounded-full border-ios-separator bg-ios-systemGray5 text-ios-blue focus:ring-ios-blue transition-all cursor-pointer" />
             </div>
             
-            <div class="glass p-4 rounded-2xl flex items-center justify-between">
-              <span class="text-white font-medium">消息免打扰</span>
-              <input v-model="chatSettings.isMuted" type="checkbox" class="w-6 h-6 rounded-full border-foreground/20 bg-foreground/5 text-primary focus:ring-primary transition-all cursor-pointer" />
+            <div class="ios-glass p-4 rounded-2xl flex items-center justify-between">
+              <span class="text-ios-label-primary font-medium">消息免打扰</span>
+              <input v-model="chatSettings.isMuted" type="checkbox" class="w-6 h-6 rounded-full border-ios-separator bg-ios-systemGray5 text-ios-blue focus:ring-ios-blue transition-all cursor-pointer" />
             </div>
 
             <!-- 聊天背景设置 -->
-            <div class="glass p-4 rounded-2xl space-y-3">
+            <div class="ios-glass p-4 rounded-2xl space-y-3">
               <div class="flex items-center justify-between">
-                <span class="text-white font-medium">聊天背景</span>
+                <span class="text-ios-label-primary font-medium">聊天背景</span>
                 <div class="flex items-center gap-2">
                   <button 
                     v-if="chatSettings.backgroundImage" 
@@ -444,7 +444,7 @@
                   </button>
                   <button 
                     @click="backgroundInput?.click()" 
-                    class="text-xs text-primary hover:text-primary-light transition-colors flex items-center gap-1"
+                    class="text-xs text-ios-blue hover:text-ios-blue-light transition-colors flex items-center gap-1"
                     :disabled="uploadingBackground"
                   >
                     <template v-if="uploadingBackground">
@@ -472,12 +472,12 @@
 
             <button 
               @click="clearChatHistory" 
-              class="w-full glass p-4 rounded-2xl text-red-400 font-medium hover:bg-red-500/10 transition-all text-center"
+              class="w-full ios-glass p-4 rounded-2xl text-red-400 font-medium hover:bg-red-500/10 transition-all text-center"
             >
               清空聊天记录
             </button>
             
-            <button @click="saveSettings" class="glass-btn-primary w-full py-4 rounded-2xl font-bold mt-4 shadow-xl shadow-primary/20 transition-all active:scale-[0.98]">
+            <button @click="saveSettings" class="ios-btn-primary w-full py-4 rounded-2xl font-bold mt-4 shadow-xl shadow-ios transition-all active:scale-[0.98]">
               保存并返回
             </button>
           </div>
@@ -488,31 +488,31 @@
     <!-- 应用范围确认弹窗 -->
     <Transition name="fade">
       <div v-if="showApplyAllModal" class="fixed inset-0 z-[200] flex items-center justify-center px-6">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-md" @click="showApplyAllModal = false"></div>
-        <div class="glass-modal w-full max-w-sm rounded-[32px] p-8 relative z-[201] shadow-2xl border border-foreground/10 text-center">
-          <div class="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span class="text-4xl text-primary">🖼️</span>
+        <div class="absolute inset-0 bg-ios-black/80 backdrop-blur-md" @click="showApplyAllModal = false"></div>
+        <div class="ios-modal w-full max-w-sm rounded-[32px] p-8 relative z-[201] shadow-2xl border border-ios-separator text-center">
+          <div class="w-20 h-20 bg-ios-blue/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-4xl text-ios-blue">🖼️</span>
           </div>
-          <h3 class="text-xl font-bold text-white mb-2">设置聊天背景</h3>
-          <p class="text-foreground/60 text-sm mb-8 leading-relaxed">
+          <h3 class="text-xl font-bold text-ios-label-primary mb-2">设置聊天背景</h3>
+          <p class="text-ios-label-secondary text-sm mb-8 leading-relaxed">
             图片已上传成功，请选择应用范围
           </p>
           <div class="space-y-3">
             <button 
               @click="applyBackground(false)" 
-              class="w-full py-4 rounded-2xl bg-foreground/10 text-white font-bold hover:bg-foreground/20 transition-all active:scale-[0.98]"
+              class="w-full py-4 rounded-2xl bg-ios-systemGray5 text-ios-label-primary font-bold hover:bg-ios-systemGray5 transition-all active:scale-[0.98]"
             >
               应用到当前
             </button>
             <button 
               @click="applyBackground(true)" 
-              class="w-full py-4 rounded-2xl glass-btn-primary font-bold shadow-xl shadow-primary/20 transition-all active:scale-[0.98]"
+              class="w-full py-4 rounded-2xl ios-btn-primary font-bold shadow-xl shadow-ios transition-all active:scale-[0.98]"
             >
               应用到所有
             </button>
             <button 
               @click="showApplyAllModal = false" 
-              class="w-full py-4 rounded-2xl text-foreground/40 text-sm hover:text-white transition-all"
+              class="w-full py-4 rounded-2xl text-ios-label-tertiary text-sm hover:text-ios-label-primary transition-all"
             >
               取消
             </button>

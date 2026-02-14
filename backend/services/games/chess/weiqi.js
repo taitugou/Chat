@@ -14,6 +14,12 @@ function boardHash(b) {
   return b.map((r) => r.join('')).join('|');
 }
 
+function boardHashWithHistory(b, history, maxHistory = 4) {
+  const recent = history.slice(-maxHistory);
+  const historyStr = recent.map(h => h.hash).join(';');
+  return `${historyStr}|${b.map((r) => r.join('')).join('|')}`;
+}
+
 function neighbors(x, y, w, h) {
   const out = [];
   if (x > 0) out.push([x - 1, y]);
@@ -66,6 +72,9 @@ export class WeiqiGame extends AbstractBoardGame {
     this.captureCount = { black: 0, white: 0 };
     this.prevHash = null;
     this.currHash = null;
+    this.boardHistory = [];
+    this.koHistory = new Map();
+    this.maxKoHistory = 4;
     this.lastMove = null;
 
     this.playerBets = {};
@@ -81,6 +90,7 @@ export class WeiqiGame extends AbstractBoardGame {
 
     this.board = emptyBoard(this.boardW, this.boardH);
     this.currHash = boardHash(this.board);
+    this.boardHistory.push({ hash: this.currHash, move: null, player: null });
   }
 
   place(playerId, x, y) {
@@ -113,12 +123,30 @@ export class WeiqiGame extends AbstractBoardGame {
     if (myGroup.liberties === 0 && capturedTotal === 0) throw new Error('禁入点（自杀）');
 
     const newHash = boardHash(next);
-    if (this.prevHash && newHash === this.prevHash) throw new Error('劫（ko）');
+
+    if (this.prevHash && newHash === this.prevHash) throw new Error('劫（ko）- 不能立即回提');
+
+    const globalHash = boardHashWithHistory(next, this.boardHistory, this.maxKoHistory);
+    if (this.koHistory.has(globalHash)) {
+      throw new Error('全局同形（superko）- 不能制造历史上出现过的局面');
+    }
 
     this.board = next;
     this.prevHash = beforeHash;
     this.currHash = newHash;
     this.passCount = 0;
+
+    this.boardHistory.push({
+      hash: newHash,
+      move: { x: px, y: py },
+      player: playerId,
+      captured: capturedTotal
+    });
+
+    if (this.boardHistory.length > 20) {
+      this.boardHistory = this.boardHistory.slice(-10);
+    }
+
     this.captureCount[myColor] += capturedTotal;
     this.lastMove = { type: 'place', playerId, x: px, y: py, captured: capturedTotal };
 
@@ -132,6 +160,14 @@ export class WeiqiGame extends AbstractBoardGame {
     this.lastMove = { type: 'pass', playerId };
     if (this.passCount >= 2) return this.settle('two_pass');
     this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.playerIds.length;
+
+    this.boardHistory.push({
+      hash: this.currHash,
+      move: 'pass',
+      player: playerId,
+      captured: 0
+    });
+
     return null;
   }
 
@@ -168,7 +204,8 @@ export class WeiqiGame extends AbstractBoardGame {
       komi: this.komi,
       passCount: this.passCount,
       captureCount: this.captureCount,
-      lastMove: this.lastMove
+      lastMove: this.lastMove,
+      boardHistoryCount: this.boardHistory.length
     };
   }
 }

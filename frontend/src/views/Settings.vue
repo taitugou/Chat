@@ -1,10 +1,10 @@
 <template>
-  <div class="h-screen flex flex-col overflow-hidden bg-background text-foreground transition-colors duration-300">
+  <div class="h-screen flex flex-col overflow-hidden bg-ios-systemGray6 text-ios-label-primary transition-colors duration-300">
     <!-- 顶部导航栏 -->
-    <div class="glass px-4 py-3 flex items-center z-50 shadow-sm border-b border-foreground/5">
+    <div class="ios-ios-glass px-4 py-3 flex items-center z-50 shadow-sm border-b border-ios-separator">
       <button
         @click="goBackOneLevel"
-        class="p-2 -ml-2 rounded-full text-foreground/70 hover:text-white hover:bg-foreground/10 transition-all active:scale-90"
+        class="p-2 -ml-2 rounded-full text-ios-label-secondary hover:text-ios-label-primary hover:bg-ios-systemGray5 transition-all active:scale-90"
         title="返回上一页"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -12,13 +12,13 @@
         </svg>
       </button>
       <div class="flex-1 min-w-0 ml-2">
-        <div class="text-sm font-bold text-foreground/80">设置</div>
-        <div class="text-[10px] font-black text-foreground/30 uppercase tracking-widest">Settings</div>
+        <div class="text-sm font-bold text-ios-label-primary">设置</div>
+        <div class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest">Settings</div>
       </div>
       <button 
         @click="saveSettings" 
         :disabled="saving"
-        class="glass-btn-primary px-4 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50"
+        class="ios-btn-primary px-4 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50"
       >
         {{ saving ? '保存中...' : '保存修改' }}
       </button>
@@ -28,29 +28,29 @@
     <div class="flex-1 overflow-y-auto p-4 space-y-6 pb-24">
       <!-- 个人资料 -->
       <section class="space-y-3">
-        <h3 class="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] px-2">个人资料</h3>
-        <div class="glass-card p-4 rounded-2xl space-y-4">
+        <h3 class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-[0.2em] px-2">个人资料</h3>
+        <div class="ios-card p-4 rounded-2xl space-y-4">
           <!-- 头像与背景 -->
           <div class="flex items-start space-x-4">
             <!-- 头像 -->
             <div class="flex flex-col items-center space-y-2">
               <div 
-                class="w-20 h-20 rounded-2xl bg-foreground/5 border border-foreground/10 flex items-center justify-center overflow-hidden relative group cursor-pointer"
+                class="w-20 h-20 rounded-2xl bg-ios-systemGray5 border border-ios-separator flex items-center justify-center overflow-hidden relative group cursor-pointer"
                 @click="avatarFileInput?.click()"
               >
                 <img :src="avatarPreview || getImageUrl(user?.avatar)" class="w-full h-full object-cover" />
-                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <span class="text-[10px] text-white font-bold">更换头像</span>
+                <div class="absolute inset-0 bg-ios-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                  <span class="text-[10px] text-ios-label-primary font-bold">更换头像</span>
                 </div>
                 <input type="file" ref="avatarFileInput" class="hidden" accept="image/*" @change="handleAvatarSelect" />
               </div>
-              <span class="text-[9px] text-foreground/30 font-bold uppercase tracking-tighter">Avatar</span>
+              <span class="text-[9px] text-ios-label-tertiary font-bold uppercase tracking-tighter">Avatar</span>
             </div>
 
             <!-- 背景 -->
             <div class="flex-1 flex flex-col space-y-2">
               <div 
-                class="w-full h-20 rounded-2xl bg-foreground/5 border border-foreground/10 flex items-center justify-center overflow-hidden relative group cursor-pointer"
+                class="w-full h-20 rounded-2xl bg-ios-systemGray5 border border-ios-separator flex items-center justify-center overflow-hidden relative group cursor-pointer"
                 @click="profileBgFileInput?.click()"
               >
                 <img 
@@ -59,12 +59,12 @@
                   class="w-full h-full object-cover" 
                 />
                 <img v-else src="/qitafujian/images/default-cover.svg" class="w-full h-full object-cover opacity-80" />
-                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <span class="text-[10px] text-white font-bold">更换主页背景</span>
+                <div class="absolute inset-0 bg-ios-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                  <span class="text-[10px] text-ios-label-primary font-bold">更换主页背景</span>
                 </div>
                 <input type="file" ref="profileBgFileInput" class="hidden" accept="image/*" @change="handleProfileBgSelect" />
               </div>
-              <span class="text-[9px] text-foreground/30 font-bold uppercase tracking-tighter">Profile Background</span>
+              <span class="text-[9px] text-ios-label-tertiary font-bold uppercase tracking-tighter">Profile Background</span>
             </div>
           </div>
 
@@ -72,22 +72,22 @@
           <div class="space-y-3">
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-1">
-                <label class="text-[9px] font-black text-foreground/30 uppercase tracking-widest ml-1">账号 (唯一标识)</label>
+                <label class="text-[9px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">账号 (唯一标识)</label>
                 <input
                   v-model="settings.profile.username"
                   type="text"
                   placeholder="3-20位字符"
-                  class="glass-input w-full py-2.5 px-4 rounded-xl text-xs font-bold"
+                  class="ios-input w-full py-2.5 px-4 rounded-xl text-xs font-bold"
                   maxlength="20"
                 />
               </div>
               <div class="space-y-1">
-                <label class="text-[9px] font-black text-foreground/30 uppercase tracking-widest ml-1">昵称</label>
+                <label class="text-[9px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">昵称</label>
                 <input
                   v-model="settings.profile.nickname"
                   type="text"
                   placeholder="2-20位字符"
-                  class="glass-input w-full py-2.5 px-4 rounded-xl text-xs font-bold"
+                  class="ios-input w-full py-2.5 px-4 rounded-xl text-xs font-bold"
                   maxlength="20"
                 />
               </div>
@@ -95,42 +95,42 @@
 
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-1">
-                <label class="text-[9px] font-black text-foreground/30 uppercase tracking-widest ml-1">邮箱</label>
+                <label class="text-[9px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">邮箱</label>
                 <input
                   v-model="settings.profile.email"
                   type="email"
                   placeholder="example@mail.com"
-                  class="glass-input w-full py-2.5 px-4 rounded-xl text-xs font-bold"
+                  class="ios-input w-full py-2.5 px-4 rounded-xl text-xs font-bold"
                 />
               </div>
               <div class="space-y-1">
-                <label class="text-[9px] font-black text-foreground/30 uppercase tracking-widest ml-1">手机号</label>
+                <label class="text-[9px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">手机号</label>
                 <input
                   v-model="settings.profile.phone"
                   type="tel"
                   placeholder="13000000000"
-                  class="glass-input w-full py-2.5 px-4 rounded-xl text-xs font-bold"
+                  class="ios-input w-full py-2.5 px-4 rounded-xl text-xs font-bold"
                 />
               </div>
             </div>
 
             <div class="space-y-1">
-              <label class="text-[9px] font-black text-foreground/30 uppercase tracking-widest ml-1">修改密码</label>
+              <label class="text-[9px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">修改密码</label>
               <input
                 v-model="settings.profile.newPassword"
                 type="password"
                 placeholder="留空则不修改"
-                class="glass-input w-full py-2.5 px-4 rounded-xl text-xs font-bold"
+                class="ios-input w-full py-2.5 px-4 rounded-xl text-xs font-bold"
               />
             </div>
           </div>
 
           <!-- 性别选择 (统一为右侧下拉模式) -->
-          <div class="pt-2 border-t border-foreground/5">
+          <div class="pt-2 border-t border-ios-separator">
             <div class="flex items-center justify-between">
               <div class="space-y-0.5">
-                <div class="text-sm font-bold text-white">性别</div>
-                <div class="text-[10px] text-foreground/50">你的公开性别展示</div>
+                <div class="text-sm font-bold text-ios-label-primary">性别</div>
+                <div class="text-[10px] text-ios-label-tertiary">你的公开性别展示</div>
               </div>
               <div class="w-32">
                 <GlassSelect v-model="settings.profile.gender" :options="genderOptions" />
@@ -142,13 +142,13 @@
 
       <!-- 隐私设置 -->
       <section class="space-y-3">
-        <h3 class="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] px-2">隐私设置</h3>
-        <div class="glass-card divide-y divide-foreground/5 rounded-2xl overflow-hidden">
+        <h3 class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-[0.2em] px-2">隐私设置</h3>
+        <div class="ios-card divide-y divide-foreground/5 rounded-2xl overflow-hidden">
           <!-- 资料可见性 -->
           <div class="p-4 flex items-center justify-between">
             <div class="space-y-0.5">
-              <div class="text-sm font-bold text-white">资料可见性</div>
-              <div class="text-[10px] text-foreground/50">谁可以看到你的主页资料</div>
+              <div class="text-sm font-bold text-ios-label-primary">资料可见性</div>
+              <div class="text-[10px] text-ios-label-tertiary">谁可以看到你的主页资料</div>
             </div>
             <div class="w-32">
               <GlassSelect 
@@ -164,8 +164,8 @@
           <!-- 在线状态 -->
           <div class="p-4 flex items-center justify-between">
             <div class="space-y-0.5">
-              <div class="text-sm font-bold text-white">在线状态</div>
-              <div class="text-[10px] text-foreground/50">显示你的实时在线情况</div>
+              <div class="text-sm font-bold text-ios-label-primary">在线状态</div>
+              <div class="text-[10px] text-ios-label-tertiary">显示你的实时在线情况</div>
             </div>
             <div class="w-32">
               <GlassSelect 
@@ -181,8 +181,8 @@
           <!-- 地理位置 -->
           <div class="p-4 flex items-center justify-between">
             <div class="space-y-0.5">
-              <div class="text-sm font-bold text-white">位置可见性</div>
-              <div class="text-[10px] text-foreground/50">在动态中展示你的位置信息</div>
+              <div class="text-sm font-bold text-ios-label-primary">位置可见性</div>
+              <div class="text-[10px] text-ios-label-tertiary">在动态中展示你的位置信息</div>
             </div>
             <div class="w-32">
               <GlassSelect 
@@ -200,39 +200,39 @@
 
       <!-- 通知设置 -->
       <section class="space-y-3">
-        <h3 class="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] px-2">消息通知</h3>
-        <div class="glass-card divide-y divide-foreground/5 rounded-2xl overflow-hidden">
+        <h3 class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-[0.2em] px-2">消息通知</h3>
+        <div class="ios-card divide-y divide-foreground/5 rounded-2xl overflow-hidden">
           <div v-for="(val, key) in settings.notification" :key="key" class="p-4 flex items-center justify-between">
-            <div class="text-sm font-bold text-white">{{ notificationLabels[key] || key }}</div>
+            <div class="text-sm font-bold text-ios-label-primary">{{ notificationLabels[key] || key }}</div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" v-model="settings.notification[key]" class="sr-only peer">
-              <div class="w-9 h-5 bg-foreground/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+              <div class="w-9 h-5 bg-ios-systemGray5 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-ios-blue"></div>
             </label>
           </div>
         </div>
       </section>
 
       <section class="space-y-3">
-        <h3 class="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] px-2">音效</h3>
-        <div class="glass-card divide-y divide-foreground/5 rounded-2xl overflow-hidden">
+        <h3 class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-[0.2em] px-2">音效</h3>
+        <div class="ios-card divide-y divide-foreground/5 rounded-2xl overflow-hidden">
           <div class="p-4 flex items-center justify-between">
             <div class="space-y-0.5">
-              <div class="text-sm font-bold text-white">启用音效</div>
-              <div class="text-[10px] text-foreground/50">包含通知、通话、游戏提示音</div>
+              <div class="text-sm font-bold text-ios-label-primary">启用音效</div>
+              <div class="text-[10px] text-ios-label-tertiary">包含通知、通话、游戏提示音</div>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" v-model="soundEnabled" class="sr-only peer">
-              <div class="w-9 h-5 bg-foreground/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+              <div class="w-9 h-5 bg-ios-systemGray5 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-ios-blue"></div>
             </label>
           </div>
 
           <div class="p-4 space-y-3">
             <div class="flex items-center justify-between">
               <div class="space-y-0.5">
-                <div class="text-sm font-bold text-white">音量</div>
-                <div class="text-[10px] text-foreground/50">仅影响站内提示音，不影响通话音量</div>
+                <div class="text-sm font-bold text-ios-label-primary">音量</div>
+                <div class="text-[10px] text-ios-label-tertiary">仅影响站内提示音，不影响通话音量</div>
               </div>
-              <div class="text-xs font-bold text-foreground/60 tabular-nums">{{ Math.round(soundVolume * 100) }}%</div>
+              <div class="text-xs font-bold text-ios-label-secondary tabular-nums">{{ Math.round(soundVolume * 100) }}%</div>
             </div>
             <input
               v-model.number="soundVolume"
@@ -244,13 +244,13 @@
             />
             <div class="flex items-center justify-end gap-2">
               <button
-                class="glass-btn px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all"
+                class="ios-btn-secondary px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all"
                 @click="testSound"
               >
                 试听
               </button>
               <button
-                class="glass-btn px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all"
+                class="ios-btn-secondary px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all"
                 @click="goAssetsPreview"
               >
                 资源预览
@@ -260,15 +260,36 @@
         </div>
       </section>
 
+      <!-- 外观设置 -->
+      <section class="space-y-3">
+        <h3 class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-[0.2em] px-2">外观设置</h3>
+        <div class="ios-card divide-y divide-foreground/5 rounded-2xl overflow-hidden">
+          <!-- 主题模式 -->
+          <div class="p-4 flex items-center justify-between">
+            <div class="space-y-0.5">
+              <div class="text-sm font-bold text-ios-label-primary">主题模式</div>
+              <div class="text-[10px] text-ios-label-tertiary">选择您喜欢的界面主题</div>
+            </div>
+            <div class="w-36">
+              <GlassSelect 
+                v-model="themeStore.themeMode" 
+                :options="themeStore.themeOptions"
+                @change="(val: string) => themeStore.setThemeMode(val as 'system' | 'dark' | 'light')"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- 应用偏好 -->
       <section class="space-y-3">
-        <h3 class="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] px-2">应用偏好</h3>
-        <div class="glass-card divide-y divide-foreground/5 rounded-2xl overflow-hidden">
+        <h3 class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-[0.2em] px-2">应用偏好</h3>
+        <div class="ios-card divide-y divide-foreground/5 rounded-2xl overflow-hidden">
           <!-- 落地页 -->
           <div class="p-4 flex items-center justify-between">
             <div class="space-y-0.5">
-              <div class="text-sm font-bold text-white">默认落地页</div>
-              <div class="text-[10px] text-foreground/50">登录后首选跳转页面</div>
+              <div class="text-sm font-bold text-ios-label-primary">默认落地页</div>
+              <div class="text-[10px] text-ios-label-tertiary">登录后首选跳转页面</div>
             </div>
             <div class="w-32">
               <GlassSelect 
@@ -285,8 +306,8 @@
           <div class="p-4 space-y-3">
             <div class="flex items-center justify-between">
               <div class="space-y-0.5">
-                <div class="text-sm font-bold text-white">全局聊天背景</div>
-                <div class="text-[10px] text-foreground/50">自定义所有对话的背景图</div>
+                <div class="text-sm font-bold text-ios-label-primary">全局聊天背景</div>
+                <div class="text-[10px] text-ios-label-tertiary">自定义所有对话的背景图</div>
               </div>
               <div class="flex items-center gap-2">
                 <button 
@@ -298,7 +319,7 @@
                 </button>
                 <button 
                   @click="triggerBgUpload" 
-                  class="text-xs text-primary hover:text-primary-light transition-colors flex items-center gap-1"
+                  class="text-xs text-ios-blue hover:text-ios-blue-light transition-colors flex items-center gap-1"
                   :disabled="bgUploading"
                 >
                   {{ bgPreview ? '更换背景' : '选择背景' }}
@@ -310,7 +331,7 @@
               <button 
                 @click="applyBgToAll" 
                 :disabled="bgUploading"
-                class="glass-btn w-full py-2 rounded-xl text-xs font-bold disabled:opacity-50"
+                class="ios-btn-secondary w-full py-2 rounded-xl text-xs font-bold disabled:opacity-50"
               >
                 应用到所有聊天
               </button>
@@ -325,7 +346,7 @@
       <section class="px-2">
         <button 
           @click="handleLogout"
-          class="glass-btn w-full py-4 rounded-2xl text-red-500 font-bold text-sm hover:bg-red-500/10 active:scale-[0.98] transition-all"
+          class="ios-btn-secondary w-full py-4 rounded-2xl text-red-500 font-bold text-sm hover:bg-red-500/10 active:scale-[0.98] transition-all"
         >
           退出登录
         </button>
@@ -349,6 +370,7 @@ import { ref, onMounted, reactive, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/utils/api';
 import { useAuthStore } from '@/stores/auth';
+import { useThemeStore } from '@/stores/theme';
 import { getImageUrl } from '@/utils/imageUrl';
 import { audioManager } from '@/utils/audio';
 import GlassSelect from '@/components/GlassSelect.vue';
@@ -356,6 +378,7 @@ import MentionInput from '@/components/MentionInput.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const themeStore = useThemeStore();
 
 // 状态定义
 const saving = ref(false);
@@ -630,16 +653,19 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.glass-card {
-  @apply bg-foreground/[0.03] border border-foreground/[0.08] backdrop-blur-md shadow-xl;
+.ios-card {
+  @apply bg-ios-systemGray5 border border-ios-separator backdrop-blur-md shadow-xl;
 }
-.glass-btn-primary {
-  @apply bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all;
+.ios-btn-primary {
+  @apply bg-ios-blue text-white shadow-lg shadow-ios transition-all;
 }
-.glass-btn {
-  @apply bg-foreground/5 text-foreground/70 hover:bg-foreground/10 hover:text-white transition-all border border-foreground/5;
+.ios-btn-primary:hover {
+  filter: brightness(1.1);
 }
-.glass-input {
-  @apply bg-foreground/5 border border-foreground/10 text-foreground focus:bg-foreground/10 focus:border-primary/30 outline-none transition-all placeholder:text-foreground/20;
+.ios-btn-secondary {
+  @apply bg-ios-systemGray5 text-ios-label-secondary hover:bg-ios-systemGray5 hover:text-ios-label-primary transition-all border border-ios-separator;
+}
+.ios-input {
+  @apply bg-ios-systemGray5 border border-ios-separator text-ios-label-primary focus:bg-ios-systemGray5 focus:border-ios-blue/30 outline-none transition-all placeholder:text-ios-label-quaternary;
 }
 </style>

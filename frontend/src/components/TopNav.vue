@@ -1,12 +1,12 @@
 <template>
-  <nav class="glass-nav sticky top-0 z-50">
+  <nav class="ios-nav sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center gap-2">
-          <router-link :to="brandLink" class="text-xl font-bold glass-text cursor-pointer hover:text-foreground/80 transition-colors">{{ brandText }}</router-link>
+          <router-link :to="brandLink" class="text-xl font-bold text-ios-label-primary cursor-pointer hover:text-ios-label-primary transition-colors">{{ brandText }}</router-link>
           <button 
             @click="showOnlineUsersModal = true"
-            class="glass-badge flex items-center gap-1 hover:bg-white/30 transition-colors"
+            class="ios-badge flex items-center gap-1 hover:bg-ios-systemGray5 transition-colors"
           >
             <span 
               class="w-2 h-2 rounded-full animate-pulse"
@@ -16,19 +16,19 @@
           </button>
         </div>
         <div class="flex items-center space-x-4">
-          <router-link v-if="route.path !== '/match' && route.path !== '/game'" to="/rankings" class="glass-text hover:text-foreground/70 transition-colors" title="排行榜">
+          <router-link v-if="route.path !== '/match' && route.path !== '/game'" to="/rankings" class="text-ios-label-primary hover:text-ios-label-secondary transition-colors" title="排行榜">
             <span class="text-xl">📊</span>
           </router-link>
-          <router-link v-if="route.path !== '/match' && route.path !== '/game'" to="/search" class="glass-text hover:text-foreground/70 transition-colors">
+          <router-link v-if="route.path !== '/match' && route.path !== '/game'" to="/search" class="text-ios-label-primary hover:text-ios-label-secondary transition-colors">
             <span class="text-xl">🔍</span>
           </router-link>
           <slot name="extra"></slot>
           <NotificationPanel />
-          <router-link to="/profile" class="glass-text hover:text-foreground/70 transition-colors">
+          <router-link to="/profile" class="text-ios-label-primary hover:text-ios-label-secondary transition-colors">
             <img
               :src="getImageUrl(authStore.user?.avatar)"
               :alt="authStore.user?.nickname || '用户头像'"
-              class="w-8 h-8 rounded-full border border-foreground/20"
+              class="w-8 h-8 rounded-full border border-ios-separator"
             />
           </router-link>
         </div>
@@ -36,31 +36,31 @@
     </div>
 
     <!-- 在线用户列表弹窗 -->
-    <div v-if="showOnlineUsersModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4" @click="showOnlineUsersModal = false">
-      <div class="glass-modal w-full max-w-md max-h-[80vh] overflow-y-auto" @click.stop>
-        <div class="flex items-center justify-between mb-4 p-4 border-b border-foreground/20">
-          <h2 class="text-xl font-bold glass-text">在线用户</h2>
-          <button @click="showOnlineUsersModal = false" class="text-foreground/70 hover:text-white text-2xl leading-none">×</button>
+    <div v-if="showOnlineUsersModal" class="fixed inset-0 bg-ios-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4" @click="showOnlineUsersModal = false">
+      <div class="ios-modal w-full max-w-md max-h-[80vh] overflow-y-auto" @click.stop>
+        <div class="flex items-center justify-between mb-4 p-4 border-b border-ios-separator">
+          <h2 class="text-xl font-bold text-ios-label-primary">在线用户</h2>
+          <button @click="showOnlineUsersModal = false" class="text-ios-label-secondary hover:text-ios-label-primary text-2xl leading-none">×</button>
         </div>
         <div class="p-4">
           <div v-if="loadingOnlineUsers" class="flex justify-center items-center py-8">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground/50"></div>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-ios-separator0"></div>
           </div>
-          <div v-else-if="onlineUsers.length === 0" class="text-center py-8 text-foreground/60">
+          <div v-else-if="onlineUsers.length === 0" class="text-center py-8 text-ios-label-secondary">
             暂无在线用户
           </div>
           <div v-else class="space-y-3">
             <div 
               v-for="user in onlineUsers" 
               :key="user.id"
-              class="flex items-center gap-3 p-3 rounded-lg hover:bg-foreground/10 transition-colors cursor-pointer"
+              class="flex items-center gap-3 p-3 rounded-lg hover:bg-ios-systemGray5 transition-colors cursor-pointer"
               @click.stop="goToProfile(user.username)"
             >
               <div class="relative">
                 <img
                   :src="getImageUrl(user.avatar)"
                   :alt="user.nickname || user.username"
-                  class="w-12 h-12 rounded-full border-2 border-foreground/30"
+                  class="w-12 h-12 rounded-full border-2 border-ios-separator"
                 />
                 <span 
                   class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-black"
@@ -71,8 +71,8 @@
                 ></span>
               </div>
               <div class="flex-1">
-                <div class="font-medium glass-text">{{ user.nickname || user.username }}</div>
-                <div class="text-sm text-foreground/60">
+                <div class="font-medium text-ios-label-primary">{{ user.nickname || user.username }}</div>
+                <div class="text-sm text-ios-label-secondary">
                   {{ user.online_status === 'online' ? '在线' : '离线' }}
                 </div>
               </div>

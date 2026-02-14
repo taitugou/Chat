@@ -5,6 +5,8 @@ import { addChips, deductChips, getUserChips, CHIP_TRANSACTION_TYPES } from '../
 import { createLoan } from '../services/loanService.js';
 import { createGameInstance } from '../services/gameFactory.js';
 import { getGame, setGame, hasGame, deleteGame } from '../services/gameRegistry.js';
+import { withGameLock, getOrCreateRoomLock, deleteRoomLock } from '../services/gameOperationLock.js';
+import { settleGame, abortGame, getSettlementReport, validateSettlementIntegrity } from '../services/gameSettlementService.js';
 
 // In-memory game state storage adapter
 const games = {
@@ -15,6 +17,197 @@ const games = {
 };
 
 const readyTimers = new Map();
+
+const DEFAULT托管_TIMEOUT_MS = 30000;
+const AUTO托管_ACTIONS = ['check', 'call', 'fold', 'pass'];
+
+function get托管Timeout() {
+  return parseInt(process.env.GAME托管_TIMEOUT_MS || String(DEFAULT托管_TIMEOUT_MS));
+}
+
+async function execute托管Action(io, roomId, game, playerId, action, payload = {}) {
+  const gameHandlers = {
+    'zhajinhua': ['call', 'fold', 'see'],
+    'doudizhu': ['pass', 'play', 'bid'],
+    'paodekuai': ['pass', 'play'],
+    'blackjack': ['hit', 'stand', 'double'],
+    'niuniu': ['reveal', 'settle'],
+    'shengji': ['play', 'pass'],
+    'texas_holdem': ['check', 'call', 'raise', 'fold'],
+    'touzi_bao': ['place_bet', 'roll'],
+    'erbaban': ['roll', 'surrender'],
+    'wuziqi': ['move', 'surrender'],
+    'xiangqi': ['move', 'surrender'],
+    'international_chess': ['move', 'surrender'],
+    'junqi': ['move', 'setup', 'surrender'],
+    'weiqi': ['place', 'pass', 'settle', 'surrender'],
+    'sichuan_mahjong': ['discard', 'hu', 'ron', 'peng', 'chi', 'gang', 'settle', 'surrender'],
+    'guangdong_mahjong': ['discard', 'hu', 'ron', 'peng', 'chi', 'gang', 'settle', 'surrender'],
+    'guobiao_mahjong': ['discard', 'hu', 'ron', 'peng', 'chi', 'gang', 'settle', 'surrender'],
+    'ren_mahjong': ['discard', 'hu', 'ron', 'peng', 'chi', 'gang', 'settle', 'surrender']
+  };
+
+  const gameCode = game.gameCode || 'generic';
+  const allowedActions = gameHandlers[gameCode] || AUTO托管_ACTIONS;
+
+  let托管Action = action;
+  if (!allowedActions.includes(action)) {
+    if (action === 'check' || action === 'call' || action === 'pass') {
+     托管Action = 'fold';
+    } else {
+     托管Action = 'fold';
+    }
+  }
+
+  try {
+    const gameType = typeof game.handleAction === 'function' ? 'generic' : 
+                     typeof game.playMove === 'function' ? 'board' : 
+                     typeof game.place === 'function' ? 'weiqi' : 'poker';
+
+    let result = null;
+
+    if (gameType === 'board') {
+      if (payload.from && payload.to) {
+        result = game.playMove(playerId, payload.from.x, payload.from.y, payload.to.x, payload.to.y);
+      }
+    } else if (gameType === 'weiqi') {
+      if (payload.x !== undefined && payload.y !== undefined) {
+        result = game.place(playerId, payload.x, payload.y);
+      } else {
+        result = game.pass(playerId);
+      }
+    } else if (托管Action === 'fold' ||托管Action === 'surrender') {
+      if (typeof game.fold === 'function') {
+        result = game.fold(playerId);
+      } else if (typeof game.handleAction === 'function') {
+        result = game.handleAction(playerId, 'surrender', {});
+      }
+    } else if (typeof game.handleAction === 'function') {
+      result = game.handleAction(playerId,托管Action, payload);
+    } else {
+      const method = game[托管Action];
+      if (typeof method === 'function') {
+        result = method.call(game, playerId, payload);
+      }
+    }
+
+    if (result) {
+      if (game.__finishing) return;
+      game.__finishing = true;
+      await finishGame(io, roomId, game.gameId, result);
+    } else {
+      io.to(`game_room:${roomId}`).emit('game:state_update', {
+        roomId,
+        gameState: game.getGameState()
+      });
+    }
+
+    console.log(`[托管] 房间 ${roomId} 玩家 ${playerId} 执行${托管Action}操作完成`);
+    return true;
+  } catch (e) {
+    console.error(`[托管] 房间 ${roomId} 玩家 ${playerId} 执行${托管Action}失败:`, e.message);
+    return false;
+  }
+}
+
+async function handlePlayerDisconnection(io, roomId, userId) {
+  const game = games.get(parseInt(roomId));
+  if (!game) return;
+
+  if (game.gameOver || game.__finishing) return;
+
+  const currentPlayer = game.getCurrentPlayerId ? game.getCurrentPlayerId() : null;
+  if (!currentPlayer || String(currentPlayer) !== String(userId)) {
+    return;
+  }
+
+  const isOwner = game.bankerId === userId || 
+                 game.dealerId === userId || 
+                 game.playerIds?.[0] === userId ||
+                 (game.redId === userId || game.blackId === userId);
+
+  const isImportantPlayer = isOwner || 
+                           game.playerIds?.length === 2 ||
+                           game.playerIds?.indexOf(userId) === 0;
+
+  if (!isImportantPlayer) {
+    return;
+  }
+
+  console.log(`[托管] 检测到关键玩家 ${userId} 断线，房间 ${roomId}，准备执行托管逻辑`);
+
+  create托管Timer(io, roomId, game, userId);
+}
+
+async function clearPlayer托管Timers(game, userId) {
+  if (!game || !game.托管Timers) return;
+  
+  const timer = game.托管Timers.get(userId);
+  if (timer) {
+    clearTimeout(timer);
+    game.托管Timers.delete(userId);
+    console.log(`[托管] 已清除玩家 ${userId} 的托管计时器`);
+  }
+}
+
+async function clearAll托管Timers(game) {
+  if (!game || !game.托管Timers) return;
+  
+  for (const [userId, timer] of game.托管Timers) {
+    clearTimeout(timer);
+    console.log(`[托管] 已清除玩家 ${userId} 的托管计时器`);
+  }
+  game.托管Timers.clear();
+}
+
+function create托管Timer(io, roomId, game, userId) {
+  const托管Timeout = get托管Timeout();
+
+  const托管Timer = setTimeout(async () => {
+    console.log(`[托管] 玩家 ${userId} 超时 (${托管Timeout}ms)，执行托管操作`);
+
+    try {
+      const currentGame = games.get(parseInt(roomId));
+      if (!currentGame || currentGame.gameOver || currentGame.__finishing) {
+        clearPlayer托管Timers(game, userId);
+        return;
+      }
+
+      const stillCurrent = currentGame.getCurrentPlayerId ? currentGame.getCurrentPlayerId() : null;
+      if (!stillCurrent || String(stillCurrent) !== String(userId)) {
+        clearPlayer托管Timers(game, userId);
+        return;
+      }
+
+      const actions = ['check', 'call', 'pass', 'fold'];
+      const action = actions[Math.floor(Math.random() * actions.length)];
+
+      console.log(`[托管] 玩家 ${userId} 执行托管操作: ${action}`);
+
+      const lock = getOrCreateRoomLock(roomId);
+      const context = await lock.acquire(`托管_${userId}_${Date.now()}`, 10);
+
+      try {
+        await execute托管Action(io, roomId, currentGame, userId, action, {});
+      } finally {
+        context.release();
+      }
+    } catch (e) {
+      console.error(`[托管] 执行托管操作失败:`, e);
+    } finally {
+      clearPlayer托管Timers(game, userId);
+    }
+  },托管Timeout);
+
+  game.托管Timers = game.托管Timers || new Map();
+  game.托管Timers.set(userId,托管Timer);
+
+  io.to(`game_room:${roomId}`).emit('game:托管通知', {
+    userId,
+    message: '玩家已断线，即将执行托管',
+    timeout:托管Timeout
+  });
+}
 
 async function executeStartGame(io, roomId, playerIds) {
   let game = null;
@@ -399,8 +592,10 @@ export function initGameSocketHandlers(io, socket) {
     }
   });
 
-  // Unified Action Handler
+  // Unified Action Handler with Operation Lock
   socket.on('game:action', async (data) => {
+    const lockOperationId = `action_${userId}_${Date.now()}`;
+    
     try {
       const { roomId, action } = data;
       const payload = data.payload || {};
@@ -412,108 +607,138 @@ export function initGameSocketHandlers(io, socket) {
       }
       
       const game = games.get(parseInt(roomId));
+      
+      if (game.gameOver || game.__finishing) {
+        socket.emit('game:error', { error: '游戏已结束' });
+        return;
+      }
+
+      const currentPlayerId = game.getCurrentPlayerId ? game.getCurrentPlayerId() : 
+                             game.playerIds?.[game.currentPlayerIndex];
+      
+      const gameState = game.getGameState ? game.getGameState() : {};
+      const isSimultaneousGame = gameState.gameCode === 'niuniu' || gameState.gameCode === 'erbaban';
+      
+      if (!isSimultaneousGame && currentPlayerId && String(currentPlayerId) !== String(userId)) {
+        socket.emit('game:error', { error: '不是你的回合' });
+        return;
+      }
+
+      const lockContext = await getOrCreateRoomLock(roomId).acquire(lockOperationId, 5);
+
+      if (!lockContext.isValid()) {
+        socket.emit('game:error', { error: '操作过于频繁，请稍后再试' });
+        return;
+      }
+
       let result = null;
       let chipsToDeduct = 0;
       const previousBet = Number(game.playerBets?.[userId] || 0);
 
-      switch (action) {
-          case 'fold':
-              if (typeof game.fold === 'function') {
-                  result = game.fold(userId);
-              } else {
-                  throw new Error('该游戏不支持此操作');
-              }
-              break;
-          case 'check':
-              if (typeof game.check === 'function') {
-                  result = game.check(userId);
-              } else if (typeof game.call === 'function') {
-                  result = game.call(userId);
-              } else {
-                  throw new Error('该游戏不支持此操作');
-              }
-              break;
-          case 'call':
-              if (typeof game.call === 'function') {
-                  result = game.call(userId);
-              } else {
-                  const currentBet = game.currentBet;
-                  const myBet = game.playerBets[userId] || 0;
-                  const callAmt = currentBet - myBet;
-                  result = game.bet(userId, callAmt);
-              }
-              break;
-          case 'raise':
-              if (typeof game.raise === 'function') {
-                  result = game.raise(userId, amount);
-              } else {
-                  result = game.bet(userId, amount);
-              }
-              break;
-          case 'see':
-              if (typeof game.see !== 'function') {
-                  throw new Error('该游戏不支持看牌');
-              }
-              result = game.see(userId);
-              break;
-          case 'compare':
-              if (typeof game.compare !== 'function') {
-                  throw new Error('该游戏不支持比牌');
-              }
-              if (!payload.targetId) {
-                  throw new Error('缺少比牌目标');
-              }
-              result = game.compare(userId, payload.targetId);
-              break;
-          case 'move':
-              if (typeof game.playMove === 'function') {
-                result = game.playMove(userId, payload.x, payload.y);
+      try {
+        switch (action) {
+            case 'fold':
+                if (typeof game.fold === 'function') {
+                    result = game.fold(userId);
+                } else {
+                    throw new Error('该游戏不支持此操作');
+                }
                 break;
-              }
-              if (typeof game.handleAction === 'function') {
-                result = game.handleAction(userId, action, payload);
+            case 'check':
+                if (typeof game.check === 'function') {
+                    result = game.check(userId);
+                } else if (typeof game.call === 'function') {
+                    result = game.call(userId);
+                } else {
+                    throw new Error('该游戏不支持此操作');
+                }
                 break;
-              }
-              throw new Error('该游戏不支持此操作');
-          default:
-              if (typeof game.handleAction === 'function') {
-                result = game.handleAction(userId, action, payload);
+            case 'call':
+                if (typeof game.call === 'function') {
+                    result = game.call(userId);
+                } else {
+                    const currentBet = game.currentBet;
+                    const myBet = game.playerBets[userId] || 0;
+                    const callAmt = currentBet - myBet;
+                    result = game.bet(userId, callAmt);
+                }
                 break;
-              }
-              throw new Error('未知操作');
-      }
+            case 'raise':
+                if (typeof game.raise === 'function') {
+                    result = game.raise(userId, amount);
+                } else {
+                    result = game.bet(userId, amount);
+                }
+                break;
+            case 'see':
+                if (typeof game.see !== 'function') {
+                    throw new Error('该游戏不支持看牌');
+                }
+                result = game.see(userId);
+                break;
+            case 'compare':
+                if (typeof game.compare !== 'function') {
+                    throw new Error('该游戏不支持比牌');
+                }
+                if (!payload.targetId) {
+                    throw new Error('缺少比牌目标');
+                }
+                result = game.compare(userId, payload.targetId);
+                break;
+            case 'move':
+                if (typeof game.playMove === 'function') {
+                  result = game.playMove(userId, payload.x, payload.y);
+                  break;
+                }
+                if (typeof game.handleAction === 'function') {
+                  result = game.handleAction(userId, action, payload);
+                  break;
+                }
+                throw new Error('该游戏不支持此操作');
+            default:
+                if (typeof game.handleAction === 'function') {
+                  result = game.handleAction(userId, action, payload);
+                  break;
+                }
+                throw new Error('未知操作');
+        }
 
-      // Deduct chips if needed
-      const updatedBet = Number(game.playerBets?.[userId] || 0);
-      chipsToDeduct = Math.max(0, updatedBet - previousBet);
-      if (chipsToDeduct > 0) {
-          await deductChips(userId, chipsToDeduct, CHIP_TRANSACTION_TYPES.GAME_LOSS, '下注', game.gameId, 'game');
-          io.to(`game_room:${roomId}`).emit('game:player_bet', {
-              userId,
-              amount: chipsToDeduct,
-              gameId: game.gameId
-          });
-      }
-      
-      const updatedState = game.getGameState();
-      io.to(`game_room:${roomId}`).emit('game:player_action', {
-          userId,
-          action,
-          amount: chipsToDeduct,
-          payload,
-          currentPlayer: updatedState.currentPlayer,
-          gameId: game.gameId
-      });
+        const updatedBet = Number(game.playerBets?.[userId] || 0);
+        chipsToDeduct = Math.max(0, updatedBet - previousBet);
+        if (chipsToDeduct > 0) {
+            await deductChips(userId, chipsToDeduct, CHIP_TRANSACTION_TYPES.GAME_LOSS, '下注', game.gameId, 'game');
+            io.to(`game_room:${roomId}`).emit('game:player_bet', {
+                userId,
+                amount: chipsToDeduct,
+                gameId: game.gameId
+            });
+        }
+        
+        const updatedState = game.getGameState();
+        io.to(`game_room:${roomId}`).emit('game:player_action', {
+            userId,
+            action,
+            amount: chipsToDeduct,
+            payload,
+            currentPlayer: updatedState.currentPlayer,
+            gameId: game.gameId
+        });
 
-      if (result) {
-          if (game.__finishing) return;
-          game.__finishing = true;
-          await finishGame(io, roomId, game.gameId, result);
-      } else {
-          io.to(`game_room:${roomId}`).emit('game:state_update', {
-              roomId,
-              gameState: game.getGameState()
-          });
+        if (result) {
+            if (game.__finishing) return;
+            game.__finishing = true;
+            await finishGame(io, roomId, game.gameId, result, lockContext);
+            return;
+        } else {
+            io.to(`game_room:${roomId}`).emit('game:state_update', {
+                roomId,
+                gameState: game.getGameState()
+            });
+        }
+      } finally {
+        if (!result || !game.__finishing) {
+          lockContext.release();
+        }
       }
       
     } catch (error) {
@@ -572,75 +797,86 @@ export function initGameSocketHandlers(io, socket) {
   });
 }
 
-async function finishGame(io, roomId, gameId, resultsData) {
+async function finishGame(io, roomId, gameId, resultsData, lockContext = null) {
     try {
-        const { winnerId, totalPot, results } = resultsData;
-        
-        // Process results
-        for (const result of results) {
-            const { userId, chipsChange, position } = result;
-            
-            if (chipsChange > 0) {
-                await addChips(userId, chipsChange, CHIP_TRANSACTION_TYPES.GAME_WIN, '游戏胜利', gameId, 'game');
-            }
-            
-            // Calculate net change for reporting
-            const totalSpent = result.totalSpent || 0;
-            const netChange = chipsChange - totalSpent;
-            
-            // Get current chips for final_chips recording
-            const userChips = await getUserChips(userId);
-            
-            await query(
-                `INSERT INTO game_player_records (game_id, user_id, chips_change, final_chips, position, hand_data)
-                 VALUES (?, ?, ?, ?, ?, ?)`,
-                [gameId, userId, netChange, userChips.balance, position, JSON.stringify(result.handData || result.hand || {})]
-            );
+        const roomNumId = parseInt(roomId);
+        const game = games.get(roomNumId);
+
+        if (game) {
+            clearAll托管Timers(game);
         }
-        
-        await updateGameRecord(gameId, {
-            winnerId,
-            totalPot,
-            status: 'finished'
+
+        const settlementResult = await settleGame(io, roomId, game, resultsData, {
+            useTransaction: true,
+            validateIntegrity: true,
+            lockContext
         });
-        
+
+        if (settlementResult.alreadySettled) {
+            console.log(`游戏 ${gameId} 已经结算过，跳过`);
+            return;
+        }
+
         await query('UPDATE game_rooms SET status = "waiting" WHERE id = ?', [roomId]);
-        
-        // 重置所有玩家的准备状态
         await query('UPDATE game_room_players SET is_ready = FALSE WHERE room_id = ?', [roomId]);
-        
-        // Remove game from memory
-        games.delete(parseInt(roomId));
+
+        deleteGame(roomNumId);
+        deleteRoomLock(roomNumId);
 
         io.to(`game_room:${roomId}`).emit('game:finished', {
             gameId,
-            winnerId,
-            results,
-            totalPot
+            winnerId: settlementResult.winnerId,
+            results: settlementResult.results,
+            totalPot: settlementResult.totalPot,
+            settledAt: settlementResult.settledAt
         });
+
+        console.log(`[finishGame] 游戏 ${gameId} 结算完成`);
 
     } catch (error) {
         console.error('Finish game error:', error);
+
         try {
-            await updateGameRecord(gameId, {
-                status: 'aborted',
-                totalPot: Number(resultsData?.totalPot || 0),
-                gameData: games.get(parseInt(roomId))?.getGameState?.()
+            const roomNumId = parseInt(roomId);
+            const game = games.get(roomNumId);
+            if (game) {
+                clearAll托管Timers(game);
+            }
+        } catch (e) {
+            console.error('清理托管Timer失败:', e);
+        }
+
+        try {
+            await abortGame(null, gameId, 'settlement_error', {
+                error: error.message,
+                stack: error.stack
             });
         } catch (e) {
-            console.error('Finish game abort record error:', e);
+            console.error('中止游戏记录失败:', e);
         }
+
         try {
             await query('UPDATE game_rooms SET status = "waiting" WHERE id = ?', [roomId]);
             await query('UPDATE game_room_players SET is_ready = FALSE WHERE room_id = ?', [roomId]);
         } catch (e) {
-            console.error('Finish game reset room error:', e);
+            console.error('重置房间状态失败:', e);
         }
+
         try {
-            games.delete(parseInt(roomId));
-        } catch {}
+            deleteGame(parseInt(roomId));
+            deleteRoomLock(parseInt(roomId));
+        } catch (e) {
+            console.error('清理游戏内存失败:', e);
+        }
+
         try {
-            io.to(`game_room:${roomId}`).emit('game:error', { error: '结算失败，已中止对局' });
-        } catch {}
+            io.to(`game_room:${roomId}`).emit('game:error', {
+                error: '结算失败，已中止对局',
+                code: 'SETTLEMENT_ERROR',
+                message: error.message
+            });
+        } catch (e) {
+            console.error('发送错误通知失败:', e);
+        }
     }
 }

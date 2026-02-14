@@ -10,19 +10,19 @@
   >
     <div class="card-inner w-full h-full relative preserve-3d">
       <!-- Card Front -->
-      <div class="card-front absolute inset-0 backface-hidden rounded-xl overflow-hidden shadow-lg border border-white/20">
+      <div class="card-front absolute inset-0 backface-hidden rounded-xl overflow-hidden shadow-lg border border-ios-separator">
         <img :src="cardImageUrl" :alt="cardName" class="w-full h-full object-contain bg-white" />
       </div>
       
       <!-- Card Back -->
-      <div class="card-back absolute inset-0 backface-hidden rounded-xl overflow-hidden shadow-lg border border-white/10 rotate-y-180">
+      <div class="card-back absolute inset-0 backface-hidden rounded-xl overflow-hidden shadow-lg border border-ios-separator rotate-y-180">
         <img src="@/assets/cards/back.svg" alt="Card Back" class="w-full h-full object-contain" />
         <!-- Center Icon -->
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
           <img 
             src="/f.ico" 
             alt="Logo"
-            class="rounded-lg shadow-xl border border-white/10 bg-white/5 backdrop-blur-sm"
+            class="rounded-lg shadow-xl border border-ios-separator bg-ios-systemGray5 backdrop-blur-sm"
             :class="[
               size === 'sm' ? 'w-6 h-6' : size === 'md' ? 'w-10 h-10' : 'w-14 h-14'
             ]"

@@ -1,7 +1,7 @@
 <template>
   <div class="fixed inset-0 z-[-1] overflow-hidden">
     <!-- Base Background Color -->
-    <div class="absolute inset-0 bg-[#1a1a2e]"></div>
+    <div class="absolute inset-0 bg-ios-systemGray6"></div>
     
     <!-- Background Image if provided -->
     <div 
@@ -17,7 +17,7 @@
       <div class="blob blob-3"></div>
     </div>
     
-    <div class="absolute inset-0" :class="props.overlayBlur ? 'backdrop-blur-[80px] bg-black/20' : 'bg-black/10'"></div>
+    <div class="absolute inset-0" :class="props.overlayBlur ? 'backdrop-blur-[80px] bg-ios-black/20 dark:bg-ios-black/20' : 'bg-ios-black/10 dark:bg-ios-black/10'"></div>
   </div>
 </template>
 

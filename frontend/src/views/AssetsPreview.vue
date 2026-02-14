@@ -1,9 +1,9 @@
 <template>
-  <div class="h-screen flex flex-col overflow-hidden bg-background text-foreground transition-colors duration-300">
-    <div class="glass px-4 py-3 flex items-center z-50 shadow-sm border-b border-foreground/5">
+  <div class="h-screen flex flex-col overflow-hidden bg-ios-systemGray6 text-ios-label-primary transition-colors duration-300">
+    <div class="ios-glass px-4 py-3 flex items-center z-50 shadow-sm border-b border-ios-separator">
       <button
         @click="router.back()"
-        class="p-2 -ml-2 rounded-full text-foreground/70 hover:text-white hover:bg-foreground/10 transition-all active:scale-90"
+        class="p-2 -ml-2 rounded-full text-ios-label-secondary hover:text-white hover:bg-ios-systemGray5 transition-all active:scale-90"
         title="返回上一页"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -11,47 +11,47 @@
         </svg>
       </button>
       <div class="flex-1 min-w-0 ml-2">
-        <div class="text-sm font-bold text-foreground/80">资源预览</div>
-        <div class="text-[10px] font-black text-foreground/30 uppercase tracking-widest">Assets Preview</div>
+        <div class="text-sm font-bold text-ios-label-primary">资源预览</div>
+        <div class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest">Assets Preview</div>
       </div>
     </div>
 
     <div class="flex-1 overflow-y-auto p-4 space-y-6 pb-24">
-      <div v-if="loading" class="glass-card p-6 rounded-2xl text-center text-foreground/50">
+      <div v-if="loading" class="ios-card p-6 rounded-2xl text-center text-ios-label-tertiary">
         正在加载资源清单...
       </div>
-      <div v-else-if="error" class="glass-card p-6 rounded-2xl text-center text-red-400">
+      <div v-else-if="error" class="ios-card p-6 rounded-2xl text-center text-red-400">
         {{ error }}
       </div>
 
       <template v-else>
         <section class="space-y-3">
-          <h3 class="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] px-2">品牌</h3>
-          <div class="glass-card p-4 rounded-2xl flex items-center justify-between gap-4">
+          <h3 class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-[0.2em] px-2">品牌</h3>
+          <div class="ios-card p-4 rounded-2xl flex items-center justify-between gap-4">
             <div class="flex items-center gap-3 min-w-0">
-              <img :src="brandLogoUrl" class="w-12 h-12 rounded-xl bg-foreground/5 border border-foreground/10 object-contain" />
+              <img :src="brandLogoUrl" class="w-12 h-12 rounded-xl bg-ios-systemGray5 border border-ios-separator object-contain" />
               <div class="min-w-0">
                 <div class="text-sm font-bold text-white truncate">brand-logo.svg</div>
-                <div class="text-[10px] text-foreground/50 truncate">{{ brandLogoUrl }}</div>
+                <div class="text-[10px] text-ios-label-tertiary truncate">{{ brandLogoUrl }}</div>
               </div>
             </div>
-            <a :href="brandLogoUrl" target="_blank" class="glass-btn px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all">
+            <a :href="brandLogoUrl" target="_blank" class="ios-btn-secondary px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all">
               打开
             </a>
           </div>
         </section>
 
         <section class="space-y-3">
-          <h3 class="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] px-2">SVG 图片</h3>
+          <h3 class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-[0.2em] px-2">SVG 图片</h3>
           <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div v-for="img in imageUrls" :key="img.name" class="glass-card p-3 rounded-2xl space-y-2">
-              <div class="w-full aspect-square rounded-xl bg-foreground/5 border border-foreground/10 overflow-hidden flex items-center justify-center">
+            <div v-for="img in imageUrls" :key="img.name" class="ios-card p-3 rounded-2xl space-y-2">
+              <div class="w-full aspect-square rounded-xl bg-ios-systemGray5 border border-ios-separator overflow-hidden flex items-center justify-center">
                 <img :src="img.url" class="w-full h-full object-contain p-3" />
               </div>
               <div class="text-xs font-bold text-white truncate">{{ img.name }}</div>
               <div class="flex items-center justify-between gap-2">
-                <div class="text-[10px] text-foreground/50 truncate">{{ img.url }}</div>
-                <a :href="img.url" target="_blank" class="glass-btn px-3 py-1.5 rounded-lg text-[10px] font-bold active:scale-95 transition-all">
+                <div class="text-[10px] text-ios-label-tertiary truncate">{{ img.url }}</div>
+                <a :href="img.url" target="_blank" class="ios-btn-secondary px-3 py-1.5 rounded-lg text-[10px] font-bold active:scale-95 transition-all">
                   打开
                 </a>
               </div>
@@ -60,28 +60,28 @@
         </section>
 
         <section class="space-y-3">
-          <h3 class="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] px-2">音频 (WAV)</h3>
-          <div class="glass-card rounded-2xl overflow-hidden divide-y divide-foreground/5">
+          <h3 class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-[0.2em] px-2">音频 (WAV)</h3>
+          <div class="ios-card rounded-2xl overflow-hidden divide-y divide-foreground/5">
             <div v-for="a in audioUrls" :key="a.name" class="p-4 flex items-center justify-between gap-3">
               <div class="min-w-0">
                 <div class="text-sm font-bold text-white truncate">{{ a.name }}</div>
-                <div class="text-[10px] text-foreground/50 truncate">{{ a.url }}</div>
+                <div class="text-[10px] text-ios-label-tertiary truncate">{{ a.url }}</div>
               </div>
               <div class="flex items-center gap-2">
                 <button
-                  class="glass-btn px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all"
+                  class="ios-btn-secondary px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all"
                   @click="playUrl(a.url)"
                 >
                   播放
                 </button>
                 <button
                   v-if="isLoopCandidate(a.name)"
-                  class="glass-btn px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all"
+                  class="ios-btn-secondary px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all"
                   @click="toggleLoop(a.name, a.url)"
                 >
                   {{ loopPlaying[a.name] ? '停止循环' : '循环播放' }}
                 </button>
-                <a :href="a.url" target="_blank" class="glass-btn px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all">
+                <a :href="a.url" target="_blank" class="ios-btn-secondary px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all">
                   打开
                 </a>
               </div>

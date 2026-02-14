@@ -1,10 +1,10 @@
 <template>
-  <div class="h-screen flex flex-col overflow-hidden bg-background text-foreground transition-colors duration-300">
+  <div class="h-screen flex flex-col overflow-hidden bg-ios-systemGray6 text-ios-label-primary transition-colors duration-300">
     <!-- 顶部导航栏 -->
-    <div class="glass px-4 py-3 flex items-center z-50 shadow-sm border-b border-foreground/5">
+    <div class="ios-glass px-4 py-3 flex items-center z-50 shadow-sm border-b border-ios-separator">
       <button
         @click="goBackOneLevel"
-        class="p-2 -ml-2 rounded-full text-foreground/70 hover:text-white hover:bg-foreground/10 transition-all active:scale-90"
+        class="p-2 -ml-2 rounded-full text-ios-label-secondary hover:text-ios-label-primary hover:bg-ios-systemGray5 transition-all active:scale-90"
         title="返回上一页"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -12,53 +12,53 @@
         </svg>
       </button>
       <div class="flex-1 min-w-0 ml-2">
-        <div class="text-sm font-bold text-foreground/80">积分中心</div>
-        <div class="text-[10px] font-black text-foreground/30 uppercase tracking-widest">Points Center</div>
+        <div class="text-sm font-bold text-ios-label-primary">积分中心</div>
+        <div class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest">Points Center</div>
       </div>
-      <div class="flex items-center space-x-1 bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/20">
-        <span class="text-xs font-bold text-primary">{{ totalPoints }}</span>
-        <span class="text-[10px] text-primary/60 font-black">PTS</span>
+      <div class="flex items-center space-x-1 bg-ios-blue/10 px-3 py-1.5 rounded-xl border border-ios-blue/20">
+        <span class="text-xs font-bold text-ios-blue">{{ totalPoints }}</span>
+        <span class="text-[10px] text-ios-blue/60 font-black">PTS</span>
       </div>
     </div>
 
     <!-- 顶部概览卡片 -->
     <div class="p-4">
-      <div class="glass-card p-6 rounded-[2rem] relative overflow-hidden bg-gradient-to-br from-primary/20 via-transparent to-transparent">
+      <div class="ios-card p-6 rounded-[2rem] relative overflow-hidden bg-gradient-to-br from-ios-blue/20 via-transparent to-transparent">
         <div class="relative z-10 flex flex-col items-center text-center space-y-4">
-          <div class="w-16 h-16 rounded-3xl bg-primary/20 flex items-center justify-center text-3xl animate-pulse">
+          <div class="w-16 h-16 rounded-3xl bg-ios-blue/20 flex items-center justify-center text-3xl animate-pulse">
             ⭐
           </div>
           <div class="space-y-1">
-            <h2 class="text-3xl font-black text-white tracking-tight">{{ totalPoints }}</h2>
-            <p class="text-[10px] font-bold text-foreground/40 uppercase tracking-[0.2em]">当前可用积分</p>
+            <h2 class="text-3xl font-black text-ios-label-primary tracking-tight">{{ totalPoints }}</h2>
+            <p class="text-[10px] font-bold text-ios-label-tertiary uppercase tracking-[0.2em]">当前可用积分</p>
           </div>
           <button 
             @click="handleCheckin"
             :disabled="checkinStatus.checkedInToday || checkinLoading"
-            class="glass-btn-primary px-8 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
+            class="ios-btn-primary px-8 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-ios active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
           >
             {{ checkinStatus.checkedInToday ? '今日已签到' : '立即签到' }}
           </button>
-          <div v-if="checkinStatus.consecutiveDays > 0" class="text-[10px] font-bold text-primary/60 uppercase tracking-widest animate-in fade-in slide-in-from-top-2">
+          <div v-if="checkinStatus.consecutiveDays > 0" class="text-[10px] font-bold text-ios-blue/60 uppercase tracking-widest animate-in fade-in slide-in-from-top-2">
             已连续签到 {{ checkinStatus.consecutiveDays }} 天
           </div>
         </div>
         <!-- 装饰背景 -->
-        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl"></div>
-        <div class="absolute -left-10 -top-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl"></div>
+        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-ios-blue/10 rounded-full blur-3xl"></div>
+        <div class="absolute -left-10 -top-10 w-40 h-40 bg-ios-blue/5 rounded-full blur-3xl"></div>
       </div>
     </div>
 
     <!-- 选项卡切换 -->
     <div class="px-4 mb-2">
-      <div class="flex p-1 bg-foreground/5 rounded-2xl">
+      <div class="flex p-1 bg-ios-systemGray5 rounded-2xl">
         <button 
           v-for="tab in tabs" 
           :key="tab.id"
           @click="activeTab = tab.id"
           :class="[
             'flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all',
-            activeTab === tab.id ? 'bg-white text-black shadow-lg' : 'text-foreground/40 hover:text-foreground/60'
+            activeTab === tab.id ? 'bg-foreground text-background shadow-lg' : 'text-ios-label-tertiary hover:text-ios-label-secondary'
           ]"
         >
           {{ tab.name }}
@@ -71,15 +71,15 @@
       <!-- 积分明细 -->
       <div v-if="activeTab === 'records'" class="space-y-3">
         <div v-if="recordsLoading && records.length === 0" class="flex justify-center py-20">
-          <div class="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+          <div class="w-8 h-8 border-3 border-ios-blue/30 border-t-primary rounded-full animate-spin"></div>
         </div>
-        <div v-else-if="records.length === 0" class="text-center py-20 text-foreground/30 text-xs">
+        <div v-else-if="records.length === 0" class="text-center py-20 text-ios-label-tertiary text-xs">
           暂无积分变动记录
         </div>
         <div 
           v-for="record in records" 
           :key="record.id"
-          class="glass-card p-4 rounded-2xl flex items-center justify-between"
+          class="ios-card p-4 rounded-2xl flex items-center justify-between"
         >
           <div class="flex items-center space-x-3">
             <div :class="[
@@ -89,8 +89,8 @@
               {{ record.amount > 0 ? '＋' : '－' }}
             </div>
             <div>
-              <div class="text-xs font-bold text-white">{{ record.description || '积分变动' }}</div>
-              <div class="text-[10px] text-foreground/40">{{ formatDate(record.created_at) }}</div>
+              <div class="text-xs font-bold text-ios-label-primary">{{ record.description || '积分变动' }}</div>
+              <div class="text-[10px] text-ios-label-tertiary">{{ formatDate(record.created_at) }}</div>
             </div>
           </div>
           <div :class="[
@@ -105,7 +105,7 @@
           v-if="hasMoreRecords" 
           @click="fetchRecords(true)"
           :disabled="recordsLoading"
-          class="glass-btn w-full py-3 rounded-2xl text-[10px] font-bold text-foreground/40 hover:text-foreground/60 transition-all active:scale-[0.98]"
+          class="ios-btn-secondary w-full py-3 rounded-2xl text-[10px] font-bold text-ios-label-tertiary hover:text-ios-label-secondary transition-all active:scale-[0.98]"
         >
           {{ recordsLoading ? '加载中...' : '查看更多' }}
         </button>
@@ -114,35 +114,35 @@
       <!-- 积分排行 -->
       <div v-if="activeTab === 'ranking'" class="space-y-3">
         <div v-if="rankingLoading" class="flex justify-center py-20">
-          <div class="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+          <div class="w-8 h-8 border-3 border-ios-blue/30 border-t-primary rounded-full animate-spin"></div>
         </div>
         <div 
           v-for="(user, index) in ranking" 
           :key="user.user_id"
           :class="[
-            'glass-card p-4 rounded-2xl flex items-center justify-between',
-            user.is_current_user ? 'border-primary/40 bg-primary/5' : ''
+            'ios-card p-4 rounded-2xl flex items-center justify-between',
+            user.is_current_user ? 'border-ios-blue/40 bg-ios-blue/5' : ''
           ]"
         >
           <div class="flex items-center space-x-4">
             <div :class="[
               'w-6 text-center font-black italic',
-              index === 0 ? 'text-yellow-400 text-lg' : index === 1 ? 'text-gray-300 text-lg' : index === 2 ? 'text-orange-400 text-lg' : 'text-foreground/20 text-xs'
+              index === 0 ? 'text-yellow-400 text-lg' : index === 1 ? 'text-gray-300 text-lg' : index === 2 ? 'text-orange-400 text-lg' : 'text-ios-label-quaternary text-xs'
             ]">
               {{ index + 1 }}
             </div>
-            <img :src="user.avatar" class="w-10 h-10 rounded-xl object-cover bg-foreground/10" />
+            <img :src="user.avatar" class="w-10 h-10 rounded-xl object-cover bg-ios-systemGray5" />
             <div>
-              <div class="text-xs font-bold text-white flex items-center space-x-1">
+              <div class="text-xs font-bold text-ios-label-primary flex items-center space-x-1">
                 <span>{{ user.nickname }}</span>
-                <span v-if="user.is_current_user" class="text-[8px] bg-primary/20 text-primary px-1 rounded uppercase">Me</span>
+                <span v-if="user.is_current_user" class="text-[8px] bg-ios-blue/20 text-ios-blue px-1 rounded uppercase">Me</span>
               </div>
-              <div class="text-[10px] text-foreground/40">@{{ user.username }}</div>
+              <div class="text-[10px] text-ios-label-tertiary">@{{ user.username }}</div>
             </div>
           </div>
           <div class="text-right">
-            <div class="text-sm font-black text-white">{{ user.points }}</div>
-            <div class="text-[8px] font-black text-foreground/30 uppercase tracking-tighter">Points</div>
+            <div class="text-sm font-black text-ios-label-primary">{{ user.points }}</div>
+            <div class="text-[8px] font-black text-ios-label-tertiary uppercase tracking-tighter">Points</div>
           </div>
         </div>
       </div>
@@ -150,12 +150,12 @@
       <!-- 获取规则 -->
       <div v-if="activeTab === 'rules'" class="space-y-6 pt-2">
         <div class="space-y-3">
-          <h4 class="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] px-2">如何赚取积分</h4>
-          <div class="glass-card divide-y divide-foreground/5 rounded-2xl overflow-hidden">
+          <h4 class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-[0.2em] px-2">如何赚取积分</h4>
+          <div class="ios-card divide-y divide-foreground/5 rounded-2xl overflow-hidden">
             <div v-for="(val, key) in rules.rewards" :key="key" class="p-4 flex items-center justify-between">
               <div class="space-y-0.5">
-                <div class="text-xs font-bold text-white">{{ ruleLabels[key] || key }}</div>
-                <div class="text-[10px] text-foreground/40">{{ ruleDescriptions[key] }}</div>
+                <div class="text-xs font-bold text-ios-label-primary">{{ ruleLabels[key] || key }}</div>
+                <div class="text-[10px] text-ios-label-tertiary">{{ ruleDescriptions[key] }}</div>
               </div>
               <div class="text-xs font-black text-green-400">+{{ val }}</div>
             </div>
@@ -163,12 +163,12 @@
         </div>
 
         <div class="space-y-3">
-          <h4 class="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] px-2">积分消耗</h4>
-          <div class="glass-card divide-y divide-foreground/5 rounded-2xl overflow-hidden">
+          <h4 class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-[0.2em] px-2">积分消耗</h4>
+          <div class="ios-card divide-y divide-foreground/5 rounded-2xl overflow-hidden">
             <div v-for="(val, key) in rules.costs" :key="key" class="p-4 flex items-center justify-between">
               <div class="space-y-0.5">
-                <div class="text-xs font-bold text-white">{{ ruleLabels[key] || key }}</div>
-                <div class="text-[10px] text-foreground/40">{{ ruleDescriptions[key] }}</div>
+                <div class="text-xs font-bold text-ios-label-primary">{{ ruleLabels[key] || key }}</div>
+                <div class="text-[10px] text-ios-label-tertiary">{{ ruleDescriptions[key] }}</div>
               </div>
               <div class="text-xs font-black text-red-400">-{{ val }}</div>
             </div>
@@ -379,13 +379,30 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.glass-card {
-  @apply bg-foreground/[0.03] border border-foreground/[0.08] backdrop-blur-md shadow-xl;
+.ios-card {
+  background: var(--ios-glass-bg);
+  border: 1px solid var(--ios-glass-border);
+  backdrop-filter: blur(24px);
+  box-shadow: var(--shadow-lg);
+  border-radius: 1.5rem;
 }
-.glass-btn-primary {
-  @apply bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all;
+.ios-btn-primary {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.2);
+  transition: all 0.2s ease;
 }
-.glass-btn {
-  @apply bg-foreground/5 text-foreground/70 hover:bg-foreground/10 hover:text-white transition-all border border-foreground/5;
+.ios-btn-primary:hover {
+  filter: brightness(1.1);
+}
+.ios-btn-secondary {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+.ios-btn-secondary:hover {
+  background: var(--bg-hover);
+  color: var(--text-ios-blue);
 }
 </style>

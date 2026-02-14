@@ -248,10 +248,10 @@ async function playGenericQuickFinish({ ownerSocket, p2Socket, started }) {
   return finished;
 }
 
-async function playSurrenderFinish({ ownerSocket, started, emitByUserId, userIds }) {
+async function playSurrenderFinish({ ownerSocket, started, emitByUserId, userIds, lastState }) {
   const roomId = started.roomId;
   const finishedPromise = waitFinished(ownerSocket, 15000);
-  const current = Number(started.gameState?.currentPlayer) || Number(userIds[0]);
+  const current = Number(lastState?.currentPlayer || started.gameState?.currentPlayer) || Number(userIds[0]);
   const surrenderId = current || userIds[0];
   emitByUserId(surrenderId, 'surrender', {});
   return await finishedPromise;
@@ -298,6 +298,7 @@ async function playNiuniuQuickFinish({ ownerSocket, p2Socket, started, emitOwner
   const finishedPromise = waitFinished(ownerSocket, 15000);
   if (emitOwnerAction) emitOwnerAction('reveal', {});
   else ownerSocket.emit('game:action', { roomId, action: 'reveal', payload: {} });
+  await once(ownerSocket, 'game:state_update', 12000).catch(() => null);
   if (emitP2Action) emitP2Action('reveal', {});
   else p2Socket.emit('game:action', { roomId, action: 'reveal', payload: {} });
   const finished = await finishedPromise;
@@ -513,19 +514,24 @@ async function runOneGame({ players, gameCode, minPlayers, runVoiceChat }) {
     }
     finished = await finishedPromise;
   } else if (['xiangqi', 'international_chess', 'junqi'].includes(gameCode)) {
+    let lastState;
     if (gameCode === 'xiangqi') {
       emitByUserId(userIds[0], 'move', { from: { x: 0, y: 9 }, to: { x: 0, y: 8 } });
+      lastState = await once(sockets[0], 'game:state_update', 12000).catch(() => null);
     } else if (gameCode === 'international_chess') {
       emitByUserId(userIds[0], 'move', { from: { x: 0, y: 6 }, to: { x: 0, y: 5 } });
+      lastState = await once(sockets[0], 'game:state_update', 12000).catch(() => null);
     } else {
-      emitByUserId(userIds[0], 'move', { from: { x: 2, y: 10 }, to: { x: 2, y: 9 } });
+      emitByUserId(userIds[0], 'surrender', {});
+      finished = await waitFinished(sockets[0], 15000);
     }
-    await once(sockets[0], 'game:state_update', 12000).catch(() => null);
-    finished = await playSurrenderFinish({ ownerSocket: sockets[0], started, emitByUserId, userIds });
+    if (!finished) {
+      finished = await playSurrenderFinish({ ownerSocket: sockets[0], started, emitByUserId, userIds, lastState: lastState?.gameState });
+    }
   } else if (gameCode === 'weiqi') {
     emitByUserId(userIds[0], 'place', { x: 3, y: 3 });
-    await once(sockets[0], 'game:state_update', 12000).catch(() => null);
-    finished = await playSurrenderFinish({ ownerSocket: sockets[0], started, emitByUserId, userIds });
+    const lastState = await once(sockets[0], 'game:state_update', 12000).catch(() => null);
+    finished = await playSurrenderFinish({ ownerSocket: sockets[0], started, emitByUserId, userIds, lastState: lastState?.gameState });
   } else if (gameCode === 'paodekuai') {
     for (let attempt = 1; attempt <= 10; attempt++) {
       const ok = userIds.every((uid) => Array.isArray(handsByUserId.get(Number(uid))));

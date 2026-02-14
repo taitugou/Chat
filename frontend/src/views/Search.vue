@@ -1,11 +1,11 @@
 <template>
-  <div class="min-h-screen pb-20 bg-background text-foreground transition-colors duration-300">
+  <div class="min-h-screen pb-20 bg-ios-systemGray6 text-ios-label-primary transition-colors duration-300">
     <TopNav />
     
     <!-- 顶部搜索 -->
-    <div class="glass sticky top-[64px] z-40 py-6 px-4 border-b border-foreground/5 shadow-2xl">
+    <div class="ios-glass sticky top-[64px] z-40 py-6 px-4 border-b border-ios-separator shadow-2xl">
       <div class="max-w-5xl mx-auto flex items-center gap-4">
-        <button @click="router.back()" class="w-10 h-10 rounded-full glass-btn flex items-center justify-center active:scale-90 transition-all">
+        <button @click="router.back()" class="w-10 h-10 rounded-full ios-btn-secondary flex items-center justify-center active:scale-90 transition-all">
           <span class="text-xl">←</span>
         </button>
         <div class="flex-1 relative group">
@@ -14,15 +14,15 @@
             @keyup.enter="performSearch(1)"
             type="text"
             placeholder="搜索用户、帖子、话题..."
-            class="glass-input w-full pl-12 pr-12 py-4 rounded-2xl"
+            class="ios-input w-full pl-12 pr-12 py-4 rounded-2xl"
             ref="searchInput"
             autofocus
           />
-          <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-foreground/20 group-focus-within:text-primary transition-colors">🔍</span>
+          <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-ios-label-quaternary group-focus-within:text-ios-blue transition-colors">🔍</span>
           <button 
             v-if="searchQuery" 
             @click="clearSearch"
-            class="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6 rounded-full bg-foreground/10 flex items-center justify-center text-foreground/40 hover:text-white transition-all"
+            class="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6 rounded-full bg-ios-systemGray5 flex items-center justify-center text-ios-label-tertiary hover:text-white transition-all"
           >
             ×
           </button>
@@ -37,7 +37,7 @@
           @click="handleFilterClick(filter.value)"
           class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex-shrink-0 active:scale-95"
           :class="[
-            activeFilter === filter.value ? 'glass-btn-primary' : 'glass text-foreground/40 hover:text-white border border-foreground/5'
+            activeFilter === filter.value ? 'ios-btn-primary' : 'ios-glass text-ios-label-tertiary hover:text-white border border-ios-separator'
           ]"
         >
           {{ filter.label }}
@@ -49,49 +49,49 @@
     <div class="max-w-5xl mx-auto px-4 py-8 pb-24">
       <!-- 加载?-->
       <div v-if="isLoading" class="py-20 text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary mx-auto mb-6"></div>
-        <p class="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em]">Searching the void...</p>
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-ios-blue/20 border-t-primary mx-auto mb-6"></div>
+        <p class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-[0.2em]">Searching the void...</p>
       </div>
 
       <!-- 未找到结果 -->
-      <div v-else-if="hasSearched && searchResults.length === 0" class="py-20 text-center glass-card animate-in fade-in zoom-in duration-500">
+      <div v-else-if="hasSearched && searchResults.length === 0" class="py-20 text-center ios-card animate-in fade-in zoom-in duration-500">
         <div class="text-6xl mb-6 opacity-20">🔍</div>
         <h3 class="text-xl font-bold text-white mb-2">未找到相关结果</h3>
-        <p class="text-foreground/40 text-sm">试试其他关键词或调整搜索条件</p>
+        <p class="text-ios-label-tertiary text-sm">试试其他关键词或调整搜索条件</p>
       </div>
 
       <!-- 初始页面内容 (热门推荐) -->
       <div v-else-if="!hasSearched && !searchQuery" class="space-y-10 animate-in fade-in duration-700">
         <div v-if="trendingData.trending_posts?.length > 0">
           <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xs font-black text-foreground/40 uppercase tracking-[0.2em] flex items-center gap-2">
+            <h2 class="text-xs font-black text-ios-label-tertiary uppercase tracking-[0.2em] flex items-center gap-2">
               <span class="text-lg">🔥</span> 热门帖子
             </h2>
-            <button @click="loadTrending" class="text-[10px] font-black text-primary uppercase tracking-widest hover:opacity-70 transition-opacity">换一批</button>
+            <button @click="loadTrending" class="text-[10px] font-black text-ios-blue uppercase tracking-widest hover:opacity-70 transition-opacity">换一批</button>
           </div>
           <div class="space-y-4">
             <div
               v-for="post in trendingData.trending_posts.slice(0, 5)"
               :key="post.id"
-              class="glass-card p-5 cursor-pointer group active:scale-[0.99] transition-all"
+              class="ios-card p-5 cursor-pointer group active:scale-[0.99] transition-all"
               @click="$router.push(`/post/${post.id}`)"
             >
               <div class="flex items-start gap-4">
                 <img
                   :src="getImageUrl(post.avatar)"
-                  class="w-12 h-12 rounded-xl object-cover border border-foreground/10 group-hover:border-primary transition-colors"
+                  class="w-12 h-12 rounded-xl object-cover border border-ios-separator group-hover:border-ios-blue transition-colors"
                   @click.stop="goToProfile(post.username)"
                 />
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-1">
                     <span 
-                      class="font-bold text-foreground/90 group-hover:text-primary transition-colors"
+                      class="font-bold text-ios-label-primary group-hover:text-ios-blue transition-colors"
                       @click.stop="goToProfile(post.username)"
                     >{{ post.nickname }}</span>
-                    <span class="text-[10px] text-foreground/20 uppercase tracking-widest">· {{ formatTime(post.created_at) }}</span>
+                    <span class="text-[10px] text-ios-label-quaternary uppercase tracking-widest">· {{ formatTime(post.created_at) }}</span>
                   </div>
-                  <p class="text-foreground/60 line-clamp-2 text-sm leading-relaxed" v-html="formatPostContent(post.content)"></p>
-                  <div class="flex items-center gap-6 mt-4 text-[10px] font-black uppercase tracking-widest text-foreground/30">
+                  <p class="text-ios-label-secondary line-clamp-2 text-sm leading-relaxed" v-html="formatPostContent(post.content)"></p>
+                  <div class="flex items-center gap-6 mt-4 text-[10px] font-black uppercase tracking-widest text-ios-label-tertiary">
                     <span class="flex items-center gap-1.5">
                       <span class="text-sm">{{ post.isLiked ? '❤️' : '🤍' }}</span>
                       {{ post.like_count || 0 }}
@@ -108,7 +108,7 @@
         </div>
 
         <div v-if="trendingData.popular_tags?.length > 0">
-          <h2 class="text-xs font-black text-foreground/40 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+          <h2 class="text-xs font-black text-ios-label-tertiary uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
             <span class="text-lg">#</span> 热门话题
           </h2>
           <div class="flex flex-wrap gap-2.5">
@@ -116,42 +116,42 @@
               v-for="tag in trendingData.popular_tags.slice(0, 15)"
               :key="tag.tag"
               @click="searchByTag(tag.tag)"
-              class="px-4 py-2 rounded-xl glass text-xs font-bold text-foreground/60 hover:text-white hover:bg-foreground/10 border border-foreground/5 active:scale-95 transition-all"
+              class="px-4 py-2 rounded-xl ios-glass text-xs font-bold text-ios-label-secondary hover:text-white hover:bg-ios-systemGray5 border border-ios-separator active:scale-95 transition-all"
             >
               #{{ tag.tag }}
-              <span class="text-[10px] text-foreground/20 ml-1.5 tabular-nums">{{ tag.count }}</span>
+              <span class="text-[10px] text-ios-label-quaternary ml-1.5 tabular-nums">{{ tag.count }}</span>
             </button>
           </div>
         </div>
 
         <div v-if="trendingData.popular_users?.length > 0">
-          <h2 class="text-xs font-black text-foreground/40 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+          <h2 class="text-xs font-black text-ios-label-tertiary uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
             <span class="text-lg">👥</span> 活跃用户
           </h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div
               v-for="user in trendingData.popular_users.slice(0, 6)"
               :key="user.id"
-              class="glass-card p-4 cursor-pointer group active:scale-[0.98] transition-all"
+              class="ios-card p-4 cursor-pointer group active:scale-[0.98] transition-all"
               @click.stop="goToProfile(user.username)"
             >
               <div class="flex items-center gap-3">
                 <div class="relative">
                   <img
                     :src="getImageUrl(user.avatar)"
-                    class="w-12 h-12 rounded-xl object-cover border border-foreground/10 group-hover:border-primary transition-colors"
+                    class="w-12 h-12 rounded-xl object-cover border border-ios-separator group-hover:border-ios-blue transition-colors"
                   />
                   <div
                     class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-black"
                     :class="{
                       'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]': user.online_status === 'online',
-                      'bg-foreground/10': !user.online_status || user.online_status === 'offline'
+                      'bg-ios-systemGray5': !user.online_status || user.online_status === 'offline'
                     }"
                   ></div>
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div class="font-bold text-foreground/90 truncate group-hover:text-primary transition-colors text-sm">{{ user.nickname }}</div>
-                  <div class="text-[10px] text-foreground/30 uppercase tracking-widest font-black">{{ user.post_count }} Posts</div>
+                  <div class="font-bold text-ios-label-primary truncate group-hover:text-ios-blue transition-colors text-sm">{{ user.nickname }}</div>
+                  <div class="text-[10px] text-ios-label-tertiary uppercase tracking-widest font-black">{{ user.post_count }} Posts</div>
                 </div>
               </div>
             </div>
@@ -162,87 +162,87 @@
       <!-- 搜索结果列表 -->
       <div v-else class="animate-in fade-in duration-500">
         <div class="flex items-center justify-between mb-8 px-1">
-          <p class="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em]">
-            Found <span class="text-foreground/80 tabular-nums">{{ totalResults }}</span> Results
-            <span v-if="searchTime" class="ml-2 text-foreground/10">({{ searchTime }}ms)</span>
+          <p class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-[0.2em]">
+            Found <span class="text-ios-label-primary tabular-nums">{{ totalResults }}</span> Results
+            <span v-if="searchTime" class="ml-2 text-ios-label-quaternary">({{ searchTime }}ms)</span>
           </p>
           <div class="relative">
             <select
               v-model="sortBy"
-              class="text-[10px] font-black uppercase tracking-widest bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2 outline-none focus:border-primary text-foreground/60 appearance-none pr-8 cursor-pointer"
+              class="text-[10px] font-black uppercase tracking-widest bg-ios-systemGray5 border border-ios-separator rounded-xl px-4 py-2 outline-none focus:border-ios-blue text-ios-label-secondary appearance-none pr-8 cursor-pointer"
             >
               <option value="relevance">相关性</option>
               <option value="latest">最新发布</option>
               <option value="hot">最热门</option>
             </select>
-            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/20 pointer-events-none text-[8px]">▼</span>
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-ios-label-quaternary pointer-events-none text-[8px]">▼</span>
           </div>
         </div>
 
         <div v-if="searchResults.length > 0" class="space-y-4">
           <template v-for="result in searchResults" :key="result.type + '_' + result.id">
             <!-- 用户结果 -->
-            <div v-if="result.type === 'user'" class="glass-card p-5 active:scale-[0.99] transition-all">
+            <div v-if="result.type === 'user'" class="ios-card p-5 active:scale-[0.99] transition-all">
               <div class="flex items-center gap-5 cursor-pointer group" @click.stop="goToProfile(result.username)">
                 <div class="relative">
                   <img
                     :src="getImageUrl(result.avatar)"
-                    class="w-16 h-16 rounded-2xl object-cover border border-foreground/10 group-hover:border-primary transition-colors shadow-xl"
+                    class="w-16 h-16 rounded-2xl object-cover border border-ios-separator group-hover:border-ios-blue transition-colors shadow-xl"
                   />
                   <div
                     class="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full border-2 border-black"
                     :class="{
                       'bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)]': result.online_status === 'online',
-                      'bg-foreground/10': !result.online_status || result.online_status === 'offline'
+                      'bg-ios-systemGray5': !result.online_status || result.online_status === 'offline'
                     }"
                   ></div>
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-3">
-                    <span class="font-black text-foreground/90 group-hover:text-primary transition-colors tracking-tight">{{ result.nickname }}</span>
+                    <span class="font-black text-ios-label-primary group-hover:text-ios-blue transition-colors tracking-tight">{{ result.nickname }}</span>
                     <span
                       v-if="result.online_status === 'online'"
                       class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 bg-green-500/10 text-green-400 rounded-md border border-green-500/20"
                     >Online</span>
                   </div>
-                  <p class="text-sm text-foreground/50 mt-1.5 line-clamp-1 italic" v-html="formatPostContent(result.bio || '这个人很懒，什么都没写')"></p>
-                  <div v-if="result.location" class="flex items-center gap-1.5 mt-2 text-[10px] font-bold text-foreground/30 uppercase tracking-widest">
+                  <p class="text-sm text-ios-label-tertiary mt-1.5 line-clamp-1 italic" v-html="formatPostContent(result.bio || '这个人很懒，什么都没写')"></p>
+                  <div v-if="result.location" class="flex items-center gap-1.5 mt-2 text-[10px] font-bold text-ios-label-tertiary uppercase tracking-widest">
                     <span>📍</span> {{ result.location }}
                   </div>
                 </div>
-                <button @click.stop="toggleFollow(result)" class="glass-btn-primary px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all">
+                <button @click.stop="toggleFollow(result)" class="ios-btn-primary px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all">
                   关注
                 </button>
               </div>
             </div>
 
             <!-- 帖子结果 -->
-            <div v-else-if="result.type === 'post'" class="glass-card overflow-hidden active:scale-[0.99] transition-all">
+            <div v-else-if="result.type === 'post'" class="ios-card overflow-hidden active:scale-[0.99] transition-all">
               <div class="p-5 cursor-pointer group" @click="$router.push(`/post/${result.id}`)">
                 <div class="flex items-start gap-4 mb-4">
                   <img
                     :src="getImageUrl(result.user?.avatar)"
-                    class="w-12 h-12 rounded-xl object-cover border border-foreground/10 group-hover:border-primary transition-colors"
+                    class="w-12 h-12 rounded-xl object-cover border border-ios-separator group-hover:border-ios-blue transition-colors"
                     @click.stop="goToProfile(result.user?.username)"
                   />
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-2">
                         <span 
-                          class="font-bold text-foreground/90 group-hover:text-primary transition-colors"
+                          class="font-bold text-ios-label-primary group-hover:text-ios-blue transition-colors"
                           @click.stop="goToProfile(result.user?.username)"
                         >{{ result.user?.nickname }}</span>
-                        <span class="text-[10px] text-foreground/20 uppercase tracking-widest font-black">· {{ formatTime(result.created_at) }}</span>
+                        <span class="text-[10px] text-ios-label-quaternary uppercase tracking-widest font-black">· {{ formatTime(result.created_at) }}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div class="space-y-4">
-                  <p class="text-foreground/80 text-sm sm:text-base leading-relaxed" v-html="formatPostContent(result.content)"></p>
+                  <p class="text-ios-label-primary text-sm sm:text-base leading-relaxed" v-html="formatPostContent(result.content)"></p>
 
                   <!-- 图片网格 -->
-                  <div v-if="result.images?.length > 0" class="rounded-2xl overflow-hidden border border-foreground/5">
+                  <div v-if="result.images?.length > 0" class="rounded-2xl overflow-hidden border border-ios-separator">
                     <div class="grid grid-cols-3 gap-1">
                       <img
                         v-for="(img, idx) in result.images.slice(0, 3)"
@@ -252,7 +252,7 @@
                         @click.stop="previewImage(result.images, idx)"
                       />
                     </div>
-                    <div v-if="result.images.length > 3" class="bg-foreground/5 py-2 text-[10px] text-foreground/30 font-black uppercase tracking-widest text-center border-t border-foreground/5">
+                    <div v-if="result.images.length > 3" class="bg-ios-systemGray5 py-2 text-[10px] text-ios-label-tertiary font-black uppercase tracking-widest text-center border-t border-ios-separator">
                       + {{ result.images.length - 3 }} More Images
                     </div>
                   </div>
@@ -262,17 +262,17 @@
                     <a 
                       :href="getImageUrl(result.file_url)" 
                       :download="result.file_url.split('/').pop().split('_').slice(2).join('_') || 'download'"
-                      class="flex items-center gap-3 glass p-3 rounded-xl border border-foreground/10 hover:bg-foreground/5 transition-all group"
+                      class="flex items-center gap-3 ios-glass p-3 rounded-xl border border-ios-separator hover:bg-ios-systemGray5 transition-all group"
                       @click.stop
                     >
-                      <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                      <div class="w-8 h-8 rounded-lg bg-ios-blue/10 flex items-center justify-center text-ios-blue group-hover:scale-110 transition-transform">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.414a4 4 0 00-5.656-5.656l-6.415 6.415a6 6 0 108.486 8.486L20.5 13" />
                         </svg>
                       </div>
                       <div class="flex-1 min-w-0">
-                        <div class="text-[11px] font-bold text-foreground/90 truncate">{{ result.file_url.split('/').pop().split('_').slice(2).join('_') || '查看文件' }}</div>
-                        <div class="text-[9px] text-foreground/30 uppercase tracking-widest font-black">Download Attachment</div>
+                        <div class="text-[11px] font-bold text-ios-label-primary truncate">{{ result.file_url.split('/').pop().split('_').slice(2).join('_') || '查看文件' }}</div>
+                        <div class="text-[9px] text-ios-label-tertiary uppercase tracking-widest font-black">Download Attachment</div>
                       </div>
                     </a>
                   </div>
@@ -283,27 +283,27 @@
                       :href="result.link_info.url"
                       target="_blank"
                       rel="noopener noreferrer"
-                      class="block glass border border-foreground/10 rounded-2xl overflow-hidden hover:bg-foreground/5 transition-all group/link active:scale-[0.99]"
+                      class="block ios-glass border border-ios-separator rounded-2xl overflow-hidden hover:bg-ios-systemGray5 transition-all group/link active:scale-[0.99]"
                       @click.stop
                     >
-                      <div v-if="result.link_info.image_url" class="w-full h-36 overflow-hidden bg-foreground/5 border-b border-foreground/5">
+                      <div v-if="result.link_info.image_url" class="w-full h-36 overflow-hidden bg-ios-systemGray5 border-b border-ios-separator">
                         <img :src="result.link_info.image_url" class="w-full h-full object-cover group-hover/link:scale-110 transition-transform duration-700" />
                       </div>
                       <div class="p-4">
-                        <div class="text-sm font-bold text-foreground/90 line-clamp-1 group-hover/link:text-primary transition-colors">{{ result.link_info.title }}</div>
-                        <div class="text-[10px] font-black uppercase tracking-tighter text-foreground/20 mt-1 truncate">{{ result.link_info.url }}</div>
+                        <div class="text-sm font-bold text-ios-label-primary line-clamp-1 group-hover/link:text-ios-blue transition-colors">{{ result.link_info.title }}</div>
+                        <div class="text-[10px] font-black uppercase tracking-tighter text-ios-label-quaternary mt-1 truncate">{{ result.link_info.url }}</div>
                       </div>
                     </a>
                   </div>
 
                   <!-- 底部交互?-->
-                  <div class="flex items-center justify-between pt-4 border-t border-foreground/5">
-                    <div class="flex items-center gap-8 text-foreground/30 text-[10px] font-black uppercase tracking-widest">
+                  <div class="flex items-center justify-between pt-4 border-t border-ios-separator">
+                    <div class="flex items-center gap-8 text-ios-label-tertiary text-[10px] font-black uppercase tracking-widest">
                       <button class="flex items-center gap-2 hover:text-red-500 transition-colors active:scale-90">
                         <span class="text-base">{{ result.isLiked ? '❤️' : '🤍' }}</span>
                         {{ result.like_count || 0 }}
                       </button>
-                      <button class="flex items-center gap-2 hover:text-primary transition-colors active:scale-90">
+                      <button class="flex items-center gap-2 hover:text-ios-blue transition-colors active:scale-90">
                         <span class="text-base">💬</span>
                         {{ result.comment_count || 0 }}
                       </button>
@@ -318,37 +318,37 @@
             </div>
 
             <!-- 消息结果 -->
-            <div v-else-if="result.type === 'message'" class="glass-card p-5 hover:bg-foreground/5 transition-all cursor-pointer active:scale-[0.99] group" @click="openChat(result)">
+            <div v-else-if="result.type === 'message'" class="ios-card p-5 hover:bg-ios-systemGray5 transition-all cursor-pointer active:scale-[0.99] group" @click="openChat(result)">
               <div class="flex items-center gap-4">
                 <img
                   :src="getImageUrl(result.sender?.avatar)"
-                  class="w-12 h-12 rounded-xl object-cover border border-foreground/10 group-hover:border-primary transition-colors"
+                  class="w-12 h-12 rounded-xl object-cover border border-ios-separator group-hover:border-ios-blue transition-colors"
                   @click.stop="goToProfile(result.sender?.username)"
                 />
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center justify-between">
                     <span 
-                      class="font-bold text-foreground/90 group-hover:text-primary transition-colors"
+                      class="font-bold text-ios-label-primary group-hover:text-ios-blue transition-colors"
                       @click.stop="goToProfile(result.sender?.username)"
                     >{{ result.sender?.nickname }}</span>
-                    <span class="text-[10px] text-foreground/20 font-black uppercase tracking-widest">{{ formatTime(result.created_at) }}</span>
+                    <span class="text-[10px] text-ios-label-quaternary font-black uppercase tracking-widest">{{ formatTime(result.created_at) }}</span>
                   </div>
-                  <p class="text-foreground/50 truncate mt-1.5 text-sm italic" v-html="formatPostContent(result.content)"></p>
+                  <p class="text-ios-label-tertiary truncate mt-1.5 text-sm italic" v-html="formatPostContent(result.content)"></p>
                 </div>
               </div>
             </div>
 
             <!-- 话题结果 -->
-            <div v-else-if="result.type === 'topic'" class="glass-card p-5 hover:bg-foreground/5 transition-all cursor-pointer active:scale-[0.99] group" @click="searchByTag(result.tag)">
+            <div v-else-if="result.type === 'topic'" class="ios-card p-5 hover:bg-ios-systemGray5 transition-all cursor-pointer active:scale-[0.99] group" @click="searchByTag(result.tag)">
               <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-[1.25rem] bg-primary/10 flex items-center justify-center border border-primary/20 shadow-xl group-hover:scale-110 transition-transform">
-                  <span class="text-primary font-black text-xl">#</span>
+                <div class="w-12 h-12 rounded-[1.25rem] bg-ios-blue/10 flex items-center justify-center border border-ios-blue/20 shadow-xl group-hover:scale-110 transition-transform">
+                  <span class="text-ios-blue font-black text-xl">#</span>
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div class="font-black text-foreground/90 group-hover:text-primary transition-colors text-lg tracking-tight">#{{ result.tag }}</div>
-                  <div class="text-[10px] text-foreground/30 font-black uppercase tracking-[0.2em] mt-1">{{ result.usage_count || 0 }} Mentions</div>
+                  <div class="font-black text-ios-label-primary group-hover:text-ios-blue transition-colors text-lg tracking-tight">#{{ result.tag }}</div>
+                  <div class="text-[10px] text-ios-label-tertiary font-black uppercase tracking-[0.2em] mt-1">{{ result.usage_count || 0 }} Mentions</div>
                 </div>
-                <div class="w-8 h-8 rounded-full bg-foreground/5 flex items-center justify-center text-foreground/20 group-hover:bg-primary group-hover:text-white transition-all">
+                <div class="w-8 h-8 rounded-full bg-ios-systemGray5 flex items-center justify-center text-ios-label-quaternary group-hover:bg-ios-blue group-hover:text-ios-label-primary transition-all">
                   <span class="text-xl">→</span>
                 </div>
               </div>
@@ -361,7 +361,7 @@
           <button
             @click="loadMore"
             :disabled="isLoadingMore"
-            class="glass-btn px-12 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] active:scale-95 transition-all disabled:opacity-20"
+            class="ios-btn-secondary px-12 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] active:scale-95 transition-all disabled:opacity-20"
           >
             {{ isLoadingMore ? 'Searching...' : 'Load More' }}
           </button>
@@ -375,14 +375,14 @@
           class="fixed inset-0 z-[100] bg-black/95 backdrop-blur-3xl flex items-center justify-center"
           @click="previewImageVisible = false"
         >
-          <button class="absolute top-6 right-6 w-12 h-12 rounded-full glass-btn flex items-center justify-center text-white active:scale-90 transition-all z-20">
+          <button class="absolute top-6 right-6 w-12 h-12 rounded-full ios-btn-secondary flex items-center justify-center text-white active:scale-90 transition-all z-20">
             <span class="text-2xl leading-none">×</span>
           </button>
           
           <button
             v-if="previewImages.length > 1"
             @click.stop="prevImage"
-            class="absolute left-6 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full glass-btn flex items-center justify-center text-white active:scale-90 transition-all z-20"
+            class="absolute left-6 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full ios-btn-secondary flex items-center justify-center text-white active:scale-90 transition-all z-20"
           >
             <span class="text-4xl leading-none pr-1">‹</span>
           </button>
@@ -396,12 +396,12 @@
           <button
             v-if="previewImages.length > 1"
             @click.stop="nextImage"
-            class="absolute right-6 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full glass-btn flex items-center justify-center text-white active:scale-90 transition-all z-20"
+            class="absolute right-6 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full ios-btn-secondary flex items-center justify-center text-white active:scale-90 transition-all z-20"
           >
             <span class="text-4xl leading-none pl-1">›</span>
           </button>
           
-          <div v-if="previewImages.length > 1" class="absolute bottom-8 left-1/2 -translate-x-1/2 px-6 py-2.5 glass-badge rounded-full text-white text-[10px] font-black uppercase tracking-widest border border-foreground/10">
+          <div v-if="previewImages.length > 1" class="absolute bottom-8 left-1/2 -translate-x-1/2 px-6 py-2.5 ios-badge rounded-full text-white text-[10px] font-black uppercase tracking-widest border border-ios-separator">
             {{ previewImageIndex + 1 }} / {{ previewImages.length }}
           </div>
         </div>

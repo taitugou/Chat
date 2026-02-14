@@ -222,7 +222,7 @@ onUnmounted(() => {
       @wheel="onWheel"
     >
       <div class="absolute top-[1vh] right-[1vh] z-10 flex gap-[0.8vh]">
-        <button class="glass-btn px-[1.2vh] py-[0.8vh] rounded-[1vh] text-[1.8vh] font-bold active:scale-95 transition-all" @click="resetView">
+        <button class="ios-btn-secondary px-[1.2vh] py-[0.8vh] rounded-[1vh] text-[1.8vh] font-bold active:scale-95 transition-all" @click="resetView">
           复位
         </button>
       </div>
@@ -250,26 +250,26 @@ onUnmounted(() => {
               v-if="board[Math.floor(i / boardSize)][i % boardSize] !== 0"
               class="w-[80%] h-[80%] rounded-full shadow-md transition-all duration-200"
               :class="{
-                'bg-black': board[Math.floor(i / boardSize)][i % boardSize] === 1,
+                'bg-ios-black': board[Math.floor(i / boardSize)][i % boardSize] === 1,
                 'bg-white': board[Math.floor(i / boardSize)][i % boardSize] === 2
               }"
             ></div>
 
             <div
               v-else-if="pendingMove && pendingMove.x === (i % boardSize) && pendingMove.y === Math.floor(i / boardSize)"
-              class="w-[78%] h-[78%] rounded-full border-2 border-green-400/80 bg-white/10"
+              class="w-[78%] h-[78%] rounded-full border-2 border-green-400/80 bg-ios-systemGray5"
             ></div>
 
             <div
               v-else-if="isMyTurn && !gameOver"
-              class="w-[40%] h-[40%] rounded-full bg-white/30 opacity-0 hover:opacity-100 transition-opacity"
+              class="w-[40%] h-[40%] rounded-full bg-ios-systemGray5 opacity-0 hover:opacity-100 transition-opacity"
             ></div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="mt-4 text-white text-[2vh] font-bold px-4 py-2 bg-black/40 rounded-full backdrop-blur-md text-center">
+    <div class="mt-4 text-ios-label-primary text-[2vh] font-bold px-4 py-2 bg-ios-black/40 rounded-full backdrop-blur-md text-center">
       <template v-if="gameOver">游戏结束</template>
       <template v-else-if="isMyTurn">
         <span v-if="pendingMove">再点一次确认落子</span>

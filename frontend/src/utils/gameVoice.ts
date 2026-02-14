@@ -21,6 +21,13 @@ type VoicePresencePayload = {
   userId: string | number;
 };
 
+export interface VoiceConnectionQuality {
+  level: 'excellent' | 'good' | 'fair' | 'poor';
+  rtt?: number;
+  isIPv6: boolean;
+  isDirect: boolean;
+}
+
 type PeerState = {
   userId: string;
   pc: RTCPeerConnection;
@@ -32,9 +39,16 @@ type PeerState = {
   polite: boolean;
   closed: boolean;
   hasIpv6HostCandidate: boolean;
-  usingFallbackIce: boolean;
-  fallbackTimer: number | null;
+  reconnectAttempts: number;
+  lastIceRestartTime: number;
+  isRestartingIce: boolean;
+  connectionTimer: number | null;
+  quality: VoiceConnectionQuality;
 };
+
+const CONNECTION_TIMEOUT = 20000;
+const RECONNECT_ATTEMPTS = 3;
+const RECONNECT_DELAY_BASE = 1000;
 
 export class GameVoiceMesh {
   private socket: Socket;
@@ -47,8 +61,8 @@ export class GameVoiceMesh {
   private bound: boolean = false;
   private onParticipantsChange?: (userIds: string[]) => void;
   private onStatusChange?: (status: { started: boolean; muted: boolean; peerCount: number }) => void;
-  private fallbackIceAfterMs: number = 3500;
-  private fastFallbackAfterMs: number = 1200;
+  private onQualityChange?: (peerId: string, quality: VoiceConnectionQuality) => void;
+  private statsIntervals: Map<string, number> = new Map();
 
   constructor(opts: {
     socket: Socket;
@@ -56,12 +70,14 @@ export class GameVoiceMesh {
     selfId: string | number;
     onParticipantsChange?: (userIds: string[]) => void;
     onStatusChange?: (status: { started: boolean; muted: boolean; peerCount: number }) => void;
+    onQualityChange?: (peerId: string, quality: VoiceConnectionQuality) => void;
   }) {
     this.socket = opts.socket;
     this.roomId = opts.roomId;
     this.selfId = String(opts.selfId);
     this.onParticipantsChange = opts.onParticipantsChange;
     this.onStatusChange = opts.onStatusChange;
+    this.onQualityChange = opts.onQualityChange;
     this.bindSocket();
     this.emitStatus();
   }
@@ -78,15 +94,27 @@ export class GameVoiceMesh {
     return Array.from(this.peers.keys());
   }
 
+  public getPeerQuality(peerId: string): VoiceConnectionQuality | undefined {
+    return this.peers.get(peerId)?.quality;
+  }
+
   public async start() {
     if (this.started) return;
     this.started = true;
     this.emitStatus();
 
     try {
-      this.localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      this.localStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        },
+        video: false
+      });
       this.applyMuteToLocalTracks();
-    } catch {
+    } catch (e) {
+      console.warn('Failed to get audio stream:', e);
       this.localStream = null;
     }
 
@@ -114,6 +142,9 @@ export class GameVoiceMesh {
       }
       this.localStream = null;
     }
+    
+    this.statsIntervals.forEach((interval) => clearInterval(interval));
+    this.statsIntervals.clear();
   }
 
   public setMuted(muted: boolean) {
@@ -197,12 +228,20 @@ export class GameVoiceMesh {
         } else if (payload.type === 'candidate') {
           await this.handleCandidate(peer, payload.signal);
         }
-      } catch {}
+      } catch (e) {
+        console.error('Voice signal error:', e);
+      }
     });
 
     this.socket.on('connect', () => {
       if (!this.started) return;
       this.socket.emit('game:voice:join', { roomId: this.roomId });
+      
+      for (const [peerId, peer] of this.peers) {
+        if (peer.pc.connectionState !== 'connected') {
+          this.attemptPeerReconnect(peerId);
+        }
+      }
     });
   }
 
@@ -240,18 +279,39 @@ export class GameVoiceMesh {
       polite,
       closed: false,
       hasIpv6HostCandidate: false,
-      usingFallbackIce: false,
-      fallbackTimer: null
+      reconnectAttempts: 0,
+      lastIceRestartTime: 0,
+      isRestartingIce: false,
+      connectionTimer: null,
+      quality: {
+        level: 'good',
+        isIPv6: false,
+        isDirect: false
+      }
     };
 
     pc.onicecandidate = (event) => {
       if (!event.candidate) return;
-      const candidateInit: RTCIceCandidateInit = (event.candidate as any)?.toJSON ? (event.candidate as any).toJSON() : (event.candidate as any);
+      const candidateInit: RTCIceCandidateInit = (event.candidate as any)?.toJSON 
+        ? (event.candidate as any).toJSON() 
+        : (event.candidate as any);
       const candStr = (candidateInit as any)?.candidate;
+      
       if (typeof candStr === 'string' && this.isIpv6HostCandidateString(candStr)) {
         peer.hasIpv6HostCandidate = true;
+        this.sendSignal(peer.userId, 'candidate', candidateInit);
+        return;
       }
-      this.sendCandidateWithPreference(peer, candidateInit);
+      
+      if (typeof candStr === 'string' && this.isIpv4HostCandidateString(candStr)) {
+        return;
+      }
+      
+      this.sendSignal(peer.userId, 'candidate', candidateInit);
+    };
+
+    pc.onicecandidateerror = (event) => {
+      console.warn(`ICE candidate error for peer ${otherId}:`, event);
     };
 
     pc.ontrack = (event) => {
@@ -275,12 +335,43 @@ export class GameVoiceMesh {
 
     pc.onconnectionstatechange = () => {
       const state = pc.connectionState;
+      
       if (state === 'connected') {
-        this.clearPeerFallbackTimer(peer);
+        this.clearPeerConnectionTimer(peer);
+        peer.reconnectAttempts = 0;
+        this.startPeerStatsMonitor(peer);
+        return;
       }
-      if (state === 'failed' || state === 'closed' || state === 'disconnected') {
+      
+      if (state === 'disconnected') {
+        this.handlePeerDisconnected(peer);
+        return;
+      }
+      
+      if (state === 'failed') {
+        this.handlePeerFailed(peer);
+        return;
+      }
+      
+      if (state === 'closed') {
         this.closePeer(otherId);
         this.emitParticipants();
+      }
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      const state = pc.iceConnectionState;
+      
+      if (state === 'connected' || state === 'completed') {
+        this.clearPeerConnectionTimer(peer);
+      }
+      
+      if (state === 'disconnected') {
+        this.handlePeerIceDisconnected(peer);
+      }
+      
+      if (state === 'failed') {
+        this.handlePeerIceFailed(peer);
       }
     };
 
@@ -293,7 +384,7 @@ export class GameVoiceMesh {
     }
 
     this.peers.set(otherId, peer);
-    this.scheduleFallbackIce(peer);
+    this.schedulePeerConnectionTimeout(peer);
     this.emitStatus();
     return peer;
   }
@@ -303,7 +394,9 @@ export class GameVoiceMesh {
     if (!peer) return;
     if (peer.closed) return;
     peer.closed = true;
-    this.clearPeerFallbackTimer(peer);
+    this.clearPeerConnectionTimer(peer);
+    this.stopPeerStatsMonitor(otherId);
+    
     try {
       peer.audio.pause();
     } catch {}
@@ -332,13 +425,14 @@ export class GameVoiceMesh {
 
   private async createOffer(otherId: string) {
     const peer = this.peers.get(otherId);
-    if (!peer) return;
-    if (peer.closed) return;
+    if (!peer || peer.closed) return;
 
     try {
       peer.makingOffer = true;
       await peer.pc.setLocalDescription(await peer.pc.createOffer());
       this.sendSignal(otherId, 'offer', peer.pc.localDescription);
+    } catch (e) {
+      console.error(`Create offer failed for peer ${otherId}:`, e);
     } finally {
       peer.makingOffer = false;
     }
@@ -362,8 +456,12 @@ export class GameVoiceMesh {
   }
 
   private async handleAnswer(peer: PeerState, answer: RTCSessionDescriptionInit) {
-    await peer.pc.setRemoteDescription(new RTCSessionDescription(answer));
-    await this.flushPendingCandidates(peer);
+    try {
+      await peer.pc.setRemoteDescription(new RTCSessionDescription(answer));
+      await this.flushPendingCandidates(peer);
+    } catch (e) {
+      console.error(`Handle answer failed for peer ${peer.userId}:`, e);
+    }
   }
 
   private async handleCandidate(peer: PeerState, candidate: RTCIceCandidateInit) {
@@ -372,7 +470,11 @@ export class GameVoiceMesh {
       peer.pendingCandidates.push(candidate);
       return;
     }
-    await peer.pc.addIceCandidate(new RTCIceCandidate(candidate));
+    try {
+      await peer.pc.addIceCandidate(new RTCIceCandidate(candidate));
+    } catch (e) {
+      console.warn(`Add candidate failed for peer ${peer.userId}:`, e);
+    }
   }
 
   private async flushPendingCandidates(peer: PeerState) {
@@ -394,6 +496,7 @@ export class GameVoiceMesh {
     if (!ip.includes(':')) return false;
     if (ip.startsWith('::ffff:')) return false;
     if (ip.toLowerCase().startsWith('fe80:')) return false;
+    if (ip.startsWith('fc') || ip.startsWith('fd')) return false;
     return true;
   }
 
@@ -405,74 +508,291 @@ export class GameVoiceMesh {
     return ip.includes('.') || ip.startsWith('::ffff:');
   }
 
-  private sendCandidateWithPreference(peer: PeerState, candidateInit: RTCIceCandidateInit) {
-    const cand = (candidateInit as any)?.candidate;
-    if (typeof cand === 'string' && peer.hasIpv6HostCandidate && this.isIpv4HostCandidateString(cand)) {
-      window.setTimeout(() => {
-        if (peer.closed) return;
-        this.sendSignal(peer.userId, 'candidate', candidateInit);
-      }, 250);
-      return;
-    }
-    this.sendSignal(peer.userId, 'candidate', candidateInit);
-  }
-
-  private scheduleFallbackIce(peer: PeerState) {
-    if (peer.closed) return;
-    if (peer.usingFallbackIce) return;
-    const hasFallbackServers = (buildRtcConfiguration().iceServers || []).length > 0;
-    if (!hasFallbackServers) return;
-    if (peer.fallbackTimer) return;
-    peer.fallbackTimer = window.setTimeout(() => {
-      peer.fallbackTimer = null;
-      if (peer.hasIpv6HostCandidate) {
-        this.scheduleFallbackIceDelayed(peer);
-        return;
+  private schedulePeerConnectionTimeout(peer: PeerState) {
+    if (peer.connectionTimer) return;
+    
+    peer.connectionTimer = window.setTimeout(() => {
+      if (peer.pc.connectionState !== 'connected' && !peer.closed) {
+        console.log(`Connection timeout for peer ${peer.userId}`);
+        this.handlePeerFailed(peer);
       }
-      this.applyFallbackIce(peer).catch(() => {});
-    }, this.fastFallbackAfterMs);
+    }, CONNECTION_TIMEOUT);
   }
 
-  private scheduleFallbackIceDelayed(peer: PeerState) {
-    if (peer.closed) return;
-    if (peer.usingFallbackIce) return;
-    if (peer.fallbackTimer) return;
-    peer.fallbackTimer = window.setTimeout(() => {
-      peer.fallbackTimer = null;
-      this.applyFallbackIce(peer).catch(() => {});
-    }, this.fallbackIceAfterMs);
-  }
-
-  private clearPeerFallbackTimer(peer: PeerState) {
-    if (!peer.fallbackTimer) return;
-    window.clearTimeout(peer.fallbackTimer);
-    peer.fallbackTimer = null;
-  }
-
-  private async applyFallbackIce(peer: PeerState) {
-    if (peer.closed) return;
-    if (peer.pc.connectionState === 'connected') return;
-    if (peer.usingFallbackIce) return;
-
-    const cfg = buildRtcConfiguration();
-    if (!cfg.iceServers || cfg.iceServers.length === 0) return;
-
-    peer.usingFallbackIce = true;
-    try {
-      peer.pc.setConfiguration(cfg);
-    } catch {
-      return;
+  private clearPeerConnectionTimer(peer: PeerState) {
+    if (peer.connectionTimer) {
+      clearTimeout(peer.connectionTimer);
+      peer.connectionTimer = null;
     }
+  }
 
-    if (!this.shouldInitiateWith(peer.userId)) return;
+  private handlePeerDisconnected(peer: PeerState) {
+    console.log(`Peer ${peer.userId} disconnected, attempting recovery...`);
+    this.attemptPeerIceRestart(peer);
+  }
 
+  private handlePeerIceDisconnected(peer: PeerState) {
+    console.log(`ICE disconnected for peer ${peer.userId}, attempting recovery...`);
+    this.attemptPeerIceRestart(peer);
+  }
+
+  private handlePeerFailed(peer: PeerState) {
+    console.log(`Connection failed for peer ${peer.userId}`);
+    
+    if (peer.reconnectAttempts < RECONNECT_ATTEMPTS) {
+      this.attemptPeerReconnect(peer.userId);
+    } else {
+      this.closePeer(peer.userId);
+      this.emitParticipants();
+    }
+  }
+
+  private handlePeerIceFailed(peer: PeerState) {
+    console.log(`ICE failed for peer ${peer.userId}`);
+    
+    if (peer.reconnectAttempts < RECONNECT_ATTEMPTS) {
+      this.attemptPeerReconnect(peer.userId);
+    }
+  }
+
+  private async attemptPeerIceRestart(peer: PeerState) {
+    if (peer.closed || peer.isRestartingIce) return;
+    
+    const now = Date.now();
+    if (now - peer.lastIceRestartTime < 3000) return;
+    
+    peer.isRestartingIce = true;
+    peer.lastIceRestartTime = now;
+    
+    console.log(`Attempting ICE restart for peer ${peer.userId}`);
+    
     try {
       peer.makingOffer = true;
       const offer = await peer.pc.createOffer({ iceRestart: true });
       await peer.pc.setLocalDescription(offer);
       this.sendSignal(peer.userId, 'offer', peer.pc.localDescription);
+    } catch (e) {
+      console.error(`ICE restart failed for peer ${peer.userId}:`, e);
     } finally {
       peer.makingOffer = false;
+      peer.isRestartingIce = false;
     }
+  }
+
+  private async attemptPeerReconnect(peerId: string) {
+    const peer = this.peers.get(peerId);
+    if (!peer || peer.closed) return;
+    
+    if (peer.reconnectAttempts >= RECONNECT_ATTEMPTS) {
+      this.closePeer(peerId);
+      this.emitParticipants();
+      return;
+    }
+    
+    peer.reconnectAttempts++;
+    const delay = RECONNECT_DELAY_BASE * Math.pow(2, peer.reconnectAttempts - 1);
+    
+    console.log(`Attempting reconnect for peer ${peerId} (${peer.reconnectAttempts}/${RECONNECT_ATTEMPTS})`);
+    
+    await new Promise(resolve => setTimeout(resolve, delay));
+    
+    if (peer.closed || !this.started) return;
+    
+    if (!this.socket.connected) {
+      console.log(`Socket not connected, waiting for peer ${peerId}`);
+      return;
+    }
+    
+    try {
+      peer.pc.close();
+    } catch {}
+    
+    const newPc = new RTCPeerConnection(
+      buildRtcConfiguration({
+        iceServers: [],
+        iceCandidatePoolSize: 0
+      })
+    );
+    
+    peer.pc = newPc;
+    peer.pendingCandidates = [];
+    peer.hasIpv6HostCandidate = false;
+    peer.isRestartingIce = false;
+    
+    this.setupPeerConnectionHandlers(peer);
+    
+    if (this.localStream) {
+      for (const track of this.localStream.getTracks()) {
+        newPc.addTrack(track, this.localStream);
+      }
+    } else {
+      newPc.addTransceiver('audio', { direction: 'recvonly' });
+    }
+    
+    if (this.shouldInitiateWith(peerId)) {
+      try {
+        peer.makingOffer = true;
+        await newPc.setLocalDescription(await newPc.createOffer());
+        this.sendSignal(peerId, 'offer', newPc.localDescription);
+      } catch (e) {
+        console.error(`Reconnect offer failed for peer ${peerId}:`, e);
+        this.handlePeerFailed(peer);
+      } finally {
+        peer.makingOffer = false;
+      }
+    }
+  }
+
+  private setupPeerConnectionHandlers(peer: PeerState) {
+    const pc = peer.pc;
+    
+    pc.onicecandidate = (event) => {
+      if (!event.candidate) return;
+      const candidateInit: RTCIceCandidateInit = (event.candidate as any)?.toJSON 
+        ? (event.candidate as any).toJSON() 
+        : (event.candidate as any);
+      const candStr = (candidateInit as any)?.candidate;
+      
+      if (typeof candStr === 'string' && this.isIpv6HostCandidateString(candStr)) {
+        peer.hasIpv6HostCandidate = true;
+        this.sendSignal(peer.userId, 'candidate', candidateInit);
+        return;
+      }
+      
+      if (typeof candStr === 'string' && this.isIpv4HostCandidateString(candStr)) {
+        return;
+      }
+      
+      this.sendSignal(peer.userId, 'candidate', candidateInit);
+    };
+
+    pc.ontrack = (event) => {
+      const stream = event.streams && event.streams[0] ? event.streams[0] : null;
+      if (stream) {
+        (peer.audio as any).srcObject = stream;
+        try {
+          peer.audio.play().catch(() => {});
+        } catch {}
+      } else if (event.track) {
+        const hasTrack = peer.remoteStream.getTracks().some((t) => t.id === event.track.id);
+        if (!hasTrack) peer.remoteStream.addTrack(event.track);
+        (peer.audio as any).srcObject = peer.remoteStream;
+        try {
+          peer.audio.play().catch(() => {});
+        } catch {}
+      }
+    };
+
+    pc.onconnectionstatechange = () => {
+      const state = pc.connectionState;
+      
+      if (state === 'connected') {
+        this.clearPeerConnectionTimer(peer);
+        peer.reconnectAttempts = 0;
+        this.startPeerStatsMonitor(peer);
+      } else if (state === 'disconnected') {
+        this.handlePeerDisconnected(peer);
+      } else if (state === 'failed') {
+        this.handlePeerFailed(peer);
+      } else if (state === 'closed') {
+        this.closePeer(peer.userId);
+        this.emitParticipants();
+      }
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      const state = pc.iceConnectionState;
+      
+      if (state === 'connected' || state === 'completed') {
+        this.clearPeerConnectionTimer(peer);
+      } else if (state === 'disconnected') {
+        this.handlePeerIceDisconnected(peer);
+      } else if (state === 'failed') {
+        this.handlePeerIceFailed(peer);
+      }
+    };
+  }
+
+  private startPeerStatsMonitor(peer: PeerState) {
+    if (this.statsIntervals.has(peer.userId)) return;
+    
+    const interval = window.setInterval(async () => {
+      if (peer.closed || peer.pc.connectionState !== 'connected') {
+        this.stopPeerStatsMonitor(peer.userId);
+        return;
+      }
+      
+      try {
+        const stats = await peer.pc.getStats();
+        let selectedPair: any = null;
+        
+        stats.forEach((report: any) => {
+          if (report.type === 'candidate-pair' && report.state === 'succeeded' && report.nominated) {
+            selectedPair = report;
+          }
+        });
+        
+        if (selectedPair) {
+          const quality = this.analyzeConnectionQuality(selectedPair, stats);
+          peer.quality = quality;
+          if (this.onQualityChange) {
+            this.onQualityChange(peer.userId, quality);
+          }
+        }
+      } catch (e) {
+        console.warn(`Failed to get stats for peer ${peer.userId}:`, e);
+      }
+    }, 2000);
+    
+    this.statsIntervals.set(peer.userId, interval);
+  }
+
+  private stopPeerStatsMonitor(peerId: string) {
+    const interval = this.statsIntervals.get(peerId);
+    if (interval) {
+      clearInterval(interval);
+      this.statsIntervals.delete(peerId);
+    }
+  }
+
+  private analyzeConnectionQuality(pair: any, stats: any): VoiceConnectionQuality {
+    const rtt = pair.currentRoundTripTime ? pair.currentRoundTripTime * 1000 : undefined;
+    
+    let localCandidateType: string | undefined;
+    let remoteCandidateType: string | undefined;
+    let isIPv6 = false;
+    let isDirect = false;
+    
+    stats.forEach((report: any) => {
+      if (report.type === 'local-candidate' && report.id === pair.localCandidateId) {
+        localCandidateType = report.candidateType;
+        if (report.ip && report.ip.includes(':') && !report.ip.startsWith('::ffff:')) {
+          isIPv6 = true;
+        }
+      }
+      if (report.type === 'remote-candidate' && report.id === pair.remoteCandidateId) {
+        remoteCandidateType = report.candidateType;
+      }
+    });
+    
+    if (localCandidateType === 'host' && remoteCandidateType === 'host') {
+      isDirect = true;
+    }
+    
+    let level: 'excellent' | 'good' | 'fair' | 'poor' = 'good';
+    
+    if (rtt !== undefined) {
+      if (rtt < 50) level = 'excellent';
+      else if (rtt < 150) level = 'good';
+      else if (rtt < 300) level = 'fair';
+      else level = 'poor';
+    }
+    
+    return {
+      level,
+      rtt,
+      isIPv6,
+      isDirect
+    };
   }
 }

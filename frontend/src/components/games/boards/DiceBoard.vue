@@ -1,6 +1,6 @@
 <template>
   <div class="flex-1 flex flex-col items-center justify-center gap-[4vh]">
-    <div class="text-[2.2vh] text-white/50">阶段：{{ gameState.phase || '-' }}</div>
+    <div class="text-[2.2vh] text-ios-label-tertiary">阶段：{{ gameState.phase || '-' }}</div>
     
     <!-- 骰子区域 -->
     <div class="flex items-center gap-[3vw] h-[15vh]">
@@ -18,7 +18,7 @@
                    :rolling="isRolling" />
         </template>
       </template>
-      <div v-else class="text-[2vh] text-white/30">等待开奖...</div>
+      <div v-else class="text-[2vh] text-ios-label-quaternary">等待开奖...</div>
     </div>
 
     <!-- 结果显示 -->
@@ -27,7 +27,7 @@
     </div>
 
     <!-- 信息面板 -->
-    <div class="rounded-[1.5vh] border border-white/10 bg-black/30 px-[3vh] py-[2vh] text-[2.2vh] text-white/70 min-w-[30vw] text-center">
+    <div class="rounded-[1.5vh] border border-ios-separator bg-black/30 px-[3vh] py-[2vh] text-[2.2vh] text-ios-label-secondary min-w-[30vw] text-center">
       <div v-if="gameType === 'sic_bo'">
         你的下注：{{ gameState.playerSelections?.[myUserId] || '-' }} · {{ gameState.playerBets?.[myUserId] || 0 }}
       </div>

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen pb-20 bg-black">
+  <div class="min-h-screen pb-20 bg-ios-systemGray6">
     <TopNav title="话题广场" />
 
     <div class="max-w-7xl mx-auto px-4 py-6 space-y-8 pb-24">
@@ -7,7 +7,7 @@
       <div class="flex flex-col sm:flex-row items-center gap-4">
         <button 
           @click="showTopicModal = true"
-          class="w-full glass-btn-primary py-4 px-6 rounded-2xl shadow-2xl shadow-primary/20 flex items-center justify-center gap-3 active:scale-[0.98] transition-all group"
+          class="w-full ios-btn-primary py-4 px-6 rounded-2xl shadow-2xl shadow-ios flex items-center justify-center gap-3 active:scale-[0.98] transition-all group"
         >
           <span class="text-2xl group-hover:rotate-12 transition-transform">✍️</span>
           <span class="font-black text-sm uppercase tracking-widest">发布新话题</span>
@@ -22,7 +22,7 @@
           @click="setActiveTab(tab.id)"
           class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all flex-shrink-0 active:scale-95"
           :class="[
-            activeTab === tab.id ? 'glass-btn-primary' : 'glass text-white/40 hover:text-white border border-white/5'
+            activeTab === tab.id ? 'ios-btn-primary' : 'ios-ios-glass text-ios-label-tertiary hover:text-ios-label-primary border border-ios-separator'
           ]"
         >
           {{ tab.name }}
@@ -31,8 +31,8 @@
 
       <!-- 加载状态 -->
       <div v-if="loading" class="py-24 text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary mx-auto mb-6"></div>
-        <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Curating topics...</p>
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-ios-blue/20 border-t-primary mx-auto mb-6"></div>
+        <p class="text-[10px] font-black text-ios-label-quaternary uppercase tracking-[0.2em]">Curating topics...</p>
       </div>
 
       <!-- 话题列表 -->
@@ -40,7 +40,7 @@
         <div
           v-for="topic in topics"
           :key="topic.id"
-          class="glass-card overflow-hidden group cursor-pointer active:scale-[0.99] transition-all border border-white/5 hover:border-primary/30"
+          class="ios-card overflow-hidden group cursor-pointer active:scale-[0.99] transition-all border border-ios-separator hover:border-ios-blue/30"
           @click="goToTopicDetail(topic.id)"
         >
           <!-- 话题封面 -->
@@ -52,17 +52,17 @@
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
             
             <div class="absolute top-3 left-3 flex gap-2">
-              <div v-if="topic.is_top" class="glass-badge px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest bg-yellow-500 text-black">TOP</div>
-              <div v-if="topic.is_hot" class="glass-badge px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest bg-red-500 text-white">HOT</div>
+              <div v-if="topic.is_top" class="ios-badge px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest bg-yellow-500 text-ios-label-primary">TOP</div>
+              <div v-if="topic.is_hot" class="ios-badge px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest bg-red-500 text-ios-label-primary">HOT</div>
             </div>
           </div>
-          <div v-else class="h-2 bg-gradient-to-r from-primary/20 to-purple-600/20"></div>
+          <div v-else class="h-2 bg-gradient-to-r from-ios-blue/20 to-ios-purple/20"></div>
           
           <!-- 话题内容 -->
           <div class="p-5 space-y-4">
             <div class="space-y-2">
-              <h3 class="font-black text-white/90 group-hover:text-primary transition-colors line-clamp-2 tracking-tight leading-tight">{{ topic.title }}</h3>
-              <p v-if="topic.description" class="text-white/40 text-xs line-clamp-2 leading-relaxed italic" v-html="formatPostContent(topic.description)"></p>
+              <h3 class="font-black text-ios-label-primary group-hover:text-ios-blue transition-colors line-clamp-2 tracking-tight leading-tight">{{ topic.title }}</h3>
+              <p v-if="topic.description" class="text-ios-label-tertiary text-xs line-clamp-2 leading-relaxed italic" v-html="formatPostContent(topic.description)"></p>
             </div>
             
             <!-- 话题标签 -->
@@ -70,24 +70,24 @@
               <span
                 v-for="(tag, index) in topic.tags.slice(0, 3)"
                 :key="index"
-                class="px-2 py-1 glass rounded-md text-[9px] font-bold text-white/30 uppercase tracking-tighter"
+                class="px-2 py-1 ios-ios-glass rounded-md text-[9px] font-bold text-ios-label-quaternary uppercase tracking-tighter"
               >
                 #{{ tag }}
               </span>
             </div>
             
             <!-- 话题底部信息 -->
-            <div class="flex items-center justify-between pt-4 border-t border-white/5 mt-auto">
+            <div class="flex items-center justify-between pt-4 border-t border-ios-separator mt-auto">
               <div class="flex items-center gap-2 group/user" @click.stop="goToProfile(topic.username)">
                 <img
                   :src="getImageUrl(topic.avatar)"
-                  class="w-6 h-6 rounded-lg object-cover border border-white/10 group-hover/user:border-primary transition-colors"
+                  class="w-6 h-6 rounded-lg object-cover border border-ios-separator group-hover/user:border-ios-blue transition-colors"
                 />
-                <span class="text-[10px] font-bold text-white/40 group-hover/user:text-white transition-colors truncate max-w-[80px]">
+                <span class="text-[10px] font-bold text-ios-label-tertiary group-hover/user:text-ios-label-primary transition-colors truncate max-w-[80px]">
                   {{ topic.nickname }}
                 </span>
               </div>
-              <div class="flex items-center gap-4 text-[10px] font-black text-white/30 uppercase tracking-widest">
+              <div class="flex items-center gap-4 text-[10px] font-black text-ios-label-quaternary uppercase tracking-widest">
                 <span class="flex items-center gap-1.5">
                   <span class="text-xs">💬</span> {{ topic.post_count || 0 }}
                 </span>
@@ -106,37 +106,37 @@
       </div>
 
       <!-- 空状态 -->
-      <div v-else class="py-24 text-center glass-card">
+      <div v-else class="py-24 text-center ios-card">
         <div class="text-6xl mb-6 opacity-20">📭</div>
-        <h3 class="text-xl font-bold text-white mb-2">暂无话题</h3>
-        <p class="text-white/40 text-sm mb-8">快来开启第一个讨论吧</p>
+        <h3 class="text-xl font-bold text-ios-label-primary mb-2">暂无话题</h3>
+        <p class="text-ios-label-tertiary text-sm mb-8">快来开启第一个讨论吧</p>
       </div>
     </div>
 
     <!-- 发布话题模态框 (iOS Slide-up Style) -->
     <Transition name="slide-up">
-      <div v-if="showTopicModal" class="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm p-4" @click.self="showTopicModal = false">
-        <div class="w-full max-w-2xl glass-modal rounded-[2.5rem] overflow-hidden shadow-2xl animate-in slide-in-from-bottom-10 duration-500 flex flex-col max-h-[90vh]">
-          <div class="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
-            <h2 class="text-base font-bold text-white">发布新话题</h2>
-            <button @click="showTopicModal = false" class="w-8 h-8 rounded-full glass-btn flex items-center justify-center text-white/40 active:scale-90 transition-all">✕</button>
+      <div v-if="showTopicModal" class="fixed inset-0 z-[100] flex items-end justify-center bg-ios-systemGray6/60 backdrop-blur-sm p-4" @click.self="showTopicModal = false">
+        <div class="w-full max-w-2xl ios-modal rounded-[2.5rem] overflow-hidden shadow-2xl animate-in slide-in-from-bottom-10 duration-500 flex flex-col max-h-[90vh]">
+          <div class="p-6 border-b border-ios-separator flex items-center justify-between bg-ios-systemGray5">
+            <h2 class="text-base font-bold text-ios-label-primary">发布新话题</h2>
+            <button @click="showTopicModal = false" class="w-8 h-8 rounded-full ios-btn-secondary flex items-center justify-center text-ios-label-tertiary active:scale-90 transition-all">✕</button>
           </div>
           
           <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
             <div class="space-y-1.5">
-              <label class="text-[10px] font-black text-white/30 uppercase tracking-widest ml-1">话题标题</label>
+              <label class="text-[10px] font-black text-ios-label-quaternary uppercase tracking-widest ml-1">话题标题</label>
               <input
                 v-model="topicTitle"
                 type="text"
                 placeholder="吸引人的标题..."
-                class="glass-input w-full py-4 px-5 rounded-2xl"
+                class="ios-input w-full py-4 px-5 rounded-2xl"
                 maxlength="200"
               />
-              <p class="text-[9px] text-right text-white/10 uppercase tracking-widest">{{ topicTitle.length }}/200</p>
+              <p class="text-[9px] text-right text-ios-label-quaternary uppercase tracking-widest">{{ topicTitle.length }}/200</p>
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-[10px] font-black text-white/30 uppercase tracking-widest ml-1">话题背景/描述</label>
+              <label class="text-[10px] font-black text-ios-label-quaternary uppercase tracking-widest ml-1">话题背景/描述</label>
               <MentionInput
                 v-model="topicDescription"
                 placeholder="详细介绍一下这个话题..."
@@ -147,9 +147,9 @@
             </div>
             
             <div class="space-y-4">
-              <label class="text-[10px] font-black text-white/30 uppercase tracking-widest ml-1">话题封面</label>
+              <label class="text-[10px] font-black text-ios-label-quaternary uppercase tracking-widest ml-1">话题封面</label>
               <div 
-                class="relative w-full aspect-video glass rounded-2xl overflow-hidden border border-white/10 shadow-inner group cursor-pointer flex flex-col items-center justify-center"
+                class="relative w-full aspect-video ios-ios-glass rounded-2xl overflow-hidden border border-ios-separator shadow-inner group cursor-pointer flex flex-col items-center justify-center"
                 @click="coverInput?.click()"
               >
                 <img
@@ -159,33 +159,33 @@
                 />
                 <template v-else>
                   <span class="text-4xl mb-2 opacity-20">🖼️</span>
-                  <span class="text-[10px] font-black text-white/20 uppercase tracking-widest">点击上传封面图</span>
+                  <span class="text-[10px] font-black text-ios-label-quaternary uppercase tracking-widest">点击上传封面图</span>
                 </template>
                 
-                <div v-if="coverPreview" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
-                  <span class="text-xs font-black text-white uppercase tracking-widest">更换图片</span>
+                <div v-if="coverPreview" class="absolute inset-0 bg-ios-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
+                  <span class="text-xs font-black text-ios-label-primary uppercase tracking-widest">更换图片</span>
                 </div>
               </div>
               <input ref="coverInput" type="file" accept="image/*" class="hidden" @change="handleCoverSelect" />
               <button v-if="coverPreview" @click="removeCover" class="w-full py-2 text-[10px] font-black text-red-400/40 uppercase tracking-widest hover:text-red-400 transition-colors">移除封面</button>
             </div>
             
-            <div class="flex items-center gap-3 p-4 glass rounded-2xl border border-white/5">
+            <div class="flex items-center gap-3 p-4 ios-ios-glass rounded-2xl border border-ios-separator">
               <div class="relative w-10 h-6 cursor-pointer" @click="isTopicAnonymous = !isTopicAnonymous">
-                <div class="absolute inset-0 rounded-full transition-colors duration-300" :class="isTopicAnonymous ? 'bg-primary' : 'bg-white/10'"></div>
-                <div class="absolute top-1 left-1 w-4 h-4 bg-white/80 rounded-full transition-transform duration-300" :style="{ transform: isTopicAnonymous ? 'translateX(16px)' : 'translateX(0)' }"></div>
+                <div class="absolute inset-0 rounded-full transition-colors duration-300" :class="isTopicAnonymous ? 'bg-ios-blue' : 'bg-ios-systemGray5'"></div>
+                <div class="absolute top-1 left-1 w-4 h-4 bg-ios-systemGray50 rounded-full transition-transform duration-300" :style="{ transform: isTopicAnonymous ? 'translateX(16px)' : 'translateX(0)' }"></div>
               </div>
               <div>
-                <span class="block text-xs font-bold text-white/80">匿名发布</span>
-                <span class="block text-[9px] text-white/20 uppercase tracking-tighter">开启后将以匿名身份发布此话题</span>
+                <span class="block text-xs font-bold text-ios-label-primary">匿名发布</span>
+                <span class="block text-[9px] text-ios-label-quaternary uppercase tracking-tighter">开启后将以匿名身份发布此话题</span>
               </div>
             </div>
           </div>
           
-          <div class="p-6 bg-white/5 border-t border-white/5">
+          <div class="p-6 bg-ios-systemGray5 border-t border-ios-separator">
             <button
               @click="submitTopic"
-              class="w-full glass-btn-primary py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-primary/20 active:scale-[0.98] transition-all disabled:opacity-30"
+              class="w-full ios-btn-primary py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-ios active:scale-[0.98] transition-all disabled:opacity-30"
               :disabled="!topicTitle.trim() || submitting"
             >
               {{ submitting ? 'PUBLISHING...' : 'PUBLISH TOPIC' }}

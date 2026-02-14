@@ -1,10 +1,10 @@
 <template>
-  <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" @click.self="$emit('close')">
-    <div class="glass-modal w-full max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar animate-modal-enter">
+  <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-ios-black/60 backdrop-blur-sm animate-fade-in" @click.self="$emit('close')">
+    <div class="ios-modal w-full max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar animate-modal-enter">
       <div class="p-6">
         <div class="flex items-center justify-between mb-6">
           <h3 class="text-xl font-bold text-white">创建房间</h3>
-          <button @click="$emit('close')" class="text-white/40 hover:text-white transition-colors">
+          <button @click="$emit('close')" class="text-ios-label-tertiary hover:text-white transition-colors">
             <span class="text-2xl">×</span>
           </button>
         </div>
@@ -12,12 +12,12 @@
         <form @submit.prevent="handleSubmit" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="space-y-2">
-              <label class="text-sm font-medium text-white/60 ml-1">房间名称</label>
+              <label class="text-sm font-medium text-ios-label-secondary ml-1">房间名称</label>
               <input 
                 v-model="form.name"
                 type="text" 
                 placeholder="2-20 个字符"
-                class="glass-input w-full"
+                class="ios-input w-full"
                 minlength="2"
                 maxlength="20"
                 required
@@ -25,7 +25,7 @@
             </div>
 
             <div class="space-y-2">
-              <label class="text-sm font-medium text-white/60 ml-1">选择游戏分类</label>
+              <label class="text-sm font-medium text-ios-label-secondary ml-1">选择游戏分类</label>
               <GlassSelect 
                 v-model="selectedCategory"
                 :options="categoryOptions"
@@ -36,7 +36,7 @@
             </div>
 
             <div class="space-y-2">
-              <label class="text-sm font-medium text-white/60 ml-1">选择游戏</label>
+              <label class="text-sm font-medium text-ios-label-secondary ml-1">选择游戏</label>
               <GlassSelect 
                 v-model="form.gameTypeId"
                 :options="filteredGames"
@@ -48,61 +48,61 @@
             </div>
 
             <div class="space-y-2">
-              <label class="text-sm font-medium text-white/60 ml-1">最大人数</label>
+              <label class="text-sm font-medium text-ios-label-secondary ml-1">最大人数</label>
               <input 
                 v-model.number="form.maxPlayers"
                 type="number" 
                 :min="selectedGame?.min_players || 2"
                 :max="selectedGame?.max_players || 10"
-                class="glass-input w-full"
+                class="ios-input w-full"
                 required
               />
-              <p v-if="selectedGame" class="text-[10px] text-white/40 ml-1">
+              <p v-if="selectedGame" class="text-[10px] text-ios-label-tertiary ml-1">
                 允许范围: {{ selectedGame.min_players }}-{{ selectedGame.max_players }} 人
               </p>
             </div>
 
             <div class="space-y-2">
-              <label class="text-sm font-medium text-white/60 ml-1">房间密码 (可选)</label>
+              <label class="text-sm font-medium text-ios-label-secondary ml-1">房间密码 (可选)</label>
               <input 
                 v-model="form.password"
                 type="password" 
                 placeholder="设置加入密码"
-                class="glass-input w-full"
+                class="ios-input w-full"
               />
             </div>
 
             <div class="space-y-2">
-              <label class="text-sm font-medium text-white/60 ml-1">最低筹码限制</label>
+              <label class="text-sm font-medium text-ios-label-secondary ml-1">最低筹码限制</label>
               <input 
                 v-model.number="form.minBet"
                 type="number" 
                 min="0"
-                class="glass-input w-full"
+                class="ios-input w-full"
               />
             </div>
 
             <div class="space-y-2">
-              <label class="text-sm font-medium text-white/60 ml-1">最高筹码限制</label>
+              <label class="text-sm font-medium text-ios-label-secondary ml-1">最高筹码限制</label>
               <input 
                 v-model.number="form.maxBet"
                 type="number" 
                 min="0"
-                class="glass-input w-full"
+                class="ios-input w-full"
               />
             </div>
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-white/60 ml-1">加入权限</label>
+            <label class="text-sm font-medium text-ios-label-secondary ml-1">加入权限</label>
             <div class="flex gap-4">
               <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" v-model="form.permission" value="public" class="w-4 h-4 accent-primary">
-                <span class="text-sm text-white/90">自由加入</span>
+                <input type="radio" v-model="form.permission" value="public" class="w-4 h-4 accent-ios-blue">
+                <span class="text-sm text-ios-label-primary">自由加入</span>
               </label>
               <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" v-model="form.permission" value="approval" class="w-4 h-4 accent-primary">
-                <span class="text-sm text-white/90">需要房主同意</span>
+                <input type="radio" v-model="form.permission" value="approval" class="w-4 h-4 accent-ios-blue">
+                <span class="text-sm text-ios-label-primary">需要房主同意</span>
               </label>
             </div>
           </div>
@@ -115,13 +115,13 @@
               <button 
                 type="button" 
                 @click="$emit('close')" 
-                class="glass-btn flex-1 py-3"
+                class="ios-btn-secondary flex-1 py-3"
               >
                 取消
               </button>
               <button 
                 type="submit" 
-                class="glass-btn-primary flex-1 py-3"
+                class="ios-btn-primary flex-1 py-3"
               >
                 立即创建
               </button>
@@ -284,7 +284,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.glass-modal {
+.ios-modal {
   max-width: 90vw;
 }
 </style>

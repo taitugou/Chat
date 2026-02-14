@@ -1,10 +1,10 @@
 <template>
-  <div class="h-screen flex flex-col overflow-hidden bg-background text-foreground transition-colors duration-300">
+  <div class="h-screen flex flex-col overflow-hidden bg-ios-systemGray6 text-ios-label-primary transition-colors duration-300">
     <!-- 顶部导航栏 -->
-    <div class="glass px-4 py-3 flex items-center z-50 shadow-sm border-b border-foreground/5">
+    <div class="ios-glass px-4 py-3 flex items-center z-50 shadow-sm border-b border-ios-separator">
       <button
         @click="goBackOneLevel"
-        class="p-2 -ml-2 rounded-full text-foreground/70 hover:text-white hover:bg-foreground/10 transition-all active:scale-90"
+        class="p-2 -ml-2 rounded-full text-ios-label-secondary hover:text-ios-label-primary hover:bg-ios-systemGray5 transition-all active:scale-90"
         title="返回上一页"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -12,10 +12,10 @@
         </svg>
       </button>
       <div class="flex-1 min-w-0 ml-2">
-        <div class="text-sm font-bold text-foreground/80">黑名单</div>
-        <div class="text-[10px] font-black text-foreground/30 uppercase tracking-widest">Blacklist</div>
+        <div class="text-sm font-bold text-ios-label-primary">黑名单</div>
+        <div class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest">Blacklist</div>
       </div>
-      <div class="text-[10px] font-bold text-foreground/40 bg-foreground/5 px-2 py-1 rounded-lg">
+      <div class="text-[10px] font-bold text-ios-label-tertiary bg-ios-systemGray5 px-2 py-1 rounded-lg">
         {{ blacklist.length }} 人
       </div>
     </div>
@@ -23,17 +23,17 @@
     <!-- 内容区域 -->
     <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
       <div v-if="loading && blacklist.length === 0" class="flex flex-col items-center justify-center py-20 space-y-4">
-        <div class="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-        <p class="text-xs text-foreground/40">加载名单中...</p>
+        <div class="w-10 h-10 border-4 border-ios-blue/30 border-t-primary rounded-full animate-spin"></div>
+        <p class="text-xs text-ios-label-tertiary">加载名单中...</p>
       </div>
 
       <div v-else-if="blacklist.length === 0" class="flex flex-col items-center justify-center py-20 space-y-6 text-center px-10">
-        <div class="w-20 h-20 rounded-3xl bg-foreground/5 flex items-center justify-center text-3xl grayscale opacity-30">
+        <div class="w-20 h-20 rounded-3xl bg-ios-systemGray5 flex items-center justify-center text-3xl grayscale opacity-30">
           🚫
         </div>
         <div class="space-y-2">
-          <h3 class="text-sm font-bold text-white">黑名单空空如也</h3>
-          <p class="text-[10px] text-foreground/40 leading-relaxed">
+          <h3 class="text-sm font-bold text-ios-label-primary">黑名单空空如也</h3>
+          <p class="text-[10px] text-ios-label-tertiary leading-relaxed">
             被屏蔽的用户将无法关注你、给你发私信或在你的帖子下评论。
           </p>
         </div>
@@ -43,19 +43,19 @@
         <div 
           v-for="user in blacklist" 
           :key="user.id"
-          class="glass-card p-3 rounded-2xl flex items-center justify-between group"
+          class="ios-card p-3 rounded-2xl flex items-center justify-between group"
         >
           <div class="flex items-center space-x-3">
-            <img :src="user.avatar" class="w-10 h-10 rounded-xl object-cover bg-foreground/10" />
+            <img :src="user.avatar" class="w-10 h-10 rounded-xl object-cover bg-ios-systemGray5" />
             <div>
-              <div class="text-sm font-bold text-white">{{ user.nickname }}</div>
-              <div class="text-[10px] text-foreground/40">@{{ user.username }}</div>
+              <div class="text-sm font-bold text-ios-label-primary">{{ user.nickname }}</div>
+              <div class="text-[10px] text-ios-label-tertiary">@{{ user.username }}</div>
             </div>
           </div>
           <button 
             @click="unblockUser(user)"
             :disabled="unblocking === user.id"
-            class="glass-btn px-3 py-1.5 rounded-xl text-[10px] font-bold text-foreground/60 hover:text-red-400 transition-all active:scale-95 disabled:opacity-50"
+            class="ios-btn-secondary px-3 py-1.5 rounded-xl text-[10px] font-bold text-ios-label-secondary hover:text-red-400 transition-all active:scale-95 disabled:opacity-50"
           >
             {{ unblocking === user.id ? '处理中...' : '解除屏蔽' }}
           </button>
@@ -63,7 +63,7 @@
       </div>
 
       <div class="px-2 pt-4">
-        <p class="text-[10px] text-foreground/30 text-center leading-relaxed">
+        <p class="text-[10px] text-ios-label-tertiary text-center leading-relaxed">
           温馨提示：解除屏蔽后，对方将恢复与你的正常互动权限。
         </p>
       </div>
@@ -153,10 +153,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.glass-card {
-  @apply bg-foreground/[0.03] border border-foreground/[0.08] backdrop-blur-md shadow-xl;
+.ios-card {
+  background: var(--ios-glass-bg);
+  border: 1px solid var(--ios-glass-border);
+  backdrop-filter: blur(24px);
+  box-shadow: var(--shadow-lg);
+  border-radius: 1.5rem;
 }
-.glass-btn {
-  @apply bg-foreground/5 text-foreground/70 hover:bg-foreground/10 hover:text-white transition-all border border-foreground/5;
+.ios-btn-secondary {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+.ios-btn-secondary:hover {
+  background: var(--bg-hover);
+  color: var(--text-ios-blue);
 }
 </style>

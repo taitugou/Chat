@@ -6,7 +6,7 @@
     @keydown="handleKeydown"
     @blur="handleBlur"
     :placeholder="placeholder"
-    class="mention-textarea glass-input"
+    class="mention-textarea ios-input"
     :rows="rows"
     :maxlength="maxLength"
     v-bind="$attrs"
@@ -16,7 +16,7 @@
     <div
       v-if="showSuggestions && filteredUsers.length > 0"
       ref="suggestionsRef"
-      class="mention-suggestions glass fixed z-[9999] shadow-2xl"
+      class="mention-suggestions ios-glass fixed z-[9999] shadow-2xl"
       :style="suggestionsStyle"
     >
       <div
@@ -32,8 +32,8 @@
           class="mention-suggestion-avatar"
         />
         <div class="mention-suggestion-info">
-          <div class="mention-suggestion-name glass-text">{{ user.nickname }}</div>
-          <div class="mention-suggestion-username text-foreground/60">@{{ user.username }}</div>
+          <div class="mention-suggestion-name text-ios-label-primary">{{ user.nickname }}</div>
+          <div class="mention-suggestion-username text-ios-label-secondary">@{{ user.username }}</div>
         </div>
       </div>
     </div>
@@ -217,7 +217,7 @@ function handleBlur() {
   font-size: 0.875rem;
   line-height: 1.5;
   resize: vertical;
-  /* Ensure it looks like a standard glass-input button */
+  /* Ensure it looks like a standard ios-input button */
   min-height: 2.75rem;
 }
 

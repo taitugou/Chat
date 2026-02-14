@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen pb-20 bg-black overflow-x-hidden">
+  <div class="min-h-screen pb-20 bg-ios-systemGray6 overflow-x-hidden">
     <TopNav title="游戏大厅">
       <template #extra>
-        <div class="flex items-center gap-2 glass-badge px-3 py-1.5 rounded-full border border-white/10">
+        <div class="flex items-center gap-2 ios-badge px-3 py-1.5 rounded-full border border-ios-separator">
           <span class="text-base">💰</span>
           <span class="font-bold text-yellow-400 tracking-tight">{{ formatNumber(chips.balance) }}</span>
         </div>
@@ -14,37 +14,37 @@
       <div class="flex items-center justify-center gap-4">
         <button 
           @click="showCheckinModal = true" 
-          class="flex-1 max-w-[160px] flex flex-col items-center gap-2 glass-card p-4 active:scale-95 transition-all group"
+          class="flex-1 max-w-[160px] flex flex-col items-center gap-2 ios-card p-4 active:scale-95 transition-all group"
         >
           <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-400/20 to-emerald-500/20 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
             🎁
           </div>
-          <span class="text-sm font-semibold text-white/90">每日签到</span>
+          <span class="text-sm font-semibold text-ios-label-primary">每日签到</span>
         </button>
         
         <button 
           @click="showLoanModal = true; fetchUserInfo()" 
-          class="flex-1 max-w-[160px] flex flex-col items-center gap-2 glass-card p-4 active:scale-95 transition-all group"
+          class="flex-1 max-w-[160px] flex flex-col items-center gap-2 ios-card p-4 active:scale-95 transition-all group"
         >
           <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-400/20 to-pink-500/20 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
             💸
           </div>
-          <span class="text-sm font-semibold text-white/90">紧急借贷</span>
+          <span class="text-sm font-semibold text-ios-label-primary">紧急借贷</span>
         </button>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- 左侧：房间列表 -->
         <div class="lg:col-span-2 space-y-6">
-          <div class="glass-card overflow-hidden">
-            <div class="p-6 flex items-center justify-between border-b border-white/5 bg-white/5">
+          <div class="ios-card overflow-hidden">
+            <div class="p-6 flex items-center justify-between border-b border-ios-separator bg-ios-systemGray5">
               <div>
-                <h2 class="text-lg font-bold text-white/90">正在进行</h2>
-                <p class="text-xs text-white/40">找到感兴趣的对局并加入</p>
+                <h2 class="text-lg font-bold text-ios-label-primary">正在进行</h2>
+                <p class="text-xs text-ios-label-tertiary">找到感兴趣的对局并加入</p>
               </div>
               <button 
                 @click="showCreateRoomModal = true"
-                class="glass-btn-primary px-5 py-2 rounded-full text-sm font-semibold shadow-lg active:scale-95 transition-all"
+                class="ios-btn-primary px-5 py-2 rounded-full text-sm font-semibold shadow-lg active:scale-95 transition-all"
               >
                 + 创建房间
               </button>
@@ -53,18 +53,18 @@
             <div class="p-6">
               <div v-if="loadingRooms" class="flex flex-col justify-center items-center py-20 space-y-4">
                 <div class="relative w-12 h-12">
-                  <div class="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
-                  <div class="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  <div class="absolute inset-0 border-4 border-ios-blue/20 rounded-full"></div>
+                  <div class="absolute inset-0 border-4 border-ios-blue border-t-transparent rounded-full animate-spin"></div>
                 </div>
-                <span class="text-sm text-white/40">正在搜寻房间...</span>
+                <span class="text-sm text-ios-label-tertiary">正在搜寻房间...</span>
               </div>
 
               <div v-else-if="rooms.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
-                <div class="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center text-4xl mb-4">
+                <div class="w-20 h-20 bg-ios-systemGray5 rounded-3xl flex items-center justify-center text-4xl mb-4">
                   🎮
                 </div>
-                <h3 class="text-white/80 font-semibold">暂无开放房间</h3>
-                <p class="text-white/40 text-sm mt-1">您可以点击右上角创建一个</p>
+                <h3 class="text-ios-label-primary font-semibold">暂无开放房间</h3>
+                <p class="text-ios-label-tertiary text-sm mt-1">您可以点击右上角创建一个</p>
               </div>
 
               <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -72,7 +72,7 @@
                   v-for="room in rooms" 
                   :key="room.id"
                   @click="joinRoom(room)"
-                  class="glass-card-hover p-4 cursor-pointer group relative overflow-hidden"
+                  class="ios-card-hover p-4 cursor-pointer group relative overflow-hidden"
                 >
                   <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                     <span class="text-4xl">{{ gameEmojis[room.game_code] || '🎮' }}</span>
@@ -81,9 +81,9 @@
                   <div class="flex flex-col h-full justify-between space-y-4">
                     <div class="flex items-start justify-between">
                       <div class="space-y-1">
-                        <h3 class="text-white font-bold group-hover:text-primary transition-colors">{{ room.name }}</h3>
-                        <p class="text-white/40 text-xs tracking-wide uppercase">{{ room.game_name }}</p>
-                        <p class="text-white/30 text-[10px] font-mono">{{ formatDateTime(room.last_active_at) }}</p>
+                        <h3 class="text-ios-label-primary font-bold group-hover:text-ios-blue transition-colors">{{ room.name }}</h3>
+                        <p class="text-ios-label-tertiary text-xs tracking-wide uppercase">{{ room.game_name }}</p>
+                        <p class="text-ios-label-quaternary text-[10px] font-mono">{{ formatDateTime(room.last_active_at) }}</p>
                       </div>
                       <div 
                         class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
@@ -93,8 +93,8 @@
                       </div>
                     </div>
                     
-                    <div class="flex items-center justify-between pt-2 border-t border-white/5">
-                      <div class="flex items-center gap-3 text-white/60">
+                    <div class="flex items-center justify-between pt-2 border-t border-ios-separator">
+                      <div class="flex items-center gap-3 text-ios-label-secondary">
                         <div class="flex items-center gap-1.5">
                           <span class="text-xs">👤</span>
                           <span class="text-sm font-medium">{{ room.player_count }}/{{ room.max_players }}</span>
@@ -104,7 +104,7 @@
                           <span class="text-sm font-mono opacity-80">{{ room.room_code }}</span>
                         </div>
                       </div>
-                      <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 group-hover:bg-primary group-hover:text-white transition-all">
+                      <div class="w-8 h-8 rounded-full bg-ios-systemGray5 flex items-center justify-center text-ios-label-tertiary group-hover:bg-ios-blue group-hover:text-ios-label-primary transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
@@ -117,7 +117,7 @@
               <div class="flex justify-center mt-8">
                 <button 
                   @click="fetchRooms(true)" 
-                  class="glass-btn px-8 py-3 rounded-full text-sm font-semibold active:scale-95 transition-all flex items-center gap-2"
+                  class="ios-btn-secondary px-8 py-3 rounded-full text-sm font-semibold active:scale-95 transition-all flex items-center gap-2"
                 >
                   <span>🔄</span> 刷新房间列表
                 </button>
@@ -129,41 +129,41 @@
         <!-- 右侧：排行榜与统计 -->
         <div class="space-y-6">
           <!-- 我的统计 -->
-          <div class="glass-card p-6">
-            <h2 class="text-base font-bold text-white/90 mb-5">战绩概览</h2>
+          <div class="ios-card p-6">
+            <h2 class="text-base font-bold text-ios-label-primary mb-5">战绩概览</h2>
             <div class="grid grid-cols-3 gap-4">
               <div class="text-center space-y-1">
-                <p class="text-[10px] text-white/40 uppercase tracking-widest">总局数</p>
-                <p class="text-xl font-bold text-white">{{ stats.total_games || 0 }}</p>
+                <p class="text-[10px] text-ios-label-tertiary uppercase tracking-widest">总局数</p>
+                <p class="text-xl font-bold text-ios-label-primary">{{ stats.total_games || 0 }}</p>
               </div>
               <div class="text-center space-y-1">
-                <p class="text-[10px] text-white/40 uppercase tracking-widest">胜率</p>
+                <p class="text-[10px] text-ios-label-tertiary uppercase tracking-widest">胜率</p>
                 <p class="text-xl font-bold text-green-400">{{ stats.win_rate || 0 }}%</p>
               </div>
               <div class="text-center space-y-1">
-                <p class="text-[10px] text-white/40 uppercase tracking-widest">最高赢取</p>
+                <p class="text-[10px] text-ios-label-tertiary uppercase tracking-widest">最高赢取</p>
                 <p class="text-xl font-bold text-yellow-400 truncate px-1">{{ formatNumber(stats.max_win || 0) }}</p>
               </div>
             </div>
           </div>
 
           <!-- 排行榜 -->
-          <div class="glass-card overflow-hidden">
-            <div class="p-5 flex items-center justify-between border-b border-white/5 bg-white/5">
-              <h2 class="text-base font-bold text-white/90">排行榜</h2>
-              <button @click="refreshLeaderboards(); fetchChips()" class="w-8 h-8 rounded-full hover:bg-white/5 flex items-center justify-center text-white/40 transition-colors">
+          <div class="ios-card overflow-hidden">
+            <div class="p-5 flex items-center justify-between border-b border-ios-separator bg-ios-systemGray5">
+              <h2 class="text-base font-bold text-ios-label-primary">排行榜</h2>
+              <button @click="refreshLeaderboards(); fetchChips()" class="w-8 h-8 rounded-full hover:bg-ios-systemGray5 flex items-center justify-center text-ios-label-tertiary transition-colors">
                 🔄
               </button>
             </div>
 
             <div class="p-4 space-y-4">
               <!-- 切换标签 -->
-              <div class="flex p-1 glass rounded-2xl">
+              <div class="flex p-1 ios-glass rounded-2xl">
                 <button
                   v-for="tab in leaderboardTabs"
                   :key="tab.id"
                   class="flex-1 py-2 text-xs font-medium rounded-xl transition-all active:scale-95"
-                  :class="leaderboardTab === tab.id ? 'glass-btn-primary' : 'text-white/60 hover:text-white'"
+                  :class="leaderboardTab === tab.id ? 'ios-btn-primary' : 'text-ios-label-secondary hover:text-ios-label-primary'"
                   @click="leaderboardTab = tab.id as 'chips' | 'win_rate' | 'debt' | 'earnings'"
                 >
                   {{ tab.name }}
@@ -191,7 +191,7 @@
                 <div
                   v-for="(row, index) in activeLeaderboardRows.slice(0, 10)"
                   :key="row.user_id"
-                  class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors group"
+                  class="flex items-center gap-3 p-2 rounded-xl hover:bg-ios-systemGray5 transition-colors group"
                   @click="goToProfile(row.username)"
                 >
                   <div
@@ -200,7 +200,7 @@
                       index === 0 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/20' : 
                       index === 1 ? 'bg-gray-400/20 text-gray-300 border border-gray-400/20' :
                       index === 2 ? 'bg-amber-600/20 text-amber-500 border border-amber-600/20' :
-                      'bg-white/5 text-white/40'
+                      'bg-ios-systemGray5 text-ios-label-tertiary'
                     ]"
                   >
                     {{ index + 1 }}
@@ -209,16 +209,16 @@
                   <div class="relative">
                     <img
                       :src="getImageUrl(row.avatar)"
-                      class="w-9 h-9 rounded-xl object-cover border border-white/10 group-hover:border-primary/50 transition-colors"
+                      class="w-9 h-9 rounded-xl object-cover border border-ios-separator group-hover:border-ios-blue/50 transition-colors"
                     />
                     <div v-if="index < 3" class="absolute -top-1 -right-1 text-[10px]">👑</div>
                   </div>
 
                   <div class="flex-1 min-w-0">
-                    <div class="text-sm font-semibold text-white/90 truncate group-hover:text-primary transition-colors">
+                    <div class="text-sm font-semibold text-ios-label-primary truncate group-hover:text-ios-blue transition-colors">
                       {{ row.nickname }}
                     </div>
-                    <div v-if="row.subValue" class="text-[10px] text-white/30 truncate uppercase tracking-tighter">
+                    <div v-if="row.subValue" class="text-[10px] text-ios-label-quaternary truncate uppercase tracking-tighter">
                       {{ row.subValue }}
                     </div>
                   </div>

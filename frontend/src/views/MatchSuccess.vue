@@ -1,14 +1,14 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-background text-foreground transition-colors duration-300 p-4">
-    <div class="glass-card w-full max-w-md p-8 relative z-10 animate-in fade-in zoom-in duration-500 text-center">
+  <div class="min-h-screen flex items-center justify-center bg-ios-systemGray6 text-ios-label-primary transition-colors duration-300 p-4">
+    <div class="ios-card w-full max-w-md p-8 relative z-10 animate-in fade-in zoom-in duration-500 text-center">
       <div class="space-y-6">
         <!-- 匹配成功头部 -->
         <div class="space-y-2">
-          <div class="inline-flex items-center justify-center w-20 h-20 bg-primary/20 rounded-full text-4xl mb-4 animate-bounce">
+          <div class="inline-flex items-center justify-center w-20 h-20 bg-ios-blue/20 rounded-full text-4xl mb-4 animate-bounce">
             ✨
           </div>
           <h1 class="text-3xl font-black text-white tracking-tight">匹配成功！</h1>
-          <p class="text-foreground/40 text-sm font-medium">为你找到了最契合的灵魂</p>
+          <p class="text-ios-label-tertiary text-sm font-medium">为你找到了最契合的灵魂</p>
         </div>
 
         <!-- 匹配者信息 -->
@@ -17,9 +17,9 @@
             <div class="relative">
               <img
                 :src="getImageUrl(isAnonymous ? null : matchedUser?.avatar)"
-                class="w-32 h-32 rounded-[2.5rem] object-cover border-4 border-primary/20 shadow-2xl transition-transform group-hover:scale-105"
+                class="w-32 h-32 rounded-[2.5rem] object-cover border-4 border-ios-blue/20 shadow-2xl transition-transform group-hover:scale-105"
               />
-              <div v-if="isAnonymous" class="absolute inset-0 bg-black/40 backdrop-blur-md rounded-[2.5rem] flex items-center justify-center">
+              <div v-if="isAnonymous" class="absolute inset-0 bg-ios-black/40 backdrop-blur-md rounded-[2.5rem] flex items-center justify-center">
                 <span class="text-2xl">👤</span>
               </div>
             </div>
@@ -27,30 +27,30 @@
               {{ isAnonymous ? '神秘用户' : (matchedUser?.nickname || matchedUser?.username) }}
             </h2>
             <div class="flex items-center justify-center gap-2">
-              <div class="h-1.5 w-24 bg-foreground/5 rounded-full overflow-hidden">
+              <div class="h-1.5 w-24 bg-ios-systemGray5 rounded-full overflow-hidden">
                 <div 
-                  class="h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-1000"
+                  class="h-full bg-gradient-to-r from-ios-blue to-purple-500 transition-all duration-1000"
                   :style="{ width: `${matchScore}%` }"
                 ></div>
               </div>
-              <span class="text-xs font-bold text-primary">{{ matchScore }}% 匹配度</span>
+              <span class="text-xs font-bold text-ios-blue">{{ matchScore }}% 匹配度</span>
             </div>
           </div>
           
           <!-- 匹配统计 -->
-          <div v-if="matchStats" class="bg-foreground/5 rounded-2xl p-4 border border-foreground/5 space-y-2 mt-6">
-            <p class="text-sm font-medium text-foreground/70">这是你们第 <span class="text-primary font-bold">{{ matchStats.count }}</span> 次匹配</p>
-            <p v-if="matchStats.lastMatchAt" class="text-[10px] text-foreground/30 uppercase tracking-widest">
+          <div v-if="matchStats" class="bg-ios-systemGray5 rounded-2xl p-4 border border-ios-separator space-y-2 mt-6">
+            <p class="text-sm font-medium text-ios-label-secondary">这是你们第 <span class="text-ios-blue font-bold">{{ matchStats.count }}</span> 次匹配</p>
+            <p v-if="matchStats.lastMatchAt" class="text-[10px] text-ios-label-tertiary uppercase tracking-widest">
               上次见面：{{ formatLastMatchTime(matchStats.lastMatchAt) }}
             </p>
-            <p v-else class="text-[10px] text-foreground/30 uppercase tracking-widest">首次奇妙相遇</p>
+            <p v-else class="text-[10px] text-ios-label-tertiary uppercase tracking-widest">首次奇妙相遇</p>
           </div>
           
           <!-- 状态提示 -->
           <div class="py-2 mt-4">
-            <p v-if="myStatus === 'pending'" class="text-sm text-foreground/60 animate-pulse">请确认是否开始交流</p>
+            <p v-if="myStatus === 'pending'" class="text-sm text-ios-label-secondary animate-pulse">请确认是否开始交流</p>
             <div v-else class="flex flex-col items-center gap-2">
-              <div v-if="myStatus === 'accepted' && otherStatus === 'pending'" class="flex items-center gap-2 text-xs text-foreground/40">
+              <div v-if="myStatus === 'accepted' && otherStatus === 'pending'" class="flex items-center gap-2 text-xs text-ios-label-tertiary">
                 <svg class="animate-spin h-3 w-3" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -72,14 +72,14 @@
             <button
               @click="acceptMatch"
               :disabled="loading"
-              class="glass-btn-primary py-4 rounded-2xl font-bold shadow-xl active:scale-95 transition-all disabled:opacity-50"
+              class="ios-btn-primary py-4 rounded-2xl font-bold shadow-xl active:scale-95 transition-all disabled:opacity-50"
             >
               {{ loading ? '处理中...' : '同意' }}
             </button>
             <button
               @click="rejectMatch"
               :disabled="loading"
-              class="glass-btn py-4 rounded-2xl font-bold text-foreground/60 active:scale-95 transition-all disabled:opacity-50"
+              class="ios-btn-secondary py-4 rounded-2xl font-bold text-ios-label-secondary active:scale-95 transition-all disabled:opacity-50"
             >
               拒绝
             </button>
@@ -90,12 +90,12 @@
           <button
             v-if="otherStatus !== 'accepted'"
             @click="rejectMatch"
-            class="w-full glass-btn py-4 rounded-2xl font-bold text-red-400/80 active:scale-95 transition-all"
+            class="w-full ios-btn-secondary py-4 rounded-2xl font-bold text-red-400/80 active:scale-95 transition-all"
           >
             放弃并重新匹配
           </button>
           <div v-else class="w-full py-4 text-center">
-            <div class="inline-flex items-center gap-2 px-6 py-2 bg-primary/20 rounded-full border border-primary/20 text-primary text-sm font-bold animate-pulse">
+            <div class="inline-flex items-center gap-2 px-6 py-2 bg-ios-blue/20 rounded-full border border-ios-blue/20 text-ios-blue text-sm font-bold animate-pulse">
               🚀 正在开启时空门...
             </div>
           </div>
@@ -104,7 +104,7 @@
         <button
           v-if="!isAnonymous"
           @click.stop="goToProfile"
-          class="w-full glass-btn py-4 rounded-2xl font-bold text-foreground/40 text-sm hover:text-white transition-colors active:scale-95"
+          class="w-full ios-btn-secondary py-4 rounded-2xl font-bold text-ios-label-tertiary text-sm hover:text-white transition-colors active:scale-95"
         >
           查看详细资料
         </button>

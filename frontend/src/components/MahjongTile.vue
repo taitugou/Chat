@@ -1,14 +1,14 @@
 <template>
   <button
     type="button"
-    class="relative flex flex-col items-center justify-center rounded-[1.1vh] border border-white/10 bg-white/5 px-[0.7vh] py-[0.6vh] text-center transition-all active:scale-95"
-    :class="selected ? 'ring-2 ring-primary/70 border-primary/40 bg-primary/10' : ''"
+    class="relative flex flex-col items-center justify-center rounded-[1.1vh] border border-ios-separator bg-ios-systemGray5 px-[0.7vh] py-[0.6vh] text-center transition-all active:scale-95"
+    :class="selected ? 'ring-2 ring-primary/70 border-ios-blue/40 bg-ios-blue/10' : ''"
     @click="$emit('click')"
   >
     <div class="text-[2.1vh] font-black leading-none" :class="isHonor ? 'text-yellow-200' : 'text-white'">
       {{ mainText }}
     </div>
-    <div class="mt-[0.3vh] text-[1.6vh] font-bold text-white/50 leading-none">
+    <div class="mt-[0.3vh] text-[1.6vh] font-bold text-ios-label-tertiary leading-none">
       {{ subText }}
     </div>
   </button>

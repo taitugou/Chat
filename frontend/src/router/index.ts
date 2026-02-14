@@ -172,36 +172,7 @@ const router = createRouter({
       component: () => import('@/views/MatchHistory.vue'),
       meta: { requiresAuth: true },
     },
-    {
-      path: '/admin',
-      name: 'Admin',
-      component: () => import('@/views/Admin.vue'),
-      meta: { requiresAuth: false, requiresAdmin: false },
-    },
-    {
-      path: '/superadmin',
-      name: 'SuperAdmin',
-      component: () => import('@/views/AdminEnhanced.vue'),
-      meta: { requiresAuth: false, requiresAdmin: false },
-    },
-    {
-      path: '/admin/enhanced',
-      name: 'AdminEnhanced',
-      component: () => import('@/views/AdminEnhanced.vue'),
-      meta: { requiresAuth: false, requiresAdmin: false },
-    },
-    {
-      path: '/admin/post/:id',
-      name: 'AdminPostDetail',
-      component: () => import('@/views/AdminPostDetail.vue'),
-      meta: { requiresAuth: false, requiresAdmin: false },
-    },
-    {
-      path: '/admin/topic/:id',
-      name: 'AdminTopicDetail',
-      component: () => import('@/views/AdminTopicDetail.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true },
-    },
+
     {
       path: '/rankings',
       name: 'Rankings',
@@ -264,6 +235,18 @@ const router = createRouter({
       component: () => import('@/views/GamePlay.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/admin',
+      name: 'Admin',
+      component: () => import('@/views/Admin.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/superadmin',
+      name: 'SuperAdmin',
+      component: () => import('@/views/SuperAdmin.vue'),
+      meta: { requiresAuth: true, requiresSuperAdmin: true },
+    },
 
   ],
 });
@@ -291,6 +274,12 @@ router.beforeEach((to, from, next) => {
     }
   } else if (to.meta.requiresAdmin && !authStore.isAdmin) {
     // 如果还在初始加载中，先允许进入，由组件内部根据加载后的状态决定是否重定向
+    if (authStore.isInitialLoading) {
+      next();
+    } else {
+      next({ name: 'Home' });
+    }
+  } else if (to.meta.requiresSuperAdmin && !authStore.isSuperAdmin) {
     if (authStore.isInitialLoading) {
       next();
     } else {

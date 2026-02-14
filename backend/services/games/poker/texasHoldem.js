@@ -59,7 +59,7 @@ export class HandEvaluator {
     const allCards = [...hand, ...communityCards];
     if (allCards.length < 5) {
         const sorted = [...allCards].sort((a,b) => b.value - a.value);
-        return { rank: 1, name: '高牌', highCard: sorted[0] };
+        return { rank: 1, name: '高牌', highCard: sorted[0], kickers: sorted.slice(1) };
     }
 
     const combinations = this.getCombinations(allCards, 5);
@@ -73,13 +73,34 @@ export class HandEvaluator {
         bestRank = result.rank;
         bestHand = result;
       } else if (result.rank === bestRank) {
-          if (result.highCard.value > bestHand.highCard.value) {
-              bestHand = result;
-          }
+        const cmp = this.compareKickers(result.kickers, bestHand.kickers);
+        if (cmp > 0) {
+            bestHand = result;
+        } else if (cmp === 0) {
+          bestHand = this.resolveTie(result, bestHand, allCards);
+        }
       }
     }
     
-    return bestHand || { rank: 0, name: '高牌', highCard: allCards[0] };
+    return bestHand || { rank: 0, name: '高牌', highCard: allCards[0], kickers: [] };
+  }
+
+  static compareKickers(a, b) {
+    const len = Math.max(a.length, b.length);
+    for (let i = 0; i < len; i++) {
+      const av = a[i]?.value || 0;
+      const bv = b[i]?.value || 0;
+      if (av !== bv) return av > bv ? 1 : -1;
+    }
+    return 0;
+  }
+
+  static resolveTie(a, b, allCards) {
+    if (a.rank === b.rank && a.mainValue === b.mainValue) {
+      const winner = Math.random() < 0.5 ? a : b;
+      return winner;
+    }
+    return a.mainValue > b.mainValue ? a : b;
   }
 
   static getCombinations(cards, k) {
@@ -115,6 +136,13 @@ export class HandEvaluator {
       suitCounts[card.suit] = (suitCounts[card.suit] || 0) + 1;
     }
     
+    const countValues = Object.entries(rankCounts)
+      .sort((a, b) => {
+        const countDiff = Number(b[1]) - Number(a[1]);
+        if (countDiff !== 0) return countDiff;
+        return Number(b[0]) - Number(a[0]);
+      });
+    
     const counts = Object.values(rankCounts).sort((a, b) => b - a);
     const isFlush = Object.values(suitCounts).some(count => count >= 5);
     const uniqueRanks = [...new Set(ranks)].sort((a, b) => b - a);
@@ -122,43 +150,104 @@ export class HandEvaluator {
     const isStraight = straightHigh !== null;
     
     if (isStraight && isFlush) {
-      return { rank: 9, name: '同花顺', highCard: sortedCards.find(c => c.value === straightHigh) || sortedCards[0] };
+      return { 
+        rank: 9, 
+        name: '同花顺', 
+        highCard: sortedCards.find(c => c.value === straightHigh) || sortedCards[0],
+        mainValue: straightHigh,
+        kickers: []
+      };
     }
     
     if (counts[0] === 4) {
-      const quadRank = Object.keys(rankCounts).find(key => rankCounts[key] === 4);
-      return { rank: 8, name: '四条', highCard: sortedCards.find(c => c.value == quadRank) };
+      const quadRank = Number(Object.keys(rankCounts).find(key => Number(key) === Math.max(...Object.keys(rankCounts).map(Number))) || sortedCards[0].value);
+      const kickers = sortedCards.filter(c => c.value !== Math.max(...Object.keys(rankCounts).map(Number))).slice(0, 1);
+      return { 
+        rank: 8, 
+        name: '四条', 
+        highCard: sortedCards.find(c => c.value === quadRank),
+        mainValue: quadRank,
+        kickers: kickers
+      };
     }
     
     if (counts[0] === 3 && counts[1] === 2) {
-      const tripRank = Object.keys(rankCounts).find(key => rankCounts[key] === 3);
-      return { rank: 7, name: '葫芦', highCard: sortedCards.find(c => c.value == tripRank) };
+      const tripRank = Number(Object.keys(rankCounts).find(key => rankCounts[key] === 3));
+      const pairRank = Number(Object.keys(rankCounts).find(key => rankCounts[key] === 2));
+      return { 
+        rank: 7, 
+        name: '葫芦', 
+        highCard: sortedCards.find(c => c.value === tripRank),
+        mainValue: tripRank * 100 + pairRank,
+        kickers: []
+      };
     }
     
     if (isFlush) {
-      return { rank: 6, name: '同花', highCard: sortedCards[0] };
+      return { 
+        rank: 6, 
+        name: '同花', 
+        highCard: sortedCards[0],
+        mainValue: sortedCards[0].value,
+        kickers: sortedCards.slice(1)
+      };
     }
     
     if (isStraight) {
-      return { rank: 5, name: '顺子', highCard: sortedCards.find(c => c.value === straightHigh) || sortedCards[0] };
+      return { 
+        rank: 5, 
+        name: '顺子', 
+        highCard: sortedCards.find(c => c.value === straightHigh) || sortedCards[0],
+        mainValue: straightHigh,
+        kickers: []
+      };
     }
     
     if (counts[0] === 3) {
-      const tripRank = Object.keys(rankCounts).find(key => rankCounts[key] === 3);
-      return { rank: 4, name: '三条', highCard: sortedCards.find(c => c.value == tripRank) };
+      const tripRank = Number(Object.keys(rankCounts).find(key => rankCounts[key] === 3));
+      const kickers = sortedCards.filter(c => c.value !== tripRank).slice(0, 2);
+      return { 
+        rank: 4, 
+        name: '三条', 
+        highCard: sortedCards.find(c => c.value === tripRank),
+        mainValue: tripRank,
+        kickers: kickers
+      };
     }
     
     if (counts[0] === 2 && counts[1] === 2) {
-      const pairRanks = Object.keys(rankCounts).filter(key => rankCounts[key] === 2);
-      return { rank: 3, name: '两对', highCard: sortedCards.find(c => c.value == Math.max(...pairRanks)) };
+      const pairRanks = Object.keys(rankCounts).filter(key => rankCounts[key] === 2).map(Number).sort((a, b) => b - a);
+      const highPair = pairRanks[0];
+      const lowPair = pairRanks[1];
+      const kicker = sortedCards.find(c => c.value !== highPair && c.value !== lowPair);
+      return { 
+        rank: 3, 
+        name: '两对', 
+        highCard: sortedCards.find(c => c.value === highPair),
+        mainValue: highPair * 100 + lowPair,
+        kickers: [kicker]
+      };
     }
     
     if (counts[0] === 2) {
-      const pairRank = Object.keys(rankCounts).find(key => rankCounts[key] === 2);
-      return { rank: 2, name: '一对', highCard: sortedCards.find(c => c.value == pairRank) };
+      const pairRank = Number(Object.keys(rankCounts).find(key => rankCounts[key] === 2));
+      const kickers = sortedCards.filter(c => c.value !== pairRank).slice(0, 3);
+      return { 
+        rank: 2, 
+        name: '一对', 
+        highCard: sortedCards.find(c => c.value === pairRank),
+        mainValue: pairRank,
+        kickers: kickers
+      };
     }
     
-    return { rank: 1, name: '高牌', highCard: sortedCards[0] };
+    return { 
+      rank: 1, 
+      name: '高牌', 
+      highCard: sortedCards[0],
+      mainValue: sortedCards[0].value,
+      kickers: sortedCards.slice(1)
+    };
   }
 
   static getStraightHigh(ranks) {

@@ -1,10 +1,10 @@
 <template>
   <div class="profile-message-board w-full">
     <div class="message-board-header flex justify-between items-center mb-5">
-      <h2 class="text-lg font-semibold text-white drop-shadow-md">留言</h2>
+      <h2 class="text-lg font-semibold text-ios-label-primary drop-shadow-md">留言</h2>
       <button
         @click="showMessageModal = true"
-        class="btn btn-primary px-3 py-1.5 text-sm !bg-foreground/20 hover:!bg-white/30 text-white border border-foreground/30"
+        class="btn btn-primary px-3 py-1.5 text-sm !bg-ios-systemGray5 hover:!bg-ios-systemGray5 text-ios-label-primary border border-ios-separator"
       >
         写留言
       </button>
@@ -14,7 +14,7 @@
       加载中...
     </div>
 
-    <div v-else-if="messages.length === 0" class="message-board-empty text-center py-10 text-foreground/70">
+    <div v-else-if="messages.length === 0" class="message-board-empty text-center py-10 text-ios-label-secondary">
       暂无留言，快来抢沙发吧~
     </div>
 
@@ -22,7 +22,7 @@
       <div
           v-for="message in displayMessages"
           :key="message.id"
-          class="message-item bg-transparent rounded-xl p-4 backdrop-blur-xl bg-foreground/10 border border-foreground/20 shadow-lg"
+          class="message-item bg-transparent rounded-xl p-4 backdrop-blur-xl bg-ios-systemGray5 border border-ios-separator shadow-lg"
         >
         <div class="message-main flex gap-3">
           <div class="message-avatar-link flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity" @click.stop="goToProfile(message.sender_username)">
@@ -36,20 +36,20 @@
           <div class="message-content-wrapper flex-1 min-w-0">
             <div class="message-header flex items-center gap-2 mb-2">
               <div
-                class="message-author font-medium text-white cursor-pointer hover:text-blue-300 transition-colors"
+                class="message-author font-medium text-ios-label-primary cursor-pointer hover:text-blue-300 transition-colors"
                 @click.stop="goToProfile(message.sender_username)"
               >
                 {{ message.sender_nickname }}
               </div>
-              <span class="message-time text-xs text-foreground/60">{{ formatTime(message.created_at) }}</span>
+              <span class="message-time text-xs text-ios-label-secondary">{{ formatTime(message.created_at) }}</span>
             </div>
             
-            <div class="message-text text-foreground/80 leading-relaxed break-words mb-3" v-html="formatPostContent(message.content)"></div>
+            <div class="message-text text-ios-label-primary leading-relaxed break-words mb-3" v-html="formatPostContent(message.content)"></div>
             
             <div class="message-actions flex gap-4">
               <button
                 @click="toggleLike(message)"
-                class="message-action-btn flex items-center gap-1 px-2 py-1 border-none bg-transparent text-white cursor-pointer rounded text-sm transition-all hover:bg-foreground/20"
+                class="message-action-btn flex items-center gap-1 px-2 py-1 border-none bg-transparent text-ios-label-primary cursor-pointer rounded text-sm transition-all hover:bg-ios-systemGray5"
                 :class="{ 'text-red-400': message.is_liked }"
               >
                 <span>{{ message.is_liked ? '❤️' : '🤍' }}</span>
@@ -58,7 +58,7 @@
               
               <button
                 @click="toggleReplies(message.id)"
-                class="message-action-btn flex items-center gap-1 px-2 py-1 border-none bg-transparent text-white cursor-pointer rounded text-sm transition-all hover:bg-foreground/20"
+                class="message-action-btn flex items-center gap-1 px-2 py-1 border-none bg-transparent text-ios-label-primary cursor-pointer rounded text-sm transition-all hover:bg-ios-systemGray5"
               >
                 <span>💬</span>
                 <span class="font-medium">{{ message.reply_count || 0 }}</span>
@@ -77,7 +77,7 @@
 
         <div
           v-if="expandedReplies.has(message.id) && message.replies && message.replies.length > 0"
-          class="message-replies mt-4 pt-4 border-t border-foreground/20"
+          class="message-replies mt-4 pt-4 border-t border-ios-separator"
         >
           <div
             v-for="reply in message.replies"
@@ -95,20 +95,20 @@
             <div class="reply-content-wrapper flex-1 min-w-0">
               <div class="reply-header flex items-center gap-2 mb-1">
                 <div
-                  class="reply-author font-medium text-white cursor-pointer hover:text-blue-300 transition-colors text-sm"
+                  class="reply-author font-medium text-ios-label-primary cursor-pointer hover:text-blue-300 transition-colors text-sm"
                   @click.stop="goToProfile(reply.sender_username)"
                 >
                   {{ reply.sender_nickname }}
                 </div>
-                <span class="reply-time text-xs text-foreground/60">{{ formatTime(reply.created_at) }}</span>
+                <span class="reply-time text-xs text-ios-label-secondary">{{ formatTime(reply.created_at) }}</span>
               </div>
               
-              <div class="reply-text text-foreground/80 leading-relaxed text-sm break-words mb-2" v-html="formatPostContent(reply.content)"></div>
+              <div class="reply-text text-ios-label-primary leading-relaxed text-sm break-words mb-2" v-html="formatPostContent(reply.content)"></div>
               
               <div class="reply-actions flex gap-3">
                 <button
                   @click="toggleLike(reply, message.id)"
-                  class="reply-action-btn flex items-center gap-1 px-1.5 py-0.5 border-none bg-transparent text-white cursor-pointer rounded text-xs transition-all hover:bg-foreground/20"
+                  class="reply-action-btn flex items-center gap-1 px-1.5 py-0.5 border-none bg-transparent text-ios-label-primary cursor-pointer rounded text-xs transition-all hover:bg-ios-systemGray5"
                   :class="{ 'text-red-400': reply.is_liked }"
                 >
                   <span>{{ reply.is_liked ? '❤️' : '🤍' }}</span>
@@ -136,7 +136,7 @@
             />
             <button
               @click="submitReply(message.id)"
-              class="btn btn-primary btn-sm px-3 py-1 text-sm !bg-foreground/20 hover:!bg-white/30 text-white border border-foreground/30"
+              class="btn btn-primary btn-sm px-3 py-1 text-sm !bg-ios-systemGray5 hover:!bg-ios-systemGray5 text-ios-label-primary border border-ios-separator"
               :disabled="!replyContent[message.id]?.trim()"
             >
               回复
@@ -148,7 +148,7 @@
       <div
         v-if="messages.length > 3"
         @click="showAllMessagesModal = true"
-        class="view-all-btn text-center py-3 text-blue-300 cursor-pointer transition-colors rounded-xl hover:bg-foreground/20 backdrop-blur-sm bg-foreground/10 border border-foreground/10"
+        class="view-all-btn text-center py-3 text-blue-300 cursor-pointer transition-colors rounded-xl hover:bg-ios-systemGray5 backdrop-blur-sm bg-ios-systemGray5 border border-ios-separator"
       >
         查看全部 {{ messages.length }} 条留言
       </div>
@@ -156,7 +156,7 @@
       <div
         v-if="hasMore"
         @click="loadMore"
-        class="load-more-btn text-center py-3 text-blue-300 cursor-pointer transition-colors rounded-xl hover:bg-foreground/20 backdrop-blur-sm bg-foreground/10 border border-foreground/10"
+        class="load-more-btn text-center py-3 text-blue-300 cursor-pointer transition-colors rounded-xl hover:bg-ios-systemGray5 backdrop-blur-sm bg-ios-systemGray5 border border-ios-separator"
       >
         {{ loadingMore ? '加载中...' : '加载更多' }}
       </div>
@@ -164,10 +164,10 @@
 
     <Teleport to="body">
       <div v-if="showMessageModal" class="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-[9999999]! p-5 backdrop-blur-sm isolate" @click.self="showMessageModal = false">
-        <div class="modal-content !bg-transparent backdrop-blur-xl bg-foreground/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-foreground/20 shadow-xl z-[9999999]! relative">
-        <div class="modal-header flex justify-between items-center p-4 border-b border-foreground/20">
-          <h3 class="m-0 text-lg font-semibold text-white drop-shadow-md">写留言</h3>
-          <button @click="showMessageModal = false" class="!bg-transparent !border-none modal-close cursor-pointer p-0 w-8 h-8 flex items-center justify-center rounded-lg transition-all hover:bg-foreground/20 text-2xl text-foreground/70 hover:text-white">×</button>
+        <div class="modal-content !bg-transparent backdrop-blur-xl bg-ios-systemGray5 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-ios-separator shadow-xl z-[9999999]! relative">
+        <div class="modal-header flex justify-between items-center p-4 border-b border-ios-separator">
+          <h3 class="m-0 text-lg font-semibold text-ios-label-primary drop-shadow-md">写留言</h3>
+          <button @click="showMessageModal = false" class="!bg-transparent !border-none modal-close cursor-pointer p-0 w-8 h-8 flex items-center justify-center rounded-lg transition-all hover:bg-ios-systemGray5 text-2xl text-ios-label-secondary hover:text-ios-label-primary">×</button>
         </div>
         
         <div class="modal-body p-5">
@@ -180,16 +180,16 @@
           />
         </div>
         
-        <div class="modal-footer flex justify-end gap-3 p-4 border-t border-foreground/20">
+        <div class="modal-footer flex justify-end gap-3 p-4 border-t border-ios-separator">
           <button
             @click="showMessageModal = false"
-            class="btn btn-secondary px-4 py-2 text-sm font-medium !bg-foreground/20 hover:!bg-white/30 text-white border border-foreground/30"
+            class="btn btn-secondary px-4 py-2 text-sm font-medium !bg-ios-systemGray5 hover:!bg-ios-systemGray5 text-ios-label-primary border border-ios-separator"
           >
             取消
           </button>
           <button
             @click="submitMessage"
-            class="btn btn-primary px-4 py-2 text-sm font-medium !bg-white/30 hover:!bg-white/40 text-white border border-foreground/30"
+            class="btn btn-primary px-4 py-2 text-sm font-medium !bg-ios-systemGray5 hover:!bg-white/40 text-ios-label-primary border border-ios-separator"
             :disabled="!newMessageContent.trim() || submitting"
           >
             {{ submitting ? '发送中...' : '发送' }}
@@ -201,26 +201,26 @@
 
     <Teleport to="body">
       <div v-if="showDeleteConfirm" class="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-[9999999]! p-5 backdrop-blur-sm isolate" @click.self="showDeleteConfirm = false">
-        <div class="modal-content modal-sm !bg-transparent backdrop-blur-xl bg-foreground/10 rounded-2xl w-full max-w-md border border-foreground/20 shadow-xl z-[9999999]! relative">
-        <div class="modal-header flex justify-between items-center p-4 border-b border-foreground/20">
-          <h3 class="m-0 text-lg font-semibold text-white drop-shadow-md">确认删除</h3>
-          <button @click="showDeleteConfirm = false" class="!bg-transparent !border-none modal-close cursor-pointer p-0 w-8 h-8 flex items-center justify-center rounded-lg transition-all hover:bg-foreground/20 text-2xl text-foreground/70 hover:text-white">×</button>
+        <div class="modal-content modal-sm !bg-transparent backdrop-blur-xl bg-ios-systemGray5 rounded-2xl w-full max-w-md border border-ios-separator shadow-xl z-[9999999]! relative">
+        <div class="modal-header flex justify-between items-center p-4 border-b border-ios-separator">
+          <h3 class="m-0 text-lg font-semibold text-ios-label-primary drop-shadow-md">确认删除</h3>
+          <button @click="showDeleteConfirm = false" class="!bg-transparent !border-none modal-close cursor-pointer p-0 w-8 h-8 flex items-center justify-center rounded-lg transition-all hover:bg-ios-systemGray5 text-2xl text-ios-label-secondary hover:text-ios-label-primary">×</button>
         </div>
         
         <div class="modal-body p-5">
-          <p class="m-0 text-foreground/90 leading-relaxed">确定要删除这条留言吗？</p>
+          <p class="m-0 text-ios-label-primary leading-relaxed">确定要删除这条留言吗？</p>
         </div>
         
-        <div class="modal-footer flex justify-end gap-3 p-4 border-t border-foreground/20">
+        <div class="modal-footer flex justify-end gap-3 p-4 border-t border-ios-separator">
           <button
             @click="showDeleteConfirm = false"
-            class="!bg-transparent !border-none btn btn-secondary backdrop-blur-sm bg-foreground/20 hover:bg-white/30 px-4 py-2 rounded-xl text-sm font-medium cursor-pointer transition-all text-white border border-foreground/30"
+            class="!bg-transparent !border-none btn btn-secondary backdrop-blur-sm bg-ios-systemGray5 hover:bg-ios-systemGray5 px-4 py-2 rounded-xl text-sm font-medium cursor-pointer transition-all text-ios-label-primary border border-ios-separator"
           >
             取消
           </button>
           <button
             @click="executeDelete"
-            class="!bg-transparent !border-none btn btn-danger backdrop-blur-sm bg-red-500/30 hover:bg-red-500/40 px-4 py-2 rounded-xl text-sm font-medium cursor-pointer transition-all text-white border border-red-500/30"
+            class="!bg-transparent !border-none btn btn-danger backdrop-blur-sm bg-red-500/30 hover:bg-red-500/40 px-4 py-2 rounded-xl text-sm font-medium cursor-pointer transition-all text-ios-label-primary border border-red-500/30"
           >
             删除
           </button>
@@ -231,10 +231,10 @@
 
     <Teleport to="body">
       <div v-if="showAllMessagesModal" class="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-[9999999]! p-5 backdrop-blur-sm isolate" @click.self="showAllMessagesModal = false">
-        <div class="modal-content !bg-transparent backdrop-blur-xl bg-foreground/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-foreground/20 shadow-xl z-[9999999]! relative">
-        <div class="modal-header flex justify-between items-center p-4 border-b border-foreground/20">
-          <h3 class="m-0 text-lg font-semibold text-white drop-shadow-md">全部留言 ({{ messages.length }})</h3>
-          <button @click="showAllMessagesModal = false" class="!bg-transparent !border-none modal-close cursor-pointer p-0 w-8 h-8 flex items-center justify-center rounded-lg transition-all hover:bg-foreground/20 text-2xl text-foreground/70 hover:text-white">×</button>
+        <div class="modal-content !bg-transparent backdrop-blur-xl bg-ios-systemGray5 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-ios-separator shadow-xl z-[9999999]! relative">
+        <div class="modal-header flex justify-between items-center p-4 border-b border-ios-separator">
+          <h3 class="m-0 text-lg font-semibold text-ios-label-primary drop-shadow-md">全部留言 ({{ messages.length }})</h3>
+          <button @click="showAllMessagesModal = false" class="!bg-transparent !border-none modal-close cursor-pointer p-0 w-8 h-8 flex items-center justify-center rounded-lg transition-all hover:bg-ios-systemGray5 text-2xl text-ios-label-secondary hover:text-ios-label-primary">×</button>
         </div>
         
         <div class="modal-body p-5">
@@ -242,7 +242,7 @@
             <div
               v-for="message in messages"
               :key="message.id"
-              class="message-item bg-transparent rounded-xl p-4 backdrop-blur-xl bg-foreground/10 border border-foreground/20"
+              class="message-item bg-transparent rounded-xl p-4 backdrop-blur-xl bg-ios-systemGray5 border border-ios-separator"
             >
               <div class="message-main flex gap-3">
                 <div class="message-avatar-link flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity" @click.stop="goToProfile(message.sender_username)">
@@ -256,20 +256,20 @@
                 <div class="message-content-wrapper flex-1 min-w-0">
                   <div class="message-header flex items-center gap-2 mb-2">
                     <div
-                      class="message-author font-medium text-white cursor-pointer hover:text-blue-300 transition-colors"
+                      class="message-author font-medium text-ios-label-primary cursor-pointer hover:text-blue-300 transition-colors"
                       @click.stop="goToProfile(message.sender_username)"
                     >
                       {{ message.sender_nickname }}
                     </div>
-                    <span class="message-time text-xs text-foreground/60">{{ formatTime(message.created_at) }}</span>
+                    <span class="message-time text-xs text-ios-label-secondary">{{ formatTime(message.created_at) }}</span>
                   </div>
                   
-                  <div class="message-text text-foreground/80 leading-relaxed break-words mb-3" v-html="formatPostContent(message.content)"></div>
+                  <div class="message-text text-ios-label-primary leading-relaxed break-words mb-3" v-html="formatPostContent(message.content)"></div>
                   
                   <div class="message-actions flex gap-4">
                     <button
                       @click="toggleLike(message)"
-                      class="message-action-btn flex items-center gap-1 px-2 py-1 border-none bg-transparent text-white cursor-pointer rounded text-sm transition-all hover:bg-foreground/20"
+                      class="message-action-btn flex items-center gap-1 px-2 py-1 border-none bg-transparent text-ios-label-primary cursor-pointer rounded text-sm transition-all hover:bg-ios-systemGray5"
                       :class="{ 'text-red-400': message.is_liked }"
                     >
                       <span>{{ message.is_liked ? '❤️' : '🤍' }}</span>
@@ -278,7 +278,7 @@
                     
                     <button
                       @click="toggleReplies(message.id)"
-                      class="message-action-btn flex items-center gap-1 px-2 py-1 border-none bg-transparent text-white cursor-pointer rounded text-sm transition-all hover:bg-foreground/20"
+                      class="message-action-btn flex items-center gap-1 px-2 py-1 border-none bg-transparent text-ios-label-primary cursor-pointer rounded text-sm transition-all hover:bg-ios-systemGray5"
                     >
                       <span>💬</span>
                       <span class="font-medium">{{ message.reply_count || 0 }}</span>
@@ -297,7 +297,7 @@
 
               <div
                 v-if="expandedReplies.has(message.id) && message.replies && message.replies.length > 0"
-                class="message-replies mt-4 pt-4 border-t border-foreground/20"
+                class="message-replies mt-4 pt-4 border-t border-ios-separator"
               >
                 <div
                     v-for="reply in message.replies"
@@ -315,20 +315,20 @@
                     <div class="reply-content-wrapper flex-1 min-w-0">
                       <div class="reply-header flex items-center gap-2 mb-1">
                         <div
-                          class="reply-author font-medium text-white cursor-pointer hover:text-blue-300 transition-colors text-sm"
+                          class="reply-author font-medium text-ios-label-primary cursor-pointer hover:text-blue-300 transition-colors text-sm"
                           @click.stop="goToProfile(reply.sender_username)"
                         >
                         {{ reply.sender_nickname }}
                       </div>
-                      <span class="reply-time text-xs text-foreground/60">{{ formatTime(reply.created_at) }}</span>
+                      <span class="reply-time text-xs text-ios-label-secondary">{{ formatTime(reply.created_at) }}</span>
                     </div>
                     
-                    <div class="reply-text text-foreground/80 leading-relaxed text-sm break-words mb-2" v-html="formatPostContent(reply.content)"></div>
+                    <div class="reply-text text-ios-label-primary leading-relaxed text-sm break-words mb-2" v-html="formatPostContent(reply.content)"></div>
                     
                     <div class="reply-actions flex gap-3">
                       <button
                         @click="toggleLike(reply, message.id)"
-                        class="reply-action-btn flex items-center gap-1 px-1.5 py-0.5 border-none bg-transparent text-white cursor-pointer rounded text-xs transition-all hover:bg-foreground/20"
+                        class="reply-action-btn flex items-center gap-1 px-1.5 py-0.5 border-none bg-transparent text-ios-label-primary cursor-pointer rounded text-xs transition-all hover:bg-ios-systemGray5"
                         :class="{ 'text-red-400': reply.is_liked }"
                       >
                         <span>{{ reply.is_liked ? '❤️' : '🤍' }}</span>
@@ -356,7 +356,7 @@
                   />
                   <button
                     @click="submitReply(message.id)"
-                    class="!bg-transparent !border-none btn btn-primary btn-sm backdrop-blur-sm bg-white/30 hover:bg-foreground/50 px-3 py-1 text-sm rounded text-white border border-foreground/30"
+                    class="!bg-transparent !border-none btn btn-primary btn-sm backdrop-blur-sm bg-ios-systemGray5 hover:bg-ios-systemGray50 px-3 py-1 text-sm rounded text-ios-label-primary border border-ios-separator"
                     :disabled="!replyContent[message.id]?.trim()"
                   >
                     回复
@@ -367,10 +367,10 @@
           </div>
         </div>
         
-        <div class="modal-footer flex justify-end p-4 border-t border-foreground/20">
+        <div class="modal-footer flex justify-end p-4 border-t border-ios-separator">
           <button
             @click="showAllMessagesModal = false"
-            class="btn btn-secondary px-4 py-2 text-sm font-medium !bg-foreground/20 hover:!bg-white/30 text-white border border-foreground/30"
+            class="btn btn-secondary px-4 py-2 text-sm font-medium !bg-ios-systemGray5 hover:!bg-ios-systemGray5 text-ios-label-primary border border-ios-separator"
           >
             关闭
           </button>

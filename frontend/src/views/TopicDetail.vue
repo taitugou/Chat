@@ -4,7 +4,7 @@
 
     <div class="max-w-4xl mx-auto px-4 py-4 sm:py-6 lg:py-8">
       <!-- 话题信息卡片 -->
-      <div v-if="topic" class="glass-card mb-4 sm:mb-6 overflow-hidden">
+      <div v-if="topic" class="ios-card mb-4 sm:mb-6 overflow-hidden">
         <!-- 话题封面 -->
         <div v-if="topic.cover_image" class="relative h-48 sm:h-56 lg:h-64 cursor-pointer overflow-hidden group" @click="previewImage(getImageUrl(topic.cover_image), topic)">
           <img
@@ -16,7 +16,7 @@
           <div v-if="topic.is_hot" class="absolute top-2 sm:top-4 right-2 sm:right-4 bg-red-500 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full">
             热门
           </div>
-          <div v-if="topic.is_top" class="absolute top-2 sm:top-4 left-2 sm:left-4 bg-primary text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full">
+          <div v-if="topic.is_top" class="absolute top-2 sm:top-4 left-2 sm:left-4 bg-ios-blue text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full">
             置顶
           </div>
         </div>
@@ -34,21 +34,21 @@
                 />
               </div>
               <div>
-                <div @click.stop="goToProfile(topic.username)" class="font-semibold text-sm sm:text-base cursor-pointer hover:text-primary transition-colors text-white">{{ topic.nickname }}</div>
-                <div class="text-xs sm:text-sm text-foreground/60">{{ formatTime(topic.created_at) }}</div>
+                <div @click.stop="goToProfile(topic.username)" class="font-semibold text-sm sm:text-base cursor-pointer hover:text-ios-blue transition-colors text-ios-label-primary">{{ topic.nickname }}</div>
+                <div class="text-xs sm:text-sm text-ios-label-secondary">{{ formatTime(topic.created_at) }}</div>
               </div>
             </div>
             <button
               @click="toggleFollow"
               class="px-3 sm:px-4 py-2 rounded-full text-sm sm:text-sm font-medium transition-all active:scale-95 min-h-[var(--tap-target)]"
-              :class="topic.isFollowed ? 'glass' : 'glass-btn-primary'"
+              :class="topic.isFollowed ? 'ios-glass' : 'ios-btn-primary'"
             >
               {{ topic.isFollowed ? '已关注' : '+ 关注' }}
             </button>
           </div>
           
-          <h2 class="text-xl sm:text-2xl font-bold mb-3 text-white">{{ topic.title }}</h2>
-          <div v-if="topic.description" class="text-foreground/80 text-sm sm:text-base mb-4 post-content" v-html="formatPostContent(topic.description)">
+          <h2 class="text-xl sm:text-2xl font-bold mb-3 text-ios-label-primary">{{ topic.title }}</h2>
+          <div v-if="topic.description" class="text-ios-label-primary text-sm sm:text-base mb-4 post-content" v-html="formatPostContent(topic.description)">
           </div>
           
           <!-- 话题标签 -->
@@ -56,14 +56,14 @@
             <span
               v-for="(tag, index) in topic.tags"
               :key="index"
-              class="text-xs sm:text-sm glass text-blue-300 px-2 sm:px-3 py-1 rounded-full"
+              class="text-xs sm:text-sm ios-glass text-blue-300 px-2 sm:px-3 py-1 rounded-full"
             >
               #{{ tag }}
             </span>
           </div>
           
           <!-- 话题统计 -->
-          <div class="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm text-foreground/60 border-t border-foreground/10 pt-4">
+          <div class="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm text-ios-label-secondary border-t border-ios-separator pt-4">
             <div class="flex items-center gap-1">
               <span class="text-sm sm:text-base">👁️</span>
               <span>{{ topic.view_count || 0 }}</span>
@@ -81,7 +81,7 @@
             </button>
             <button
               @click="openQuoteTopicModal"
-              class="flex items-center gap-1 hover:text-primary transition-colors"
+              class="flex items-center gap-1 hover:text-ios-blue transition-colors"
               title="引用此话题"
             >
               <span class="text-sm sm:text-base">📋</span>
@@ -99,17 +99,17 @@
       </div>
 
       <!-- 帖子列表 -->
-      <div class="glass-card overflow-hidden">
+      <div class="ios-card overflow-hidden">
         <div class="flex items-center justify-between mb-4 px-4 pt-4">
-          <h2 class="text-lg sm:text-xl font-bold glass-text">相关评论</h2>
-          <span class="text-xs sm:text-sm text-foreground/60">{{ comments.length }} 条评论</span>
+          <h2 class="text-lg sm:text-xl font-bold text-ios-label-primary">相关评论</h2>
+          <span class="text-xs sm:text-sm text-ios-label-secondary">{{ comments.length }} 条评论</span>
         </div>
         
         <!-- 发表评论按钮 -->
-        <div class="px-4 pb-4 border-b border-foreground/10">
+        <div class="px-4 pb-4 border-b border-ios-separator">
           <button
             @click="showPostModal = true"
-            class="w-full glass-btn-primary min-h-[var(--tap-target)] transition-all active:scale-[0.98]"
+            class="w-full ios-btn-primary min-h-[var(--tap-target)] transition-all active:scale-[0.98]"
           >
             ✍️ 发表评论
           </button>
@@ -117,15 +117,15 @@
         
         <!-- 加载状态 -->
         <div v-if="loadingPosts" class="flex justify-center items-center py-8">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-ios-blue"></div>
         </div>
         
         <!-- 评论列表 -->
-        <div v-else-if="comments.length > 0" class="divide-y divide-white/5">
+        <div v-else-if="comments.length > 0" class="divide-y divide-ios-separator">
           <div
             v-for="comment in comments"
             :key="comment.id"
-            class="p-3 sm:p-4 hover:bg-foreground/5 transition-colors"
+            class="p-3 sm:p-4 hover:bg-ios-systemGray5 transition-colors"
           >
             <div class="flex items-start gap-3">
               <div @click.stop="goToProfile(comment.username)" class="cursor-pointer">
@@ -138,26 +138,26 @@
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between mb-2">
-                  <div @click.stop="goToProfile(comment.username)" class="font-medium text-sm sm:text-base cursor-pointer hover:text-primary transition-colors text-white">{{ comment.nickname }}</div>
-                  <div class="text-xs sm:text-sm text-foreground/40 flex-shrink-0">{{ formatTime(comment.created_at) }}</div>
+                  <div @click.stop="goToProfile(comment.username)" class="font-medium text-sm sm:text-base cursor-pointer hover:text-ios-blue transition-colors text-ios-label-primary">{{ comment.nickname }}</div>
+                  <div class="text-xs sm:text-sm text-ios-label-tertiary flex-shrink-0">{{ formatTime(comment.created_at) }}</div>
                 </div>
 
                 <!-- 评论的引用卡片 -->
                 <div 
                   v-if="comment.quote_id" 
-                  class="glass rounded-lg p-3 mt-2 mb-3 border-l-4 border-primary cursor-pointer hover:bg-foreground/10 transition-colors"
+                  class="ios-glass rounded-lg p-3 mt-2 mb-3 border-l-4 border-ios-blue cursor-pointer hover:bg-ios-systemGray5 transition-colors"
                   @click="$router.push(`/post/${comment.quote_id}`)"
                 >
                   <div class="flex items-center gap-1 mb-1">
-                    <span class="text-xs font-medium text-foreground/70">{{ comment.quote_user_name }}</span>
+                    <span class="text-xs font-medium text-ios-label-secondary">{{ comment.quote_user_name }}</span>
                   </div>
-                  <p class="text-xs text-foreground/50 line-clamp-2">{{ comment.quote_content }}</p>
+                  <p class="text-xs text-ios-label-tertiary line-clamp-2">{{ comment.quote_content }}</p>
                 </div>
 
-                <div class="text-foreground/90 text-sm sm:text-base mb-3 post-content" v-html="formatPostContent(comment.content)"></div>
+                <div class="text-ios-label-primary text-sm sm:text-base mb-3 post-content" v-html="formatPostContent(comment.content)"></div>
 
                 <!-- 图片网格 -->
-                <div v-if="comment.images && comment.images.length > 0" class="mb-3 rounded-xl overflow-hidden border border-foreground/5 bg-foreground/5">
+                <div v-if="comment.images && comment.images.length > 0" class="mb-3 rounded-xl overflow-hidden border border-ios-separator bg-ios-systemGray5">
                   <div 
                     class="grid gap-1"
                     :class="{
@@ -169,7 +169,7 @@
                     <div 
                       v-for="(img, idx) in comment.images" 
                       :key="idx"
-                      class="aspect-square relative group/img overflow-hidden bg-foreground/5"
+                      class="aspect-square relative group/img overflow-hidden bg-ios-systemGray5"
                       @click.stop="previewImage(getImageUrl(img), comment)"
                     >
                       <img 
@@ -186,17 +186,17 @@
                   <a 
                     :href="getImageUrl(comment.file_url)" 
                     :download="comment.file_url.split('/').pop().split('_').slice(2).join('_') || 'download'"
-                    class="flex items-center gap-3 glass p-3 rounded-xl border border-foreground/10 hover:bg-foreground/5 transition-all group"
+                    class="flex items-center gap-3 ios-glass p-3 rounded-xl border border-ios-separator hover:bg-ios-systemGray5 transition-all group"
                     @click.stop
                   >
-                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                    <div class="w-10 h-10 rounded-lg bg-ios-blue/10 flex items-center justify-center text-ios-blue group-hover:scale-110 transition-transform">
                       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.414a4 4 0 00-5.656-5.656l-6.415 6.415a6 6 0 108.486 8.486L20.5 13" />
                       </svg>
                     </div>
                     <div class="flex-1 min-w-0">
-                      <div class="text-xs font-bold text-foreground/90 truncate">{{ comment.file_url.split('/').pop().split('_').slice(2).join('_') || '查看文件' }}</div>
-                      <div class="text-[10px] text-foreground/30 uppercase tracking-widest font-black">Download Attachment</div>
+                      <div class="text-xs font-bold text-ios-label-primary truncate">{{ comment.file_url.split('/').pop().split('_').slice(2).join('_') || '查看文件' }}</div>
+                      <div class="text-[10px] text-ios-label-tertiary uppercase tracking-widest font-black">Download Attachment</div>
                     </div>
                   </a>
                 </div>
@@ -208,7 +208,7 @@
                     <div
                       v-for="(link, index) in comment.links"
                       :key="index"
-                      class="glass rounded-lg p-3 hover:bg-foreground/10 transition-all"
+                      class="ios-glass rounded-lg p-3 hover:bg-ios-systemGray5 transition-all"
                     >
                       <a :href="link.url" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3">
                         <img
@@ -218,7 +218,7 @@
                           onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>'"
                         />
                         <div class="flex-1 min-w-0">
-                          <div class="text-sm font-medium text-white truncate">{{ getDomain(link.url) }}</div>
+                          <div class="text-sm font-medium text-ios-label-primary truncate">{{ getDomain(link.url) }}</div>
                           <div class="text-xs text-blue-400 truncate">{{ link.url }}</div>
                         </div>
                       </a>
@@ -228,10 +228,10 @@
                   <!-- 处理单个预览链接 (link_info) -->
                   <div 
                     v-if="comment.link_info && (!comment.links || !comment.links.some((l: any) => l.url === comment.link_info.url))"
-                    class="glass rounded-lg overflow-hidden hover:bg-foreground/10 transition-all"
+                    class="ios-glass rounded-lg overflow-hidden hover:bg-ios-systemGray5 transition-all"
                   >
                     <a :href="comment.link_info.url" target="_blank" rel="noopener noreferrer" class="block">
-                      <div v-if="comment.link_info.image_url" class="w-full h-32 overflow-hidden bg-foreground/5">
+                      <div v-if="comment.link_info.image_url" class="w-full h-32 overflow-hidden bg-ios-systemGray5">
                         <img :src="comment.link_info.image_url" :alt="comment.link_info.title" class="w-full h-full object-cover" />
                       </div>
                       <div class="p-3">
@@ -241,45 +241,45 @@
                             :alt="getDomain(comment.link_info.url)"
                             class="w-4 h-4 flex-shrink-0"
                           />
-                          <div class="text-xs text-foreground/50 truncate">{{ getDomain(comment.link_info.url) }}</div>
+                          <div class="text-xs text-ios-label-tertiary truncate">{{ getDomain(comment.link_info.url) }}</div>
                         </div>
-                        <div class="text-sm font-bold text-white line-clamp-1 mb-1">{{ comment.link_info.title || comment.link_info.url }}</div>
-                        <div v-if="comment.link_info.description" class="text-xs text-foreground/60 line-clamp-2">{{ comment.link_info.description }}</div>
+                        <div class="text-sm font-bold text-ios-label-primary line-clamp-1 mb-1">{{ comment.link_info.title || comment.link_info.url }}</div>
+                        <div v-if="comment.link_info.description" class="text-xs text-ios-label-secondary line-clamp-2">{{ comment.link_info.description }}</div>
                       </div>
                     </a>
                   </div>
                 </div>
 
                 <!-- 投票内容 -->
-                <div v-if="comment.poll_info && comment.poll_info.options && comment.poll_info.options.length >= 2" class="mb-3 p-4 glass rounded-lg">
-                  <h3 class="text-sm font-semibold mb-3 text-white">投票</h3>
+                <div v-if="comment.poll_info && comment.poll_info.options && comment.poll_info.options.length >= 2" class="mb-3 p-4 ios-glass rounded-lg">
+                  <h3 class="text-sm font-semibold mb-3 text-ios-label-primary">投票</h3>
                   <div class="space-y-3">
                     <div
                       v-for="(option, index) in comment.poll_info.options"
                       :key="index"
-                      class="p-3 border border-foreground/10 rounded-xl cursor-pointer hover:bg-foreground/5 transition-all active:scale-[0.98]"
+                      class="p-3 border border-ios-separator rounded-xl cursor-pointer hover:bg-ios-systemGray5 transition-all active:scale-[0.98]"
                       @click="handleVote(comment, index as number)"
                     >
                       <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm text-white">{{ option }}</span>
-                        <span class="text-xs text-foreground/60">{{ calculateOptionPercentage(comment, index as number) }}%</span>
+                        <span class="text-sm text-ios-label-primary">{{ option }}</span>
+                        <span class="text-xs text-ios-label-secondary">{{ calculateOptionPercentage(comment, index as number) }}%</span>
                       </div>
-                      <div class="w-full bg-foreground/10 rounded-full h-2">
+                      <div class="w-full bg-ios-systemGray5 rounded-full h-2">
                         <div 
-                          class="bg-primary h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" 
+                          class="bg-ios-blue h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" 
                           :style="{ width: `${calculateOptionPercentage(comment, index as number)}%` }"
                         ></div>
                       </div>
                     </div>
                     <div class="flex items-center justify-between mt-4">
-                      <div class="text-xs text-foreground/40">
+                      <div class="text-xs text-ios-label-tertiary">
                         总投票数: {{ comment.poll_info.total_votes }} | 
                         {{ comment.poll_info.expire_at ? formatTime(comment.poll_info.expire_at) : '永久有效' }}
                       </div>
                       <button 
                         v-if="hasVoted(comment)"
                         @click.stop="cancelVote(comment)"
-                        class="text-xs text-red-400 hover:text-red-300 px-3 py-1 glass rounded-full hover:bg-red-500/10 transition-colors"
+                        class="text-xs text-red-400 hover:text-red-300 px-3 py-1 ios-glass rounded-full hover:bg-red-500/10 transition-colors"
                       >
                         取消投票
                       </button>
@@ -288,7 +288,7 @@
                 </div>
                 
                 <!-- 回复按钮 -->
-                <div class="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-foreground/50">
+                <div class="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-ios-label-tertiary">
                   <button 
                     @click="toggleCommentLike(comment)"
                     class="flex items-center gap-1 hover:text-red-500 transition-colors min-h-[var(--tap-target)] px-2"
@@ -298,13 +298,13 @@
                   </button>
                   <button 
                     @click="openCommentModal(comment)"
-                    class="flex items-center gap-1 hover:text-primary transition-colors min-h-[var(--tap-target)] px-2"
+                    class="flex items-center gap-1 hover:text-ios-blue transition-colors min-h-[var(--tap-target)] px-2"
                   >
                     💬 <span>回复</span>
                   </button>
                   <button
                     @click="openQuoteModal(comment)"
-                    class="flex items-center gap-1 hover:text-primary transition-colors min-h-[var(--tap-target)] px-2"
+                    class="flex items-center gap-1 hover:text-ios-blue transition-colors min-h-[var(--tap-target)] px-2"
                     title="引用此评论"
                   >
                     📋
@@ -326,7 +326,7 @@
                 </div>
                 
                 <!-- 回复列表 -->
-                <div v-if="showAllReplies[comment.id] && comment.replies && comment.replies.length > 0" class="mt-4 space-y-4 ml-4 pl-4 border-l-2 border-foreground/10">
+                <div v-if="showAllReplies[comment.id] && comment.replies && comment.replies.length > 0" class="mt-4 space-y-4 ml-4 pl-4 border-l-2 border-ios-separator">
                   <div
                     v-for="reply in comment.replies"
                     :key="reply.id"
@@ -341,31 +341,31 @@
                     </div>
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center justify-between mb-1">
-                        <div class="font-medium text-sm text-white">
-                          <span @click.stop="goToProfile(reply.username)" class="cursor-pointer hover:text-primary transition-colors">{{ reply.nickname }}</span>
-                          <span v-if="reply.reply_to_nickname" class="text-foreground/40 text-xs ml-1">
+                        <div class="font-medium text-sm text-ios-label-primary">
+                          <span @click.stop="goToProfile(reply.username)" class="cursor-pointer hover:text-ios-blue transition-colors">{{ reply.nickname }}</span>
+                          <span v-if="reply.reply_to_nickname" class="text-ios-label-tertiary text-xs ml-1">
                             回复 {{ reply.reply_to_nickname }}
                           </span>
                         </div>
-                        <div class="text-xs text-foreground/40 flex-shrink-0">{{ formatTime(reply.created_at) }}</div>
+                        <div class="text-xs text-ios-label-tertiary flex-shrink-0">{{ formatTime(reply.created_at) }}</div>
                       </div>
 
                       <!-- 回复的引用卡片 -->
                       <div 
                         v-if="reply.quote_id" 
-                        class="glass rounded-lg p-2 mt-2 mb-2 border-l-2 border-primary cursor-pointer hover:bg-foreground/10 transition-colors"
+                        class="ios-glass rounded-lg p-2 mt-2 mb-2 border-l-2 border-ios-blue cursor-pointer hover:bg-ios-systemGray5 transition-colors"
                         @click="$router.push(`/post/${reply.quote_id}`)"
                       >
                         <div class="flex items-center gap-1 mb-1">
-                          <span class="text-xs font-medium text-foreground/70">{{ reply.quote_user_name }}</span>
+                          <span class="text-xs font-medium text-ios-label-secondary">{{ reply.quote_user_name }}</span>
                         </div>
-                        <p class="text-xs text-foreground/50 line-clamp-2">{{ reply.quote_content }}</p>
+                        <p class="text-xs text-ios-label-tertiary line-clamp-2">{{ reply.quote_content }}</p>
                       </div>
 
-                      <div class="text-sm text-foreground/90 post-content" v-html="formatPostContent(reply.content)"></div>
+                      <div class="text-sm text-ios-label-primary post-content" v-html="formatPostContent(reply.content)"></div>
                       
                       <!-- 回复操作 -->
-                      <div class="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-foreground/50 mt-2">
+                      <div class="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-ios-label-tertiary mt-2">
                         <button 
                           @click="toggleCommentLike(reply)"
                           class="flex items-center gap-1 hover:text-red-500 transition-colors min-h-[var(--tap-target)] px-2"
@@ -375,13 +375,13 @@
                         </button>
                         <button
                           @click="openCommentModal(reply)"
-                          class="flex items-center gap-1 hover:text-primary transition-colors min-h-[var(--tap-target)] px-2"
+                          class="flex items-center gap-1 hover:text-ios-blue transition-colors min-h-[var(--tap-target)] px-2"
                         >
                           💬 <span>回复</span>
                         </button>
                         <button
                           @click="openQuoteModal(reply)"
-                          class="flex items-center gap-1 hover:text-primary transition-colors min-h-[var(--tap-target)] px-2"
+                          class="flex items-center gap-1 hover:text-ios-blue transition-colors min-h-[var(--tap-target)] px-2"
                           title="引用此评论"
                         >
                           📋
@@ -399,7 +399,7 @@
                 </div>
                 
                 <!-- 内联回复输入区 -->
-                <div v-if="replyFormVisible[comment.id]" class="mt-4 glass rounded-xl p-4">
+                <div v-if="replyFormVisible[comment.id]" class="mt-4 ios-glass rounded-xl p-4">
                   <div class="flex items-start gap-3">
                     <img
                       :src="getImageUrl(authStore.user?.avatar)"
@@ -412,18 +412,18 @@
                         :placeholder="`回复 ${comment.nickname}...`"
                         :rows="2"
                         :max-length="500"
-                        class="glass-input text-white"
+                        class="ios-input text-ios-label-primary"
                       />
                       <div class="flex justify-end items-center mt-3 gap-3">
                         <button
                           @click="cancelReply(comment.id)"
-                          class="text-sm text-foreground/50 hover:text-white transition-colors min-h-[var(--tap-target)] px-4"
+                          class="text-sm text-ios-label-tertiary hover:text-ios-label-primary transition-colors min-h-[var(--tap-target)] px-4"
                         >
                           取消
                         </button>
                         <button
                           @click="submitReply(comment.id)"
-                          class="glass-btn-primary px-6 py-2 rounded-full text-sm transition-all active:scale-95"
+                          class="ios-btn-primary px-6 py-2 rounded-full text-sm transition-all active:scale-95"
                           :disabled="!replyInputs[comment.id]?.trim() || submitting"
                         >
                           {{ submitting ? '发送中...' : '发送' }}
@@ -438,7 +438,7 @@
         </div>
         
         <!-- 空状态 -->
-        <div v-else class="text-center py-12 text-foreground/40">
+        <div v-else class="text-center py-12 text-ios-label-tertiary">
           <div class="text-4xl mb-3">💬</div>
           暂无相关评论，快来发表第一条评论吧！        </div>
       </div>
@@ -447,11 +447,11 @@
     <BottomNav />
 
     <!-- 发表评论模态框 -->
-    <div v-if="showPostModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4" @click="closeModal">
-      <div class="glass-card w-full max-w-lg overflow-hidden shadow-2xl transition-all" @click.stop>
-        <div class="flex items-center justify-between p-4 border-b border-foreground/10">
-          <h2 class="text-lg font-bold text-white">{{ replyToComment ? `回复 ${replyToComment.nickname}` : '发表评论' }}</h2>
-          <button @click="closeModal" class="w-10 h-10 rounded-full flex items-center justify-center text-foreground/50 hover:text-white hover:bg-foreground/10 transition-all">
+    <div v-if="showPostModal" class="fixed inset-0 bg-ios-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4" @click="closeModal">
+      <div class="ios-card w-full max-w-lg overflow-hidden shadow-2xl transition-all" @click.stop>
+        <div class="flex items-center justify-between p-4 border-b border-ios-separator">
+          <h2 class="text-lg font-bold text-ios-label-primary">{{ replyToComment ? `回复 ${replyToComment.nickname}` : '发表评论' }}</h2>
+          <button @click="closeModal" class="w-10 h-10 rounded-full flex items-center justify-center text-ios-label-tertiary hover:text-ios-label-primary hover:bg-ios-systemGray5 transition-all">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -459,15 +459,15 @@
         </div>
         <div class="p-4 space-y-4">
           <!-- 引用卡片显示区域 -->
-          <div v-if="quoteTarget" class="glass rounded-xl p-4 border border-primary/30 relative">
+          <div v-if="quoteTarget" class="ios-glass rounded-xl p-4 border border-ios-blue/30 relative">
             <div class="flex items-center justify-between gap-3">
               <div class="flex flex-col gap-1 min-w-0">
-                <span class="text-xs text-foreground/40">正在引用</span>
-                <span class="text-sm font-medium text-foreground/80 truncate">
+                <span class="text-xs text-ios-label-tertiary">正在引用</span>
+                <span class="text-sm font-medium text-ios-label-primary truncate">
                   {{ quoteTarget.content?.substring(0, 50) }}{{ quoteTarget.content?.length > 50 ? '...' : '' }}
                 </span>
               </div>
-              <button @click="clearQuote" class="p-2 text-foreground/40 hover:text-red-400 transition-colors">
+              <button @click="clearQuote" class="p-2 text-ios-label-tertiary hover:text-red-400 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -480,7 +480,7 @@
             :placeholder="replyToComment ? `回复 ${replyToComment.nickname}...` : '写下你的评论...'"
             :rows="4"
             :max-length="500"
-            class="glass-input text-white"
+            class="ios-input text-ios-label-primary"
           />
           
           <!-- 匿名选项 -->
@@ -489,14 +489,14 @@
               type="checkbox" 
               id="commentAnonymous" 
               v-model="isAnonymous"
-              class="w-5 h-5 rounded-full border-white/10 bg-black/40 text-black focus:ring-black transition-all cursor-pointer"
+              class="w-5 h-5 rounded-full border-ios-separator bg-ios-black/40 text-black focus:ring-black transition-all cursor-pointer"
             />
-            <label for="commentAnonymous" class="text-sm text-foreground/70 cursor-pointer select-none">匿名评论</label>
+            <label for="commentAnonymous" class="text-sm text-ios-label-secondary cursor-pointer select-none">匿名评论</label>
           </div>
           
           <button
             @click="submitComment"
-            class="glass-btn-primary w-full py-3 rounded-xl font-bold transition-all active:scale-[0.98]"
+            class="ios-btn-primary w-full py-3 rounded-xl font-bold transition-all active:scale-[0.98]"
             :disabled="!postContent.trim() || submitting"
           >
             {{ submitting ? '发布中...' : (replyToComment ? '回复' : '发布评论') }}

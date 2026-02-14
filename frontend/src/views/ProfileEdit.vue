@@ -1,28 +1,28 @@
 <template>
-  <div class="min-h-screen pb-20 bg-background text-foreground transition-colors duration-300">
+  <div class="min-h-screen pb-20 bg-ios-systemGray6 text-ios-label-primary transition-colors duration-300">
     <TopNav title="编辑资料" />
 
     <div class="max-w-4xl mx-auto px-4 py-6 space-y-6 pb-24">
       <!-- 基本信息 -->
-      <div class="glass-card p-6 space-y-6">
-        <h2 class="text-xs font-black text-foreground/40 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+      <div class="ios-card p-6 space-y-6">
+        <h2 class="text-xs font-black text-ios-label-tertiary uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
           <span class="text-lg">👤</span> 基本信息
         </h2>
         
         <div class="space-y-6">
           <div class="space-y-2">
-            <label class="block text-[10px] font-black text-foreground/30 uppercase tracking-widest ml-1">昵称</label>
+            <label class="block text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">昵称</label>
             <input
               v-model="form.nickname"
               type="text"
               placeholder="2-20位字符"
-              class="glass-input w-full py-4 px-5 rounded-2xl"
+              class="ios-input w-full py-4 px-5 rounded-2xl"
               maxlength="20"
             />
           </div>
 
           <div class="space-y-2">
-            <label class="block text-[10px] font-black text-foreground/30 uppercase tracking-widest ml-1">个性签名</label>
+            <label class="block text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">个性签名</label>
             <MentionInput
               v-model="form.bio"
               placeholder="用一句话介绍自己..."
@@ -33,38 +33,38 @@
           </div>
 
           <div class="space-y-2">
-            <label class="block text-[10px] font-black text-foreground/30 uppercase tracking-widest ml-1">性别</label>
+            <label class="block text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">性别</label>
             <GlassSelect v-model="form.gender" :options="genderOptions" />
           </div>
 
           <div class="space-y-2">
-            <label class="block text-[10px] font-black text-foreground/30 uppercase tracking-widest ml-1">地区</label>
+            <label class="block text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">地区</label>
             <div class="flex items-center gap-2">
               <input
                 v-model="form.location"
                 type="text"
                 placeholder="点击右侧获取当前位置"
-                class="glass-input flex-1 py-4 px-5 rounded-2xl bg-foreground/5"
+                class="ios-input flex-1 py-4 px-5 rounded-2xl bg-ios-systemGray5"
                 readonly
               />
-              <button @click="getLocation" class="glass-btn px-6 py-4 rounded-2xl text-xs font-bold active:scale-95 transition-all">
+              <button @click="getLocation" class="ios-btn-secondary px-6 py-4 rounded-2xl text-xs font-bold active:scale-95 transition-all">
                 重新获取
               </button>
             </div>
           </div>
           
           <div class="space-y-2">
-            <label class="block text-[10px] font-black text-foreground/30 uppercase tracking-widest ml-1">地址可见性</label>
+            <label class="block text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">地址可见性</label>
             <GlassSelect v-model="form.locationVisibility" :options="locationVisibilityOptions" />
           </div>
 
           <div class="space-y-3">
-            <label class="block text-[10px] font-black text-foreground/30 uppercase tracking-widest ml-1">兴趣标签 ({{ form.interestTags.length }}/10)</label>
-            <div class="flex flex-wrap gap-2 mb-4 min-h-[44px] p-3 glass rounded-2xl bg-foreground/5 border border-foreground/5">
+            <label class="block text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">兴趣标签 ({{ form.interestTags.length }}/10)</label>
+            <div class="flex flex-wrap gap-2 mb-4 min-h-[44px] p-3 ios-glass rounded-2xl bg-ios-systemGray5 border border-ios-separator">
               <span
                 v-for="tag in form.interestTags"
                 :key="tag"
-                class="px-3 py-1.5 glass-btn-primary rounded-full text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all"
+                class="px-3 py-1.5 ios-btn-primary rounded-full text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all"
                 @click="removeTag(tag)"
               >
                 {{ tag }}
@@ -83,7 +83,7 @@
                 <button 
                   v-if="customTag.trim()"
                   @click="addCustomTag"
-                  class="text-[10px] font-black text-primary uppercase tracking-widest px-2 py-1 hover:opacity-70 transition-opacity whitespace-nowrap"
+                  class="text-[10px] font-black text-ios-blue uppercase tracking-widest px-2 py-1 hover:opacity-70 transition-opacity whitespace-nowrap"
                 >
                   添加
                 </button>
@@ -91,13 +91,13 @@
             </div>
             
             <div class="space-y-2">
-              <p class="text-[10px] text-foreground/20 uppercase tracking-widest font-black ml-1">推荐标签</p>
+              <p class="text-[10px] text-ios-label-quaternary uppercase tracking-widest font-black ml-1">推荐标签</p>
               <div class="flex flex-wrap gap-2">
                 <span
                   v-for="tag in availableTags.filter(t => !form.interestTags.includes(t))"
                   :key="tag"
                   @click="toggleTag(tag)"
-                  class="px-3 py-1.5 rounded-full cursor-pointer glass text-[11px] font-bold text-foreground/40 hover:text-white hover:bg-foreground/10 border border-foreground/5 active:scale-90 transition-all"
+                  class="px-3 py-1.5 rounded-full cursor-pointer ios-glass text-[11px] font-bold text-ios-label-tertiary hover:text-white hover:bg-ios-systemGray5 border border-ios-separator active:scale-90 transition-all"
                 >
                   {{ tag }}
                 </span>
@@ -110,17 +110,17 @@
       <!-- 媒体资源 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- 头像 -->
-        <div class="glass-card p-6 space-y-6">
-          <h2 class="text-xs font-black text-foreground/40 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+        <div class="ios-card p-6 space-y-6">
+          <h2 class="text-xs font-black text-ios-label-tertiary uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
             <span class="text-lg">🖼️</span> 头像
           </h2>
           <div class="flex flex-col items-center gap-6">
             <div class="relative group cursor-pointer" @click="fileInput?.click()">
               <img
                 :src="avatarPreview || getImageUrl(user?.avatar)"
-                class="w-32 h-32 rounded-[2.5rem] object-cover border-4 border-foreground/10 shadow-2xl transition-all group-hover:scale-105 group-hover:rotate-3"
+                class="w-32 h-32 rounded-[2.5rem] object-cover border-4 border-ios-separator shadow-2xl transition-all group-hover:scale-105 group-hover:rotate-3"
               />
-              <div class="absolute inset-0 bg-black/40 rounded-[2.5rem] opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
+              <div class="absolute inset-0 bg-ios-black/40 rounded-[2.5rem] opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
                 <span class="text-xs font-black text-white uppercase tracking-widest">更换</span>
               </div>
             </div>
@@ -132,22 +132,22 @@
                 @change="handleAvatarSelect"
                 class="hidden"
               />
-              <button @click="fileInput?.click()" class="glass-btn px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all">
+              <button @click="fileInput?.click()" class="ios-btn-secondary px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all">
                 Select Photo
               </button>
-              <p class="text-[10px] text-foreground/20 uppercase tracking-tighter">JPG / PNG | MAX 2MB</p>
+              <p class="text-[10px] text-ios-label-quaternary uppercase tracking-tighter">JPG / PNG | MAX 2MB</p>
             </div>
           </div>
         </div>
 
         <!-- 背景图片 -->
-        <div class="glass-card p-6 space-y-6">
-          <h2 class="text-xs font-black text-foreground/40 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+        <div class="ios-card p-6 space-y-6">
+          <h2 class="text-xs font-black text-ios-label-tertiary uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
             <span class="text-lg">🎨</span> 背景
           </h2>
           <div class="space-y-4">
             <div 
-              class="relative w-full aspect-video glass rounded-2xl overflow-hidden border border-foreground/10 shadow-inner group cursor-pointer"
+              class="relative w-full aspect-video ios-glass rounded-2xl overflow-hidden border border-ios-separator shadow-inner group cursor-pointer"
               @click="backgroundFileInput?.click()"
             >
               <img
@@ -155,16 +155,16 @@
                 :src="backgroundPreview || getImageUrl(user?.background_image, '')"
                 class="w-full h-full object-cover transition-all group-hover:scale-110"
               />
-              <div v-else class="absolute inset-0 flex flex-col items-center justify-center text-foreground/20">
+              <div v-else class="absolute inset-0 flex flex-col items-center justify-center text-ios-label-quaternary">
                 <span class="text-3xl mb-2">🖼️</span>
                 <span class="text-[10px] font-black uppercase tracking-widest">No Background</span>
               </div>
-              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
+              <div class="absolute inset-0 bg-ios-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
                 <span class="text-xs font-black text-white uppercase tracking-widest">更换背景</span>
               </div>
             </div>
             <div class="flex items-center justify-between gap-4">
-              <p class="text-[10px] text-foreground/20 leading-relaxed max-w-[140px]">建议上传高清图片以获得最佳毛玻璃效果</p>
+              <p class="text-[10px] text-ios-label-quaternary leading-relaxed max-w-[140px]">建议上传高清图片以获得最佳毛玻璃效果</p>
               <input
                 ref="backgroundFileInput"
                 type="file"
@@ -172,7 +172,7 @@
                 @change="handleBackgroundSelect"
                 class="hidden"
               />
-              <button @click="backgroundFileInput?.click()" class="glass-btn px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all">
+              <button @click="backgroundFileInput?.click()" class="ios-btn-secondary px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all">
                 Change
               </button>
             </div>
@@ -181,37 +181,37 @@
       </div>
 
       <!-- 隐私设置 -->
-      <div class="glass-card p-6 space-y-6">
-        <h2 class="text-xs font-black text-foreground/40 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+      <div class="ios-card p-6 space-y-6">
+        <h2 class="text-xs font-black text-ios-label-tertiary uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
           <span class="text-lg">🔒</span> 隐私设置
         </h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div class="space-y-2">
-            <label class="block text-[10px] font-black text-foreground/30 uppercase tracking-widest ml-1">资料可见性</label>
+            <label class="block text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">资料可见性</label>
             <GlassSelect v-model="form.profileVisibility" :options="contentVisibilityOptions" />
           </div>
           <div class="space-y-2">
-            <label class="block text-[10px] font-black text-foreground/30 uppercase tracking-widest ml-1">帖子可见性</label>
+            <label class="block text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">帖子可见性</label>
             <GlassSelect v-model="form.postsVisibility" :options="contentVisibilityOptions" />
           </div>
           <div class="space-y-2">
-            <label class="block text-[10px] font-black text-foreground/30 uppercase tracking-widest ml-1">获赞可见性</label>
+            <label class="block text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">获赞可见性</label>
             <GlassSelect v-model="form.likesVisibility" :options="contentVisibilityOptions" />
           </div>
           <div class="space-y-2">
-            <label class="block text-[10px] font-black text-foreground/30 uppercase tracking-widest ml-1">关注列表可见性</label>
+            <label class="block text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">关注列表可见性</label>
             <GlassSelect v-model="form.followingVisibility" :options="contentVisibilityOptions" />
           </div>
           <div class="space-y-2">
-            <label class="block text-[10px] font-black text-foreground/30 uppercase tracking-widest ml-1">粉丝可见性</label>
+            <label class="block text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">粉丝可见性</label>
             <GlassSelect v-model="form.followersVisibility" :options="contentVisibilityOptions" />
           </div>
           <div class="space-y-2">
-            <label class="block text-[10px] font-black text-foreground/30 uppercase tracking-widest ml-1">在线状态</label>
+            <label class="block text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">在线状态</label>
             <GlassSelect v-model="form.onlineStatus" :options="onlineStatusOptions" />
           </div>
           <div class="space-y-2">
-            <label class="block text-[10px] font-black text-foreground/30 uppercase tracking-widest ml-1">最后上线时间</label>
+            <label class="block text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest ml-1">最后上线时间</label>
             <GlassSelect v-model="form.lastSeen" :options="onlineStatusOptions" />
           </div>
         </div>
@@ -220,7 +220,7 @@
       <div class="pt-6">
         <button 
           @click="saveProfile" 
-          class="glass-btn-primary w-full py-5 rounded-[2rem] font-black text-base shadow-2xl shadow-primary/20 active:scale-[0.98] transition-all disabled:opacity-30 disabled:grayscale" 
+          class="ios-btn-primary w-full py-5 rounded-[2rem] font-black text-base shadow-2xl shadow-ios active:scale-[0.98] transition-all disabled:opacity-30 disabled:grayscale" 
           :disabled="saving"
         >
           <span v-if="saving" class="flex items-center justify-center gap-3">

@@ -3,58 +3,58 @@
     <TopNav />
 
     <div class="max-w-4xl mx-auto px-4 py-4 sm:py-8 post-detail-container">
-      <div class="flex items-center gap-4 mb-6 glass-card p-4">
-        <button @click="goBackOneLevel" class="text-foreground/60 hover:text-white transition-colors">
+      <div class="flex items-center gap-4 mb-6 ios-card p-4">
+        <button @click="goBackOneLevel" class="text-ios-label-secondary hover:text-white transition-colors">
           <span class="text-xl">←</span>
         </button>
-        <h1 class="text-xl font-bold glass-text">帖子详情</h1>
+        <h1 class="text-xl font-bold text-ios-label-primary">帖子详情</h1>
       </div>
 
       <transition name="detail-fade" appear>
-        <div v-if="loadingPost" class="glass-card mb-6 p-12 text-center">
-          <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto mb-4"></div>
-          <p class="text-foreground/50">加载中...</p>
+        <div v-if="loadingPost" class="ios-card mb-6 p-12 text-center">
+          <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-ios-blue mx-auto mb-4"></div>
+          <p class="text-ios-label-tertiary">加载中...</p>
         </div>
 
-        <div v-else-if="postError" class="glass-card mb-6 p-8 text-center">
+        <div v-else-if="postError" class="ios-card mb-6 p-8 text-center">
           <div class="text-red-400 mb-4">{{ postError }}</div>
-          <button class="glass-btn px-6 py-2" @click="fetchPostDetail">重试</button>
+          <button class="ios-btn-secondary px-6 py-2" @click="fetchPostDetail">重试</button>
         </div>
 
-        <div v-else-if="post" class="glass-card mb-6 overflow-hidden">
+        <div v-else-if="post" class="ios-card mb-6 overflow-hidden">
           <div class="p-4 sm:p-6">
             <div class="flex items-start justify-between mb-6">
               <div class="flex items-center gap-3 cursor-pointer" @click="goToProfile(post.username)">
                 <img
                   :src="getImageUrl(post.avatar)"
                   :alt="post.nickname"
-                  class="w-12 h-12 rounded-full border-2 border-foreground/10 hover:opacity-80 transition-opacity"
+                  class="w-12 h-12 rounded-full border-2 border-ios-separator hover:opacity-80 transition-opacity"
                 />
                 <div>
-                  <div class="font-bold text-foreground/90 text-lg">{{ post.nickname }}</div>
-                  <div class="text-xs text-foreground/40">@{{ post.username }} · {{ formatTime(post.created_at) }}</div>
+                  <div class="font-bold text-ios-label-primary text-lg">{{ post.nickname }}</div>
+                  <div class="text-xs text-ios-label-tertiary">@{{ post.username }} · {{ formatTime(post.created_at) }}</div>
                 </div>
               </div>
-              <div v-if="post.is_anonymous" class="glass-badge">匿名发布</div>
+              <div v-if="post.is_anonymous" class="ios-badge">匿名发布</div>
             </div>
 
-            <div class="text-foreground/90 text-lg leading-relaxed mb-6 whitespace-pre-wrap break-words" v-html="formatPostContent(post.content)"></div>
+            <div class="text-ios-label-primary text-lg leading-relaxed mb-6 whitespace-pre-wrap break-words" v-html="formatPostContent(post.content)"></div>
             
             <!-- 引用卡片 -->
             <div 
               v-if="post.quote_type && post.quote_type !== 'none'" 
-              class="glass rounded-2xl p-4 mb-6 border-l-4 border-primary/50 cursor-pointer hover:bg-foreground/5 transition-colors"
+              class="ios-glass rounded-2xl p-4 mb-6 border-l-4 border-ios-blue/50 cursor-pointer hover:bg-ios-systemGray5 transition-colors"
               @click="handleQuoteClick(post.quote_type, post.quote_id)"
             >
               <div class="flex items-center gap-2 mb-2" @click.stop="goToProfile(post.quote_user_username || '')">
                 <img
                   :src="getImageUrl(post.quote_user_avatar)"
                   :alt="post.quote_user_name"
-                  class="w-6 h-6 rounded-full border border-foreground/10"
+                  class="w-6 h-6 rounded-full border border-ios-separator"
                 />
-                <span class="text-sm font-bold text-foreground/80 hover:text-primary transition-colors">{{ post.quote_user_name }}</span>
+                <span class="text-sm font-bold text-ios-label-primary hover:text-ios-blue transition-colors">{{ post.quote_user_name }}</span>
               </div>
-              <div class="text-sm text-foreground/60 line-clamp-3">
+              <div class="text-sm text-ios-label-secondary line-clamp-3">
                 {{ post.quote_content }}
               </div>
             </div>
@@ -64,7 +64,7 @@
               <span
                 v-for="(tag, index) in post.tags"
                 :key="index"
-                class="glass-badge px-3 py-1 text-xs"
+                class="ios-badge px-3 py-1 text-xs"
               >
                 #{{ tag }}
               </span>
@@ -76,7 +76,7 @@
                 <img
                   :src="getImageUrl(post.images[0])"
                   alt="帖子图片"
-                  class="max-w-full max-h-[30rem] object-contain rounded-2xl border border-foreground/10 cursor-pointer hover:opacity-95 transition-opacity"
+                  class="max-w-full max-h-[30rem] object-contain rounded-2xl border border-ios-separator cursor-pointer hover:opacity-95 transition-opacity"
                   @click="previewImage(post.images[0], post)"
                 />
               </div>
@@ -86,7 +86,7 @@
                   :key="index"
                   :src="getImageUrl(img)"
                   alt="帖子图片"
-                  class="w-full aspect-square object-cover rounded-xl border border-foreground/10 cursor-pointer hover:opacity-90 transition-opacity"
+                  class="w-full aspect-square object-cover rounded-xl border border-ios-separator cursor-pointer hover:opacity-90 transition-opacity"
                   @click="previewImage(img, post)"
                 />
               </div>
@@ -97,19 +97,19 @@
               <a 
                 :href="getImageUrl(post.file_url)" 
                 :download="post.file_url.split('/').pop().split('_').slice(2).join('_') || 'download'"
-                class="flex items-center gap-4 glass p-4 rounded-2xl border border-foreground/10 hover:bg-foreground/5 transition-all group"
+                class="flex items-center gap-4 ios-glass p-4 rounded-2xl border border-ios-separator hover:bg-ios-systemGray5 transition-all group"
                 @click.stop
               >
-                <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                <div class="w-12 h-12 rounded-xl bg-ios-blue/10 flex items-center justify-center text-ios-blue group-hover:scale-110 transition-transform">
                   <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.414a4 4 0 00-5.656-5.656l-6.415 6.415a6 6 0 108.486 8.486L20.5 13" />
                   </svg>
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div class="text-sm font-bold text-foreground/90 truncate">{{ post.file_url.split('/').pop().split('_').slice(2).join('_') || '查看文件附件' }}</div>
-                  <div class="text-[10px] text-foreground/30 uppercase tracking-widest font-black mt-1">Download Attachment</div>
+                  <div class="text-sm font-bold text-ios-label-primary truncate">{{ post.file_url.split('/').pop().split('_').slice(2).join('_') || '查看文件附件' }}</div>
+                  <div class="text-[10px] text-ios-label-tertiary uppercase tracking-widest font-black mt-1">Download Attachment</div>
                 </div>
-                <div class="text-foreground/20 group-hover:text-primary transition-colors">
+                <div class="text-ios-label-quaternary group-hover:text-ios-blue transition-colors">
                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
@@ -118,31 +118,31 @@
             </div>
             
             <!-- 投票内容 -->
-            <div v-if="post.poll_info && post.poll_info.options && post.poll_info.options.length >= 2" class="mb-6 p-6 glass rounded-2xl border border-foreground/10">
-              <h3 class="text-lg font-bold mb-4 glass-text flex items-center gap-2">
+            <div v-if="post.poll_info && post.poll_info.options && post.poll_info.options.length >= 2" class="mb-6 p-6 ios-glass rounded-2xl border border-ios-separator">
+              <h3 class="text-lg font-bold mb-4 text-ios-label-primary flex items-center gap-2">
                 <span>📊</span> 投票调查
               </h3>
               <div class="space-y-4">
                 <div
                   v-for="(option, index) in post.poll_info.options"
                   :key="index"
-                  class="group relative p-4 rounded-xl border border-foreground/10 cursor-pointer overflow-hidden transition-all hover:border-primary/50"
+                  class="group relative p-4 rounded-xl border border-ios-separator cursor-pointer overflow-hidden transition-all hover:border-ios-blue/50"
                   @click="handleVote(index as number)"
                 >
                   <div 
-                    class="absolute inset-0 bg-primary/10 transition-all duration-500" 
+                    class="absolute inset-0 bg-ios-blue/10 transition-all duration-500" 
                     :style="{ width: `${calculateOptionPercentage(index as number)}%` }"
                   ></div>
                   <div class="relative flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                      <div v-if="hasVotedFor(index)" class="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                      <div v-if="hasVotedFor(index)" class="w-2 h-2 bg-ios-blue rounded-full animate-pulse"></div>
                       <span class="text-white font-medium">{{ option }}</span>
                     </div>
-                    <span class="text-foreground/60 font-bold">{{ calculateOptionPercentage(index as number) }}%</span>
+                    <span class="text-ios-label-secondary font-bold">{{ calculateOptionPercentage(index as number) }}%</span>
                   </div>
                 </div>
               </div>
-              <div class="mt-6 flex items-center justify-between text-xs text-foreground/40">
+              <div class="mt-6 flex items-center justify-between text-xs text-ios-label-tertiary">
                 <div class="flex gap-4">
                   <span>总计 {{ post.poll_info.total_votes }} 票</span>
                   <span>{{ post.poll_info.type === 'single' ? '单选' : '多选' }}</span>
@@ -158,8 +158,8 @@
             </div>
             
             <!-- 帖子交互 -->
-            <div class="flex items-center justify-between pt-6 border-t border-foreground/5">
-              <div class="flex items-center gap-6 text-foreground/40">
+            <div class="flex items-center justify-between pt-6 border-t border-ios-separator">
+              <div class="flex items-center gap-6 text-ios-label-tertiary">
                 <button 
                   @click="toggleLike(post)" 
                   class="flex items-center gap-2 hover:text-red-500 transition-all"
@@ -176,19 +176,19 @@
                   <span class="text-2xl">🔗</span>
                   <span class="font-bold">{{ post.share_count || 0 }}</span>
                 </button>
-                <button @click="openQuoteModal(post)" class="flex items-center gap-2 hover:text-primary transition-all">
+                <button @click="openQuoteModal(post)" class="flex items-center gap-2 hover:text-ios-blue transition-all">
                   <span class="text-2xl">📋</span>
                 </button>
               </div>
               <div class="flex items-center gap-4">
-                <div class="flex items-center gap-1.5 text-foreground/30 text-sm">
+                <div class="flex items-center gap-1.5 text-ios-label-tertiary text-sm">
                   <span class="text-xl">👁️</span>
                   <span>{{ post.view_count || 0 }}</span>
                 </div>
                 <button 
                   v-if="authStore.user && authStore.user.id === post.user_id" 
                   @click="deletePost(post)" 
-                  class="p-2 text-foreground/20 hover:text-red-500 transition-colors"
+                  class="p-2 text-ios-label-quaternary hover:text-red-500 transition-colors"
                 >
                   <span class="text-xl">🗑️</span>
                 </button>
@@ -197,24 +197,24 @@
           </div>
         </div>
 
-        <div v-else class="glass-card mb-6 p-8 text-center">
-          <p class="text-foreground/50">帖子不存在或已被删除</p>
+        <div v-else class="ios-card mb-6 p-8 text-center">
+          <p class="text-ios-label-tertiary">帖子不存在或已被删除</p>
         </div>
       </transition>
 
       <!-- 评论区 -->
-      <div class="glass-card overflow-hidden">
-        <div class="p-4 border-b border-foreground/5 bg-white/2">
-          <h2 class="text-lg font-bold glass-text">评论 ({{ post?.comment_count || 0 }})</h2>
+      <div class="ios-card overflow-hidden">
+        <div class="p-4 border-b border-ios-separator bg-white/2">
+          <h2 class="text-lg font-bold text-ios-label-primary">评论 ({{ post?.comment_count || 0 }})</h2>
         </div>
         
         <!-- 发表评论 -->
-        <div class="p-4 border-b border-foreground/5 bg-white/2">
+        <div class="p-4 border-b border-ios-separator bg-white/2">
           <div class="flex items-start gap-3">
             <img
               :src="getImageUrl(authStore.user?.avatar)"
               :alt="authStore.user?.nickname"
-              class="w-10 h-10 rounded-full border border-foreground/10 flex-shrink-0"
+              class="w-10 h-10 rounded-full border border-ios-separator flex-shrink-0"
             />
             <div class="flex-1">
               <MentionInput
@@ -226,14 +226,14 @@
               <div class="flex justify-between items-center mt-3">
                 <div class="flex items-center gap-4">
                   <label class="flex items-center gap-2 cursor-pointer group">
-                    <input v-model="isAnonymous" type="checkbox" class="accent-primary w-4 h-4" />
-                    <span class="text-sm text-foreground/40 group-hover:text-foreground/60 transition-colors">匿名</span>
+                    <input v-model="isAnonymous" type="checkbox" class="accent-ios-blue w-4 h-4" />
+                    <span class="text-sm text-ios-label-tertiary group-hover:text-ios-label-secondary transition-colors">匿名</span>
                   </label>
-                  <span class="text-xs text-foreground/30 font-mono">{{ commentInput.length }}/500</span>
+                  <span class="text-xs text-ios-label-tertiary font-mono">{{ commentInput.length }}/500</span>
                 </div>
                 <button
                   @click="submitComment"
-                  class="glass-btn-primary px-8 py-2 font-bold"
+                  class="ios-btn-primary px-8 py-2 font-bold"
                   :disabled="!commentInput?.trim() || submittingComment"
                 >
                   {{ submittingComment ? '发送中...' : '发送' }}
@@ -244,9 +244,9 @@
         </div>
         
         <!-- 评论列表 -->
-        <div v-if="showComments" class="divide-y divide-white/5">
+        <div v-if="showComments" class="divide-y divide-ios-separator">
           <div v-if="loadingComments" class="py-12 text-center">
-            <div class="animate-spin h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <div class="animate-spin h-8 w-8 border-b-2 border-ios-blue mx-auto"></div>
           </div>
           
           <template v-else>
@@ -259,18 +259,18 @@
                 <img
                   :src="getImageUrl(comment.avatar)"
                   :alt="comment.nickname"
-                  class="w-10 h-10 rounded-full border border-foreground/10 flex-shrink-0 cursor-pointer"
+                  class="w-10 h-10 rounded-full border border-ios-separator flex-shrink-0 cursor-pointer"
                   @click="goToProfile(comment.username)"
                 />
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center justify-between mb-1">
-                    <div class="font-bold text-foreground/90 hover:text-primary transition-colors cursor-pointer" @click="goToProfile(comment.username)">{{ comment.nickname }}</div>
-                    <div class="text-xs text-foreground/30">{{ formatTime(comment.created_at) }}</div>
+                    <div class="font-bold text-ios-label-primary hover:text-ios-blue transition-colors cursor-pointer" @click="goToProfile(comment.username)">{{ comment.nickname }}</div>
+                    <div class="text-xs text-ios-label-tertiary">{{ formatTime(comment.created_at) }}</div>
                   </div>
-                  <div class="text-foreground/80 text-sm leading-relaxed mb-3" v-html="formatPostContent(comment.content)"></div>
+                  <div class="text-ios-label-primary text-sm leading-relaxed mb-3" v-html="formatPostContent(comment.content)"></div>
                   
                   <!-- 评论操作 -->
-                  <div class="flex items-center gap-6 text-foreground/40 text-xs">
+                  <div class="flex items-center gap-6 text-ios-label-tertiary text-xs">
                     <button 
                       @click="toggleCommentLike(comment)"
                       class="flex items-center gap-1.5 hover:text-red-500 transition-colors"
@@ -281,7 +281,7 @@
                     </button>
                     <button 
                       @click="toggleReplyForm(comment.id)"
-                      class="hover:text-primary transition-colors flex items-center gap-1.5"
+                      class="hover:text-ios-blue transition-colors flex items-center gap-1.5"
                     >
                       <span>💬</span>
                       <span>回复</span>
@@ -289,14 +289,14 @@
                     <button
                       v-if="comment.reply_count > 0"
                       @click="toggleReplies(comment.id)"
-                      class="text-primary hover:underline"
+                      class="text-ios-blue hover:underline"
                     >
                       {{ showAllReplies[comment.id] ? '收起回复' : `查看 ${comment.reply_count} 条回复` }}
                     </button>
                   </div>
                   
                   <!-- 回复输入 -->
-                  <div v-if="replyFormVisible[comment.id]" class="mt-4 p-4 glass rounded-2xl border border-foreground/10">
+                  <div v-if="replyFormVisible[comment.id]" class="mt-4 p-4 ios-glass rounded-2xl border border-ios-separator">
                     <MentionInput
                       v-model="replyInputs[comment.id]"
                       placeholder="回复评论..."
@@ -305,14 +305,14 @@
                     />
                     <div class="flex justify-between items-center mt-3">
                       <label class="flex items-center gap-2 cursor-pointer">
-                        <input v-model="replyAnonymous[comment.id]" type="checkbox" class="accent-primary w-4 h-4" />
-                        <span class="text-xs text-foreground/40">匿名</span>
+                        <input v-model="replyAnonymous[comment.id]" type="checkbox" class="accent-ios-blue w-4 h-4" />
+                        <span class="text-xs text-ios-label-tertiary">匿名</span>
                       </label>
                       <div class="flex gap-2">
-                        <button @click="cancelReply(comment.id)" class="px-4 py-1.5 text-xs text-foreground/40 hover:text-white transition-colors">取消</button>
+                        <button @click="cancelReply(comment.id)" class="px-4 py-1.5 text-xs text-ios-label-tertiary hover:text-white transition-colors">取消</button>
                         <button
                           @click="submitReply(comment.id)"
-                          class="glass-btn-primary px-6 py-1.5 text-xs font-bold"
+                          class="ios-btn-primary px-6 py-1.5 text-xs font-bold"
                           :disabled="!replyInputs[comment.id]?.trim() || submittingReply"
                         >
                           提交
@@ -322,22 +322,22 @@
                   </div>
                   
                   <!-- 子回复列表 -->
-                  <div v-if="comment.replies?.length > 0" class="mt-4 space-y-4 pl-4 border-l-2 border-foreground/5">
+                  <div v-if="comment.replies?.length > 0" class="mt-4 space-y-4 pl-4 border-l-2 border-ios-separator">
                     <div v-for="reply in comment.replies" :key="reply.id" class="group">
                       <div class="flex items-start gap-2">
                         <img
                           :src="getImageUrl(reply.avatar)"
                           :alt="reply.nickname"
-                          class="w-8 h-8 rounded-full border border-foreground/10 flex-shrink-0"
+                          class="w-8 h-8 rounded-full border border-ios-separator flex-shrink-0"
                         />
                         <div class="flex-1 min-w-0">
                           <div class="flex items-center gap-2 mb-0.5">
-                            <span class="font-bold text-foreground/80 text-xs">{{ reply.nickname }}</span>
-                            <span v-if="reply.reply_to_nickname" class="text-[10px] text-foreground/30">回复 {{ reply.reply_to_nickname }}</span>
-                            <span class="text-[10px] text-foreground/20 ml-auto">{{ formatTime(reply.created_at) }}</span>
+                            <span class="font-bold text-ios-label-primary text-xs">{{ reply.nickname }}</span>
+                            <span v-if="reply.reply_to_nickname" class="text-[10px] text-ios-label-tertiary">回复 {{ reply.reply_to_nickname }}</span>
+                            <span class="text-[10px] text-ios-label-quaternary ml-auto">{{ formatTime(reply.created_at) }}</span>
                           </div>
-                          <div class="text-foreground/70 text-xs leading-relaxed" v-html="formatPostContent(reply.content)"></div>
-                          <div class="flex items-center gap-4 mt-2 text-[10px] text-foreground/30">
+                          <div class="text-ios-label-secondary text-xs leading-relaxed" v-html="formatPostContent(reply.content)"></div>
+                          <div class="flex items-center gap-4 mt-2 text-[10px] text-ios-label-tertiary">
                             <button 
                               @click="toggleCommentLike(reply)"
                               class="hover:text-red-500"
@@ -345,7 +345,7 @@
                             >
                               {{ reply.isLiked ? '❤️' : '🤍' }} {{ reply.like_count || 0 }}
                             </button>
-                            <button @click="toggleReplyForm(comment.id)" class="hover:text-primary">回复</button>
+                            <button @click="toggleReplyForm(comment.id)" class="hover:text-ios-blue">回复</button>
                           </div>
                         </div>
                       </div>
@@ -356,7 +356,7 @@
             </div>
           </template>
           
-          <div v-if="!loadingComments && comments.length === 0" class="py-20 text-center text-foreground/30">
+          <div v-if="!loadingComments && comments.length === 0" class="py-20 text-center text-ios-label-tertiary">
             <div class="text-4xl mb-4">💬</div>
             <p>暂无评论，快来抢沙发吧！</p>
           </div>
@@ -378,16 +378,16 @@
 
     <!-- 引用弹窗 -->
     <transition name="modal-fade">
-      <div v-if="showPostModal" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" @click="showPostModal = false">
-        <div class="glass-card w-full max-w-2xl overflow-hidden" @click.stop>
-          <div class="p-4 border-b border-foreground/10 flex items-center justify-between">
-            <h2 class="text-xl font-bold glass-text">发布引用</h2>
-            <button @click="showPostModal = false" class="text-foreground/40 hover:text-white text-2xl">×</button>
+      <div v-if="showPostModal" class="fixed inset-0 z-[100] bg-ios-black/60 backdrop-blur-sm flex items-center justify-center p-4" @click="showPostModal = false">
+        <div class="ios-card w-full max-w-2xl overflow-hidden" @click.stop>
+          <div class="p-4 border-b border-ios-separator flex items-center justify-between">
+            <h2 class="text-xl font-bold text-ios-label-primary">发布引用</h2>
+            <button @click="showPostModal = false" class="text-ios-label-tertiary hover:text-white text-2xl">×</button>
           </div>
           <div class="p-6 space-y-6">
-            <div v-if="quoteTarget" class="p-4 glass rounded-2xl border border-primary/20 bg-primary/5">
-              <div class="text-xs text-primary/60 font-bold mb-2 uppercase tracking-widest">正在引用</div>
-              <div class="text-sm text-foreground/70 line-clamp-2 italic">"{{ quoteTarget.content }}"</div>
+            <div v-if="quoteTarget" class="p-4 ios-glass rounded-2xl border border-ios-blue/20 bg-ios-blue/5">
+              <div class="text-xs text-ios-blue/60 font-bold mb-2 uppercase tracking-widest">正在引用</div>
+              <div class="text-sm text-ios-label-secondary line-clamp-2 italic">"{{ quoteTarget.content }}"</div>
             </div>
             
             <MentionInput
@@ -398,12 +398,12 @@
             />
             
             <div class="flex items-center justify-between">
-              <span class="text-xs text-foreground/30 font-mono">{{ postContent.length }}/1000</span>
+              <span class="text-xs text-ios-label-tertiary font-mono">{{ postContent.length }}/1000</span>
               <div class="flex gap-3">
-                <button @click="showPostModal = false" class="glass-btn px-6 py-2">取消</button>
+                <button @click="showPostModal = false" class="ios-btn-secondary px-6 py-2">取消</button>
                 <button 
                   @click="submitQuotedPost" 
-                  class="glass-btn-primary px-10 py-2 font-bold"
+                  class="ios-btn-primary px-10 py-2 font-bold"
                   :disabled="!postContent.trim() || posting"
                 >
                   {{ posting ? '发布中...' : '发布' }}

@@ -3,14 +3,14 @@
     <div v-if="modelValue" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/95 backdrop-blur-xl" @click="close">
       <!-- Top Action Bar -->
       <div class="absolute top-0 left-0 right-0 p-6 flex items-center justify-between z-10">
-        <button @click="close" class="w-10 h-10 rounded-full glass-btn flex items-center justify-center active:scale-90 transition-all">
+        <button @click="close" class="w-10 h-10 rounded-full ios-btn-secondary flex items-center justify-center active:scale-90 transition-all">
           <span class="text-xl">✕</span>
         </button>
         
         <div v-if="showLike" class="flex items-center gap-4">
           <button 
             @click.stop="$emit('like')" 
-            class="flex items-center gap-2 glass-badge px-4 py-2 rounded-full active:scale-90 transition-all"
+            class="flex items-center gap-2 ios-badge px-4 py-2 rounded-full active:scale-90 transition-all"
             :class="{ 'text-red-500 bg-red-500/10': isLiked }"
           >
             <span class="text-xl">{{ isLiked ? '❤️' : '🤍' }}</span>
@@ -29,7 +29,7 @@
       </div>
 
       <!-- Bottom Helper -->
-      <div class="absolute bottom-10 left-1/2 -translate-x-1/2 text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">
+      <div class="absolute bottom-10 left-1/2 -translate-x-1/2 text-[10px] font-black text-ios-label-quaternary uppercase tracking-[0.2em]">
         Click background to close
       </div>
     </div>

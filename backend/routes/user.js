@@ -2411,12 +2411,10 @@ async function processUserInfo(res, user) {
     user.interest_tags = [];
   }
 
-  // 获取统计信息
   const stats = await getUserStats(user.id);
 
-  // 初始化默认在线信息
   const onlineInfo = {
-    last_active_time: new Date().toISOString()
+    last_active_time: user.last_login_at || null
   };
 
   res.json({

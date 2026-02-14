@@ -13,11 +13,11 @@
 
     <!-- Move Games (Xiangqi/Junqi) -->
     <div v-else-if="isBoardMoveGame" class="flex-1 flex flex-col items-center justify-center gap-[2vh]">
-      <div class="flex flex-wrap items-center justify-center gap-[1vw] text-[2vh] text-white/50">
-        <div v-if="selectedFrom" class="px-[1vw] py-[0.6vh] rounded-full border border-primary/30 bg-primary/10">
+      <div class="flex flex-wrap items-center justify-center gap-[1vw] text-[2vh] text-ios-label-tertiary">
+        <div v-if="selectedFrom" class="px-[1vw] py-[0.6vh] rounded-full border border-ios-blue/30 bg-ios-blue/10">
           已选起点：({{ selectedFrom.x }},{{ selectedFrom.y }})
         </div>
-        <div v-else class="px-[1vw] py-[0.6vh] rounded-full border border-white/10 bg-white/5">
+        <div v-else class="px-[1vw] py-[0.6vh] rounded-full border border-ios-separator bg-ios-systemGray5">
           点击选择起点，再点击目标格
         </div>
       </div>
@@ -39,11 +39,11 @@
 
     <!-- Weiqi -->
     <div v-else-if="gameType === 'weiqi'" class="flex-1 flex flex-col items-center justify-center gap-[2vh]">
-      <div class="flex flex-wrap items-center justify-center gap-[1vw] text-[2vh] text-white/50">
-        <div class="px-[1vw] py-[0.6vh] rounded-full border border-white/10 bg-white/5">
+      <div class="flex flex-wrap items-center justify-center gap-[1vw] text-[2vh] text-ios-label-tertiary">
+        <div class="px-[1vw] py-[0.6vh] rounded-full border border-ios-separator bg-ios-systemGray5">
           黑提子 {{ gameState.captureCount?.black || 0 }} · 白提子 {{ gameState.captureCount?.white || 0 }} · 贴目 {{ gameState.komi ?? 6.5 }}
         </div>
-        <div class="px-[1vw] py-[0.6vh] rounded-full border border-white/10 bg-white/5">
+        <div class="px-[1vw] py-[0.6vh] rounded-full border border-ios-separator bg-ios-systemGray5">
           连续 pass：{{ gameState.passCount || 0 }}
         </div>
       </div>
@@ -56,7 +56,7 @@
       >
         <template #cell="{ value }">
           <transition name="stone-pop">
-            <div v-if="value === 1" class="w-[1.8vh] h-[1.8vh] rounded-full bg-black border border-white/20 shadow-lg"></div>
+            <div v-if="value === 1" class="w-[1.8vh] h-[1.8vh] rounded-full bg-ios-black border border-ios-separator shadow-lg"></div>
             <div v-else-if="value === 2" class="w-[1.8vh] h-[1.8vh] rounded-full bg-white border border-black/30 shadow-lg"></div>
           </transition>
         </template>
@@ -165,14 +165,14 @@ function boardCellLabel(value: any) {
 }
 
 function boardCellClass(value: any) {
-  if (!value) return 'text-white/20';
-  if (value === '?') return 'text-white/50';
+  if (!value) return 'text-ios-label-quaternary';
+  if (value === '?') return 'text-ios-label-tertiary';
   const s = String(value);
-  if (isXiangqiGame.value) return s === s.toUpperCase() ? 'text-red-300' : 'text-white/90';
-  if (isInternationalChessGame.value) return s === s.toUpperCase() ? 'text-white' : 'text-white/90';
+  if (isXiangqiGame.value) return s === s.toUpperCase() ? 'text-red-300' : 'text-ios-label-primary';
+  if (isInternationalChessGame.value) return s === s.toUpperCase() ? 'text-white' : 'text-ios-label-primary';
   if (isJunqiGame.value) {
     const isRed = s === s.toUpperCase() || s.startsWith('R');
-    return isRed ? 'text-red-300' : 'text-white/90';
+    return isRed ? 'text-red-300' : 'text-ios-label-primary';
   }
   return 'text-white';
 }

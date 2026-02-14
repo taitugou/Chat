@@ -1,20 +1,20 @@
 <template>
   <div class="inline-block select-none">
     <div
-      class="grid gap-[0.4vh] rounded-[1.5vh] border border-white/10 bg-black/40 p-[1vh]"
+      class="grid gap-[0.4vh] rounded-[1.5vh] border border-ios-separator bg-ios-black/40 p-[1vh]"
       :style="{ gridTemplateColumns: `repeat(${cols}, ${cellSize})` }"
     >
       <button
         v-for="cell in cells"
         :key="cell.key"
         type="button"
-        class="relative flex items-center justify-center rounded-[0.9vh] border border-white/10 bg-white/5 p-0 text-center text-[2.1vh] font-black leading-none transition-all active:scale-95"
-        :class="isSelected(cell.x, cell.y) ? 'ring-2 ring-primary/70 border-primary/40 bg-primary/10' : ''"
+        class="relative flex items-center justify-center rounded-[0.9vh] border border-ios-separator bg-ios-systemGray5 p-0 text-center text-[2.1vh] font-black leading-none transition-all active:scale-95"
+        :class="isSelected(cell.x, cell.y) ? 'ring-2 ring-primary/70 border-ios-blue/40 bg-ios-blue/10' : ''"
         :style="{ width: cellSize, height: cellSize }"
         @click="$emit('cellClick', { x: cell.x, y: cell.y, value: cell.value })"
       >
         <slot name="cell" :x="cell.x" :y="cell.y" :value="cell.value">
-          <span class="text-white/80">{{ cell.value ?? '' }}</span>
+          <span class="text-ios-label-primary">{{ cell.value ?? '' }}</span>
         </slot>
       </button>
     </div>

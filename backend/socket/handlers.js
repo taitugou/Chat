@@ -744,4 +744,58 @@ export function initSocketHandlers(io, socket) {
       socket.emit('webrtc:error', { error: '直连请求失败' });
     });
   });
+
+  socket.on('room:music:join', async (data) => {
+    const { roomId } = data || {};
+    if (!roomId) return;
+    
+    const roomName = `game_room:${roomId}`;
+    socket.join(`music_room:${roomId}`);
+    console.log(`用户 ${userId} 加入音乐房间 ${roomId}`);
+  });
+
+  socket.on('room:music:leave', async (data) => {
+    const { roomId } = data || {};
+    if (!roomId) return;
+    
+    socket.leave(`music_room:${roomId}`);
+    console.log(`用户 ${userId} 离开音乐房间 ${roomId}`);
+  });
+
+  socket.on('room:music:control', async (data) => {
+    const { roomId, action, data: controlData } = data || {};
+    if (!roomId || !action) return;
+    
+    try {
+      const [roomCheck] = await query(
+        'SELECT creator_id FROM game_rooms WHERE id = ?',
+        [roomId]
+      );
+      
+      if (!roomCheck || roomCheck.length === 0) {
+        socket.emit('room:music:error', { error: '房间不存在' });
+        return;
+      }
+      
+      const isOwner = String(roomCheck[0].creator_id) === String(userId);
+      
+      if (!isOwner) {
+        socket.emit('room:music:error', { error: '只有房主可以控制音乐' });
+        return;
+      }
+      
+      io.to(`music_room:${roomId}`).emit('room:music:sync', {
+        action,
+        track: controlData?.track,
+        isPlaying: controlData?.isPlaying,
+        currentTime: controlData?.currentTime,
+        fromUserId: userId
+      });
+      
+      console.log(`房主 ${userId} 在房间 ${roomId} 发送音乐控制: ${action}`);
+    } catch (error) {
+      console.error('room:music:control error:', error);
+      socket.emit('room:music:error', { error: '音乐控制失败' });
+    }
+  });
 }

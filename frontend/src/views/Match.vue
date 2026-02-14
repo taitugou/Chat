@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen pb-20 bg-background text-foreground transition-colors duration-300">
+  <div class="min-h-screen pb-20 bg-ios-systemGray6 text-ios-label-primary transition-colors duration-300">
     <TopNav title="匹配">
       <template #extra>
-        <router-link to="/match-history" class="glass-btn px-4 py-1.5 text-sm rounded-full active:scale-95 transition-all">
+        <router-link to="/match-history" class="ios-btn-secondary px-4 py-1.5 text-sm rounded-full active:scale-95 transition-all">
           匹配历史
         </router-link>
       </template>
@@ -10,10 +10,10 @@
 
     <div class="max-w-4xl mx-auto px-4 py-6 space-y-6 pb-24">
       <!-- 匹配设置卡片 -->
-      <div class="glass-card p-6 space-y-6">
+      <div class="ios-card p-6 space-y-6">
         <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-foreground/90">匹配设置</h2>
-          <div v-if="queueCount > 0" class="glass-badge px-3 py-1 text-xs text-foreground/60">
+          <h2 class="text-lg font-semibold text-ios-label-primary">匹配设置</h2>
+          <div v-if="queueCount > 0" class="ios-badge px-3 py-1 text-xs text-ios-label-secondary">
             {{ queueCount }} 人在排队
           </div>
         </div>
@@ -22,12 +22,12 @@
           <!-- 年龄范围 -->
           <div class="space-y-3">
             <div class="flex items-center justify-between">
-              <label class="text-sm font-medium text-foreground/70">年龄范围</label>
-              <label class="flex items-center text-sm text-foreground/50 cursor-pointer group">
+              <label class="text-sm font-medium text-ios-label-secondary">年龄范围</label>
+              <label class="flex items-center text-sm text-ios-label-tertiary cursor-pointer group">
                 <input
                   type="checkbox"
                   v-model="matchSettings.enableAgeRange"
-                  class="mr-2 w-4 h-4 rounded-full border-foreground/20 bg-foreground/5 checked:bg-primary transition-all"
+                  class="mr-2 w-4 h-4 rounded-full border-ios-separator bg-ios-systemGray5 checked:bg-ios-blue transition-all"
                 />
                 <span class="group-active:opacity-70">启用限制</span>
               </label>
@@ -38,16 +38,16 @@
                 type="number"
                 min="18"
                 max="100"
-                class="glass-input flex-1 text-center"
+                class="ios-input flex-1 text-center"
                 :disabled="!matchSettings.enableAgeRange"
               />
-              <span class="text-foreground/30">-</span>
+              <span class="text-ios-label-tertiary">-</span>
               <input
                 v-model.number="matchSettings.ageRange[1]"
                 type="number"
                 min="18"
                 max="100"
-                class="glass-input flex-1 text-center"
+                class="ios-input flex-1 text-center"
                 :disabled="!matchSettings.enableAgeRange"
               />
             </div>
@@ -55,22 +55,22 @@
 
           <!-- 匹配模式 -->
           <div class="space-y-2">
-            <label class="block text-sm font-medium text-foreground/70">匹配模式</label>
+            <label class="block text-sm font-medium text-ios-label-secondary">匹配模式</label>
             <GlassSelect v-model="matchSettings.matchingMode" :options="matchingModeOptions" />
-            <p class="text-xs text-foreground/40 leading-relaxed">
+            <p class="text-xs text-ios-label-tertiary leading-relaxed">
               {{ getMatchingModeDescription(matchSettings.matchingMode) }}
             </p>
           </div>
 
           <!-- 性别偏好 -->
           <div class="space-y-2">
-            <label class="block text-sm font-medium text-foreground/70">性别偏好</label>
+            <label class="block text-sm font-medium text-ios-label-secondary">性别偏好</label>
             <GlassSelect v-model="matchSettings.gender" :options="genderOptions" />
           </div>
 
           <!-- 地区设置 -->
           <div class="space-y-2">
-            <label class="block text-sm font-medium text-foreground/70">地区选择</label>
+            <label class="block text-sm font-medium text-ios-label-secondary">地区选择</label>
             <div class="grid grid-cols-2 gap-3">
               <GlassSelect
                 v-model="selectedProvince"
@@ -93,32 +93,32 @@
           <!-- 匿名设置 -->
           <div class="space-y-3">
             <div class="flex items-center justify-between">
-              <label class="text-sm font-medium text-foreground/70">匿名设置</label>
-              <label class="flex items-center text-sm text-foreground/50 cursor-pointer group">
+              <label class="text-sm font-medium text-ios-label-secondary">匿名设置</label>
+              <label class="flex items-center text-sm text-ios-label-tertiary cursor-pointer group">
                 <input
                   type="checkbox"
                   v-model="matchSettings.use_anonymous"
-                  class="mr-2 w-4 h-4 rounded-full border-foreground/20 bg-foreground/5 checked:bg-primary transition-all"
+                  class="mr-2 w-4 h-4 rounded-full border-ios-separator bg-ios-systemGray5 checked:bg-ios-blue transition-all"
                 />
                 <span class="group-active:opacity-70">开启匿名</span>
               </label>
             </div>
             
-            <div class="grid grid-cols-3 gap-2 p-1 glass rounded-2xl">
+            <div class="grid grid-cols-3 gap-2 p-1.5 bg-ios-systemGray5 rounded-xl">
               <button 
                 v-for="opt in anonymousOptions"
                 :key="opt.value"
                 type="button"
-                class="py-2.5 text-xs font-medium rounded-xl transition-all active:scale-95"
-                :class="matchSettings.is_anonymous === opt.value ? 'glass-btn-primary' : 'text-foreground/60 hover:text-white'"
+                class="py-2.5 text-xs font-medium rounded-lg transition-all active:scale-95"
+                :class="matchSettings.is_anonymous === opt.value ? 'ios-btn-primary' : 'text-ios-label-secondary hover:text-ios-label-primary'"
                 @click="matchSettings.is_anonymous = opt.value"
               >
                 {{ opt.label }}
               </button>
             </div>
             
-            <p class="text-xs text-foreground/40 leading-relaxed bg-foreground/5 p-3 rounded-xl border border-foreground/5">
-              <span v-if="matchSettings.use_anonymous" class="text-primary font-medium block mb-1">
+            <p class="text-xs text-ios-label-tertiary leading-relaxed bg-ios-systemGray5 p-3 rounded-xl">
+              <span v-if="matchSettings.use_anonymous" class="text-ios-blue font-medium block mb-1">
                 您当前已开启匿名身份，对方将无法看到您的头像和昵称
               </span>
               {{ getAnonymousDescription(matchSettings.is_anonymous) }}
@@ -128,7 +128,7 @@
           <!-- 保存按钮 -->
           <button
             @click="saveSettings"
-            class="w-full glass-btn-primary py-4 rounded-2xl font-semibold shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
+            class="w-full ios-btn-primary py-4 rounded-xl font-semibold shadow-ios active:scale-[0.98] transition-all disabled:opacity-50"
             :disabled="saving"
           >
             <span v-if="saving" class="flex items-center justify-center gap-2">
@@ -150,8 +150,8 @@
           @click="startMatch"
           class="group relative"
         >
-          <div class="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-          <div class="relative glass-btn-primary text-xl px-12 py-6 rounded-full font-bold shadow-2xl active:scale-95 transition-all">
+          <div class="absolute -inset-1 bg-gradient-to-r from-ios-blue to-ios-purple rounded-full blur opacity-30 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+          <div class="relative ios-btn-primary text-xl px-12 py-6 rounded-full font-bold shadow-ios-lg active:scale-95 transition-all">
             开始匹配
           </div>
         </button>
@@ -159,22 +159,22 @@
         <div v-else class="w-full space-y-8 animate-in fade-in zoom-in duration-300">
           <div class="flex flex-col items-center space-y-6">
             <div class="relative w-32 h-32">
-              <div class="absolute inset-0 rounded-full border-4 border-primary/20 animate-ping"></div>
-              <div class="absolute inset-0 rounded-full border-4 border-primary/40 animate-pulse delay-75"></div>
-              <div class="absolute inset-2 glass rounded-full flex items-center justify-center">
-                <div class="w-4 h-4 bg-primary rounded-full animate-bounce"></div>
+              <div class="absolute inset-0 rounded-full border-4 border-ios-blue/20 animate-ping"></div>
+              <div class="absolute inset-0 rounded-full border-4 border-ios-blue/40 animate-pulse delay-75"></div>
+              <div class="absolute inset-2 ios-ios-ios-glass rounded-full flex items-center justify-center">
+                <div class="w-4 h-4 bg-ios-blue rounded-full animate-bounce"></div>
               </div>
             </div>
             
             <div class="text-center space-y-2">
-              <h3 class="text-xl font-bold text-white">正在寻找缘分...</h3>
-              <p class="text-foreground/40 text-sm">已排队 {{ queueCount }} 人，预计等待 1-2 分钟</p>
+              <h3 class="text-xl font-bold text-ios-label-primary">正在寻找缘分...</h3>
+              <p class="text-ios-label-tertiary text-sm">已排队 {{ queueCount }} 人，预计等待 1-2 分钟</p>
             </div>
 
             <div class="w-full max-w-xs space-y-3">
               <button
                 @click="accelerateMatch"
-                class="w-full glass-btn-primary py-3 rounded-2xl text-sm font-semibold active:scale-95 transition-all disabled:opacity-50"
+                class="w-full ios-btn-primary py-3 rounded-xl text-sm font-semibold active:scale-95 transition-all disabled:opacity-50"
                 :disabled="accelerating"
               >
                 {{ accelerating ? '加速中...' : `加速匹配 (消耗 ${getAccelerateCost()} 积分)` }}
@@ -182,12 +182,12 @@
               
               <button
                 @click="cancelMatch"
-                class="w-full glass-btn py-3 rounded-2xl text-sm font-medium text-red-400/80 active:scale-95 transition-all"
+                class="w-full ios-btn-danger py-3 rounded-xl text-sm font-medium active:scale-95 transition-all"
               >
                 取消匹配
               </button>
               
-              <p v-if="queueJumpCount > 0" class="text-center text-[10px] text-foreground/30 uppercase tracking-wider">
+              <p v-if="queueJumpCount > 0" class="text-center text-[10px] text-ios-label-tertiary uppercase tracking-wider">
                 已加速 {{ queueJumpCount }} 次
               </p>
             </div>

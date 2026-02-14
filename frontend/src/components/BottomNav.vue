@@ -1,13 +1,13 @@
 <template>
   <nav class="fixed bottom-0 left-0 right-0 z-[50] pb-safe">
     <div class="mx-auto max-w-lg px-6 py-3">
-      <div class="glass-nav rounded-[2rem] shadow-2xl shadow-black/40 flex items-center justify-between px-2 py-2 border border-white/5">
+      <div class="ios-nav rounded-[2rem] shadow-2xl shadow-black/40 flex items-center justify-between px-2 py-2 border border-ios-separator">
         <router-link 
           v-for="item in navItems" 
           :key="item.path"
           :to="item.path"
           class="relative flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all duration-300 active:scale-90"
-          :class="[isPathActive(item.path) ? 'bg-primary/20 text-primary' : 'text-white/40 hover:text-white/60']"
+          :class="[isPathActive(item.path) ? 'bg-ios-blue/20 text-ios-blue' : 'text-ios-label-tertiary hover:text-ios-label-secondary']"
         >
           <span class="text-2xl mb-0.5">{{ item.icon }}</span>
           <span class="text-[9px] font-black uppercase tracking-tighter">{{ item.name }}</span>
@@ -18,7 +18,7 @@
           </div>
           
           <!-- Active indicator -->
-          <div v-if="isPathActive(item.path)" class="absolute -bottom-1 w-1 h-1 bg-primary rounded-full"></div>
+          <div v-if="isPathActive(item.path)" class="absolute -bottom-1 w-1 h-1 bg-ios-blue rounded-full"></div>
         </router-link>
       </div>
     </div>
@@ -78,7 +78,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.glass-nav {
+.ios-nav {
   backdrop-filter: blur(24px) saturate(180%);
   background: rgba(255, 255, 255, 0.05);
 }

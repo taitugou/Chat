@@ -1,10 +1,10 @@
 <template>
-  <div class="h-screen flex flex-col overflow-hidden bg-background text-foreground transition-colors duration-300">
+  <div class="h-screen flex flex-col overflow-hidden bg-ios-systemGray6 text-ios-label-primary transition-colors duration-300">
     <!-- 顶部导航 -->
-    <div class="glass px-4 py-3 flex items-center z-50 shadow-sm border-b border-foreground/5">
+    <div class="ios-glass px-4 py-3 flex items-center z-50 shadow-sm border-b border-ios-separator">
       <button
         @click="goBack"
-        class="p-2 -ml-2 rounded-full text-foreground/70 hover:text-white hover:bg-foreground/10 transition-all active:scale-90"
+        class="p-2 -ml-2 rounded-full text-ios-label-secondary hover:text-white hover:bg-ios-systemGray5 transition-all active:scale-90"
         title="返回"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -12,8 +12,8 @@
         </svg>
       </button>
       <div class="flex-1 min-w-0 ml-2">
-        <div class="text-sm font-bold text-foreground/80">匹配记录</div>
-        <div class="text-[10px] font-black text-foreground/30 uppercase tracking-widest">Match History</div>
+        <div class="text-sm font-bold text-ios-label-primary">匹配记录</div>
+        <div class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest">Match History</div>
       </div>
       <button
         v-if="matches.length > 0"
@@ -27,21 +27,21 @@
     <!-- 列表内容 -->
     <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
       <div v-if="loading" class="flex flex-col items-center justify-center h-full space-y-4">
-        <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-sm text-foreground/40 font-bold uppercase tracking-widest">加载中...</p>
+        <div class="w-8 h-8 border-2 border-ios-blue border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-sm text-ios-label-tertiary font-bold uppercase tracking-widest">加载中...</p>
       </div>
 
       <div v-else-if="matches.length === 0" class="flex flex-col items-center justify-center h-full space-y-6">
-        <div class="w-20 h-20 rounded-3xl bg-foreground/5 flex items-center justify-center animate-bounce duration-[2000ms]">
+        <div class="w-20 h-20 rounded-3xl bg-ios-systemGray5 flex items-center justify-center animate-bounce duration-[2000ms]">
           <span class="text-3xl">🧭</span>
         </div>
         <div class="text-center space-y-2">
-          <p class="text-foreground/80 font-bold text-lg">暂无匹配记录</p>
-          <p class="text-xs text-foreground/30 uppercase tracking-widest">No match records found</p>
+          <p class="text-ios-label-primary font-bold text-lg">暂无匹配记录</p>
+          <p class="text-xs text-ios-label-tertiary uppercase tracking-widest">No match records found</p>
         </div>
         <button
           @click="$router.push('/match')"
-          class="glass-btn-primary px-8 py-3 rounded-2xl text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/20 active:scale-95 transition-all"
+          class="ios-btn-primary px-8 py-3 rounded-2xl text-sm font-black uppercase tracking-widest shadow-xl shadow-ios active:scale-95 transition-all"
         >
           前往匹配
         </button>
@@ -51,13 +51,13 @@
         <div
           v-for="match in matches"
           :key="match.id"
-          class="glass-card p-4 flex items-center gap-4 group hover:bg-white/5 transition-all border border-white/5"
+          class="ios-card p-4 flex items-center gap-4 group hover:bg-ios-systemGray5 transition-all border border-ios-separator"
         >
           <!-- 头像 -->
           <div class="relative cursor-pointer" @click="goToProfile(match.username)">
             <img
               :src="getAvatarUrl(match.avatar)"
-              class="w-14 h-14 rounded-2xl object-cover ring-2 ring-foreground/5 group-hover:ring-primary/30 transition-all"
+              class="w-14 h-14 rounded-2xl object-cover ring-2 ring-foreground/5 group-hover:ring-ios-blue/30 transition-all"
               alt="avatar"
             />
             <div
@@ -72,12 +72,12 @@
               <span class="font-black text-white truncate text-base">
                 {{ match.is_anonymous ? '匿名用户' : (match.nickname || match.username) }}
               </span>
-              <span v-if="match.score" class="text-[9px] px-2 py-0.5 rounded-md bg-primary/20 text-primary font-black uppercase tracking-widest">
+              <span v-if="match.score" class="text-[9px] px-2 py-0.5 rounded-md bg-ios-blue/20 text-ios-blue font-black uppercase tracking-widest">
                 {{ Math.round(match.score) }}% 契合
               </span>
             </div>
             <div class="flex items-center gap-2 mt-1">
-              <span class="text-[10px] font-bold text-foreground/30 uppercase tracking-widest">
+              <span class="text-[10px] font-bold text-ios-label-tertiary uppercase tracking-widest">
                 {{ formatDate(match.created_at) }}
               </span>
               <span v-if="match.is_anonymous" class="text-[10px] text-yellow-500/50 font-black italic">
@@ -90,7 +90,7 @@
           <div class="flex items-center gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
             <button
               @click="startChat(match)"
-              class="w-10 h-10 flex items-center justify-center rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all active:scale-90"
+              class="w-10 h-10 flex items-center justify-center rounded-xl bg-ios-blue/10 text-ios-blue hover:bg-ios-blue hover:text-white transition-all active:scale-90"
               title="开始聊天"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,7 +99,7 @@
             </button>
             <button
               @click="deleteEntry(match.id)"
-              class="w-10 h-10 flex items-center justify-center rounded-xl text-foreground/30 hover:text-red-400 hover:bg-red-400/10 transition-all active:scale-90"
+              class="w-10 h-10 flex items-center justify-center rounded-xl text-ios-label-tertiary hover:text-red-400 hover:bg-red-400/10 transition-all active:scale-90"
               title="删除记录"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,7 +114,7 @@
           <button
             @click="loadMore"
             :disabled="loadingMore"
-            class="px-8 py-2.5 rounded-xl glass text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40 hover:text-white hover:bg-white/5 transition-all active:scale-95 disabled:opacity-50"
+            class="px-8 py-2.5 rounded-xl ios-glass text-[10px] font-black uppercase tracking-[0.2em] text-ios-label-tertiary hover:text-white hover:bg-ios-systemGray5 transition-all active:scale-95 disabled:opacity-50"
           >
             {{ loadingMore ? '加载中...' : '加载更多' }}
           </button>

@@ -1,16 +1,16 @@
 <template>
-  <div class="h-screen w-screen bg-black text-white overflow-hidden">
+  <div class="h-screen w-screen bg-ios-black text-white overflow-hidden">
     <div v-if="shouldEnforceFullscreen" class="absolute inset-0 z-50 bg-black/90 flex items-center justify-center">
-      <div class="w-[80vw] max-w-[60vh] rounded-[2vh] border border-white/10 bg-white/5 p-[4vh]">
+      <div class="w-[80vw] max-w-[60vh] rounded-[2vh] border border-ios-separator bg-ios-systemGray5 p-[4vh]">
         <div class="text-[4.2vh] font-black">进入对局需要横屏全屏</div>
-        <div class="mt-[1.5vh] text-[2.6vh] text-white/50 leading-relaxed">
+        <div class="mt-[1.5vh] text-[2.6vh] text-ios-label-tertiary leading-relaxed">
           请先将设备旋转为横屏，然后点击下方按钮进入全屏。
         </div>
         <div class="mt-[4vh] grid grid-cols-1 gap-[2vh]">
-          <button class="glass-btn-primary py-[2vh] rounded-[1.5vh] font-bold text-[2.8vh] active:scale-95 transition-all" @click="enterFullscreenAndLandscape">
+          <button class="ios-btn-primary py-[2vh] rounded-[1.5vh] font-bold text-[2.8vh] active:scale-95 transition-all" @click="enterFullscreenAndLandscape">
             进入全屏横屏
           </button>
-          <button class="glass-btn py-[2vh] rounded-[1.5vh] font-bold text-[2.8vh] active:scale-95 transition-all" @click="reloadPage">
+          <button class="ios-btn-secondary py-[2vh] rounded-[1.5vh] font-bold text-[2.8vh] active:scale-95 transition-all" @click="reloadPage">
             刷新页面
           </button>
         </div>
@@ -18,16 +18,16 @@
     </div>
 
     <div class="h-full flex flex-col">
-      <div class="h-[9vh] flex items-center justify-between px-[2vw] border-b border-white/10 bg-white/5">
+      <div class="h-[9vh] flex items-center justify-between px-[2vw] border-b border-ios-separator bg-ios-systemGray5">
         <div class="min-w-0">
           <div class="text-[3.2vh] font-black truncate">{{ gameTitle }} · 房间 {{ roomId }}</div>
-          <div class="text-[2.2vh] text-white/40 uppercase tracking-widest truncate">{{ gameType }}</div>
+          <div class="text-[2.2vh] text-ios-label-tertiary uppercase tracking-widest truncate">{{ gameType }}</div>
         </div>
         <div class="flex items-center gap-[1vw]">
-          <button class="glass-btn px-[1.5vw] py-[1vh] rounded-[1vh] text-[2.3vh] font-bold active:scale-95 transition-all" @click="toggleFullscreen">
+          <button class="ios-btn-secondary px-[1.5vw] py-[1vh] rounded-[1vh] text-[2.3vh] font-bold active:scale-95 transition-all" @click="toggleFullscreen">
             {{ isFullscreen ? '退出全屏' : '全屏' }}
           </button>
-          <button class="glass-btn px-[1.5vw] py-[1vh] rounded-[1vh] text-[2.3vh] font-bold active:scale-95 transition-all" @click="exitToLobby">
+          <button class="ios-btn-secondary px-[1.5vw] py-[1vh] rounded-[1vh] text-[2.3vh] font-bold active:scale-95 transition-all" @click="exitToLobby">
             退出
           </button>
         </div>
@@ -35,20 +35,20 @@
 
       <div v-if="loading" class="flex-1 flex items-center justify-center">
         <div class="flex flex-col items-center gap-[2vh]">
-          <div class="w-[7vh] h-[7vh] border-[0.6vh] border-primary/20 border-t-primary rounded-full animate-spin"></div>
-          <div class="text-white/40 text-[2.6vh] font-medium">正在加载对局数据...</div>
+          <div class="w-[7vh] h-[7vh] border-[0.6vh] border-ios-blue/20 border-t-primary rounded-full animate-spin"></div>
+          <div class="text-ios-label-tertiary text-[2.6vh] font-medium">正在加载对局数据...</div>
         </div>
       </div>
 
       <div v-else class="flex-1 flex overflow-hidden">
         <!-- 功能区 (向左折叠) -->
         <div :class="[
-          'border-r border-white/10 bg-white/5 overflow-hidden flex flex-col transition-all duration-300 ease-in-out',
+          'border-r border-ios-separator bg-ios-systemGray5 overflow-hidden flex flex-col transition-all duration-300 ease-in-out',
           collapsed.leftColumn ? uiProfile.compactPanelWidth : uiProfile.leftPanelWidth
         ]">
-          <div class="h-[8vh] px-[1vw] border-b border-white/10 flex items-center" :class="collapsed.leftColumn ? 'justify-center' : 'justify-between px-[1.5vw]'">
+          <div class="h-[8vh] px-[1vw] border-b border-ios-separator flex items-center" :class="collapsed.leftColumn ? 'justify-center' : 'justify-between px-[1.5vw]'">
             <div v-show="!collapsed.leftColumn" class="text-[2.6vh] font-black whitespace-nowrap">功能区</div>
-            <button type="button" class="glass-btn p-[1vh] rounded-[1vh] text-[2.1vh] font-bold active:scale-95 transition-all flex items-center justify-center" 
+            <button type="button" class="ios-btn-secondary p-[1vh] rounded-[1vh] text-[2.1vh] font-bold active:scale-95 transition-all flex items-center justify-center" 
                     :title="collapsed.leftColumn ? '展开功能区' : '折叠功能区'"
                     @click="collapsed.leftColumn = !collapsed.leftColumn">
               <svg class="w-[2.5vh] h-[2.5vh] transition-transform duration-300" :class="collapsed.leftColumn ? 'rotate-180' : 'rotate-0'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,37 +57,37 @@
             </button>
           </div>
           <div v-show="!collapsed.leftColumn" class="flex-1 overflow-y-auto p-[1.5vh] space-y-[1.5vh]">
-            <div v-if="!isWuziqiGame" class="rounded-[1.5vh] border border-white/10 bg-black/40 overflow-hidden">
+            <div v-if="!isWuziqiGame" class="rounded-[1.5vh] border border-ios-separator bg-ios-black/40 overflow-hidden">
               <button type="button" class="w-full px-[1.5vw] py-[2vh] flex items-center justify-between" @click="collapsed.leftInfo = !collapsed.leftInfo">
-                <div class="text-[2.2vh] text-white/40">牌局信息</div>
-                <svg class="w-[2.5vh] h-[2.5vh] text-white/40 transition-transform duration-200" :class="collapsed.leftInfo ? '-rotate-90' : 'rotate-0'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="text-[2.2vh] text-ios-label-tertiary">牌局信息</div>
+                <svg class="w-[2.5vh] h-[2.5vh] text-ios-label-tertiary transition-transform duration-200" :class="collapsed.leftInfo ? '-rotate-90' : 'rotate-0'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
               </button>
               <div v-show="!collapsed.leftInfo" class="px-[1.5vw] pb-[2vh]">
                 <div class="grid grid-cols-2 gap-[1vw] text-[2.3vh]">
-                  <div class="rounded-[1vh] bg-white/5 p-[1.5vh]">
-                    <div class="text-[1.8vh] text-white/40">底池</div>
+                  <div class="rounded-[1vh] bg-ios-systemGray5 p-[1.5vh]">
+                    <div class="text-[1.8vh] text-ios-label-tertiary">底池</div>
                     <div class="mt-[0.5vh] font-black">{{ pot }}</div>
                   </div>
-                  <div class="rounded-[1vh] bg-white/5 p-[1.5vh]">
-                    <div class="text-[1.8vh] text-white/40">当前下注</div>
+                  <div class="rounded-[1vh] bg-ios-systemGray5 p-[1.5vh]">
+                    <div class="text-[1.8vh] text-ios-label-tertiary">当前下注</div>
                     <div class="mt-[0.5vh] font-black">{{ currentBet }}</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="rounded-[1.5vh] border border-white/10 bg-black/40 overflow-hidden">
+            <div class="rounded-[1.5vh] border border-ios-separator bg-ios-black/40 overflow-hidden">
               <button type="button" class="w-full px-[1.5vw] py-[2vh] flex items-center justify-between" @click="collapsed.leftActions = !collapsed.leftActions">
                 <div class="flex items-center gap-[1vw]">
-                  <div class="text-[2.2vh] text-white/40">{{ isWeiqiGame || isBoardMoveGame || isWuziqiGame ? '棋局操作' : '下注操作' }}</div>
+                  <div class="text-[2.2vh] text-ios-label-tertiary">{{ isWeiqiGame || isBoardMoveGame || isWuziqiGame ? '棋局操作' : '下注操作' }}</div>
                   <div class="text-[1.8vh] px-[1vw] py-[0.5vh] rounded-full border"
-                       :class="isMyTurn ? 'border-green-500/30 bg-green-500/10 text-green-300' : 'border-white/10 bg-white/5 text-white/40'">
+                       :class="isMyTurn ? 'border-green-500/30 bg-green-500/10 text-green-300' : 'border-ios-separator bg-ios-systemGray5 text-ios-label-tertiary'">
                     {{ isMyTurn ? '你的回合' : '等待中' }}
                   </div>
                 </div>
-                <svg class="w-[2.5vh] h-[2.5vh] text-white/40 transition-transform duration-200" :class="collapsed.leftActions ? '-rotate-90' : 'rotate-0'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-[2.5vh] h-[2.5vh] text-ios-label-tertiary transition-transform duration-200" :class="collapsed.leftActions ? '-rotate-90' : 'rotate-0'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
               </button>
@@ -137,32 +137,32 @@
 
                 <div v-else-if="isDiceBaoGame" class="grid grid-cols-1 gap-[1.2vh]">
                   <div class="grid grid-cols-3 gap-[0.8vh]">
-                    <button class="glass-btn py-[1.2vh] rounded-[1vh] text-[2.1vh] font-black active:scale-95 transition-all"
-                            :class="diceBaoSelection === 'small' ? 'border-primary/40 bg-primary/10' : ''"
+                    <button class="ios-btn-secondary py-[1.2vh] rounded-[1vh] text-[2.1vh] font-black active:scale-95 transition-all"
+                            :class="diceBaoSelection === 'small' ? 'border-ios-blue/40 bg-ios-blue/10' : ''"
                             :disabled="isFinished"
                             @click="diceBaoSelection = 'small'">
                       小
                     </button>
-                    <button class="glass-btn py-[1.2vh] rounded-[1vh] text-[2.1vh] font-black active:scale-95 transition-all"
-                            :class="diceBaoSelection === 'big' ? 'border-primary/40 bg-primary/10' : ''"
+                    <button class="ios-btn-secondary py-[1.2vh] rounded-[1vh] text-[2.1vh] font-black active:scale-95 transition-all"
+                            :class="diceBaoSelection === 'big' ? 'border-ios-blue/40 bg-ios-blue/10' : ''"
                             :disabled="isFinished"
                             @click="diceBaoSelection = 'big'">
                       大
                     </button>
-                    <button class="glass-btn py-[1.2vh] rounded-[1vh] text-[2.1vh] font-black active:scale-95 transition-all"
-                            :class="diceBaoSelection === 'triple' ? 'border-primary/40 bg-primary/10' : ''"
+                    <button class="ios-btn-secondary py-[1.2vh] rounded-[1vh] text-[2.1vh] font-black active:scale-95 transition-all"
+                            :class="diceBaoSelection === 'triple' ? 'border-ios-blue/40 bg-ios-blue/10' : ''"
                             :disabled="isFinished"
                             @click="diceBaoSelection = 'triple'">
                       豹子
                     </button>
                   </div>
-                  <input v-model.number="diceBaoBetAmount" type="number" min="1" class="glass-input w-full text-[2.3vh] py-[1.2vh]" placeholder="下注金额" />
-                  <button class="glass-btn-primary w-full py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] active:scale-95 transition-all disabled:opacity-40"
+                  <input v-model.number="diceBaoBetAmount" type="number" min="1" class="ios-input w-full text-[2.3vh] py-[1.2vh]" placeholder="下注金额" />
+                  <button class="ios-btn-primary w-full py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] active:scale-95 transition-all disabled:opacity-40"
                           :disabled="!canAct || !diceBaoSelection || !diceBaoBetAmount"
                           @click="emitAction('place_bet', { selection: diceBaoSelection, amount: diceBaoBetAmount })">
                     下注
                   </button>
-                  <button class="glass-btn py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] active:scale-95 transition-all disabled:opacity-40"
+                  <button class="ios-btn-secondary py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] active:scale-95 transition-all disabled:opacity-40"
                           :disabled="isFinished || String(diceBaoRollerId) !== String(currentUserId)"
                           @click="emitAction('roll')">
                     开奖
@@ -170,12 +170,12 @@
                 </div>
 
                 <div v-else-if="isErbabanGame" class="grid grid-cols-1 gap-[1.5vh]">
-                  <button class="glass-btn-primary py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] active:scale-95 transition-all disabled:opacity-40"
+                  <button class="ios-btn-primary py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] active:scale-95 transition-all disabled:opacity-40"
                           :disabled="isFinished || !canAct"
                           @click="emitAction('roll')">
                     掷骰
                   </button>
-                  <button class="glass-btn py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] text-red-300 active:scale-95 transition-all disabled:opacity-40"
+                  <button class="ios-btn-secondary py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] text-red-300 active:scale-95 transition-all disabled:opacity-40"
                           :disabled="isFinished"
                           @click="emitAction('surrender')">
                     认输
@@ -183,13 +183,13 @@
                 </div>
 
                 <div v-else class="grid grid-cols-1 gap-[1.5vh]">
-                    <div class="text-[1.8vh] text-white/40 text-center py-[2vh]">通用对局模式</div>
-                    <button class="glass-btn-primary py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] active:scale-95 transition-all disabled:opacity-40"
+                    <div class="text-[1.8vh] text-ios-label-tertiary text-center py-[2vh]">通用对局模式</div>
+                    <button class="ios-btn-primary py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] active:scale-95 transition-all disabled:opacity-40"
                           :disabled="!canAct"
                           @click="emitAction('win')">
                       声明获胜
                     </button>
-                    <button class="glass-btn py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] text-red-300 active:scale-95 transition-all disabled:opacity-40"
+                    <button class="ios-btn-secondary py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] text-red-300 active:scale-95 transition-all disabled:opacity-40"
                           :disabled="!canAct"
                           @click="emitAction('surrender')">
                       认输/弃牌
@@ -198,16 +198,16 @@
               </div>
             </div>
 
-            <div v-if="actionLog.length" class="rounded-[1.5vh] border border-white/10 bg-black/40 overflow-hidden">
+            <div v-if="actionLog.length" class="rounded-[1.5vh] border border-ios-separator bg-ios-black/40 overflow-hidden">
               <button type="button" class="w-full px-[1.5vw] py-[2vh] flex items-center justify-between" @click="collapsed.leftLog = !collapsed.leftLog">
-                <div class="text-[2.2vh] text-white/40">动作记录</div>
-                <svg class="w-[2.5vh] h-[2.5vh] text-white/40 transition-transform duration-200" :class="collapsed.leftLog ? '-rotate-90' : 'rotate-0'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="text-[2.2vh] text-ios-label-tertiary">动作记录</div>
+                <svg class="w-[2.5vh] h-[2.5vh] text-ios-label-tertiary transition-transform duration-200" :class="collapsed.leftLog ? '-rotate-90' : 'rotate-0'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
               </button>
               <div v-show="!collapsed.leftLog" class="px-[1.5vw] pb-[2vh]">
                 <div class="space-y-[0.8vh]">
-                  <div v-for="a in actionLog.slice(0, 12)" :key="a.id" class="text-[2.1vh] text-white/70">
+                  <div v-for="a in actionLog.slice(0, 12)" :key="a.id" class="text-[2.1vh] text-ios-label-secondary">
                     {{ a.text }}
                   </div>
                 </div>
@@ -219,37 +219,37 @@
         <!-- 中间游戏区域 (优先展示) -->
         <div class="flex-1 bg-gradient-to-b from-black to-black/80 overflow-hidden">
           <div class="h-full p-[2vh] flex flex-col gap-[2vh]">
-            <div v-if="!isWuziqiGame" class="rounded-[2vh] border border-white/10 bg-white/5 p-[2vh]">
+            <div v-if="!isWuziqiGame" class="rounded-[2vh] border border-ios-separator bg-ios-systemGray5 p-[2vh]">
               <div class="grid grid-cols-3 items-center gap-[1.5vw]">
                 <div class="min-w-0">
-                  <div class="text-[2.1vh] text-white/40 uppercase tracking-wider">上一个玩家</div>
+                  <div class="text-[2.1vh] text-ios-label-tertiary uppercase tracking-wider">上一个玩家</div>
                   <div class="mt-[1vh] flex items-center gap-[0.8vw]">
-                    <img v-if="prevPlayerId" :src="getPlayerAvatar(prevPlayerId)" class="w-[4vh] h-[4vh] rounded-full object-cover border border-white/10" />
-                    <div class="text-[2.3vh] font-bold truncate text-white/60">
+                    <img v-if="prevPlayerId" :src="getPlayerAvatar(prevPlayerId)" class="w-[4vh] h-[4vh] rounded-full object-cover border border-ios-separator" />
+                    <div class="text-[2.3vh] font-bold truncate text-ios-label-secondary">
                       {{ prevPlayerName }}
                     </div>
                   </div>
                 </div>
                 <div class="min-w-0 text-center flex flex-col items-center">
-                  <div class="text-[2.1vh] text-white/40 uppercase tracking-wider">当前回合</div>
+                  <div class="text-[2.1vh] text-ios-label-tertiary uppercase tracking-wider">当前回合</div>
                   <div class="mt-[1vh] flex items-center gap-[0.8vw]">
-                    <img v-if="currentPlayerId" :src="getPlayerAvatar(currentPlayerId)" class="w-[6vh] h-[6vh] rounded-full object-cover border-2" :class="isMyTurn ? 'border-green-500/50' : 'border-white/20'" />
+                    <img v-if="currentPlayerId" :src="getPlayerAvatar(currentPlayerId)" class="w-[6vh] h-[6vh] rounded-full object-cover border-2" :class="isMyTurn ? 'border-green-500/50' : 'border-ios-separator'" />
                     <div class="text-[2.8vh] font-black truncate" :class="isMyTurn ? 'text-green-300' : 'text-white'">
                       {{ currentPlayerName }}
                     </div>
                   </div>
                 </div>
                 <div class="min-w-0 text-right">
-                  <div class="text-[2.1vh] text-white/40 uppercase tracking-wider">下一个玩家</div>
+                  <div class="text-[2.1vh] text-ios-label-tertiary uppercase tracking-wider">下一个玩家</div>
                   <div class="mt-[1vh] flex items-center justify-end gap-[0.8vw]">
-                    <div class="text-[2.3vh] font-bold truncate text-white/60">
+                    <div class="text-[2.3vh] font-bold truncate text-ios-label-secondary">
                       {{ nextPlayerName }}
                     </div>
-                    <img v-if="nextPlayerId" :src="getPlayerAvatar(nextPlayerId)" class="w-[4vh] h-[4vh] rounded-full object-cover border border-white/10" />
+                    <img v-if="nextPlayerId" :src="getPlayerAvatar(nextPlayerId)" class="w-[4vh] h-[4vh] rounded-full object-cover border border-ios-separator" />
                   </div>
                 </div>
               </div>
-              <div v-if="lastActionText" class="mt-[1.5vh] text-[2.2vh] text-center text-white/50 bg-white/5 py-[0.8vh] rounded-[1vh] border border-white/5">
+              <div v-if="lastActionText" class="mt-[1.5vh] text-[2.2vh] text-center text-ios-label-tertiary bg-ios-systemGray5 py-[0.8vh] rounded-[1vh] border border-ios-separator">
                 {{ lastActionText }}
               </div>
               <div v-if="compareMode" class="mt-[1.5vh] text-[2.2vh] text-center text-yellow-300/80 animate-pulse">
@@ -257,7 +257,7 @@
               </div>
             </div>
 
-            <div class="flex-1 rounded-[2vh] border border-white/10 bg-white/5 flex flex-col" :class="isWuziqiGame ? 'p-[1vh] overflow-hidden' : 'p-[2vh] overflow-auto'">
+            <div class="flex-1 rounded-[2vh] border border-ios-separator bg-ios-systemGray5 flex flex-col" :class="isWuziqiGame ? 'p-[1vh] overflow-hidden' : 'p-[2vh] overflow-auto'">
               <PokerBoard
                 v-if="['zhajinhua', 'texas_holdem', 'blackjack', 'niuniu', 'shengji', 'doudizhu', 'paodekuai'].includes(effectiveGameType)"
                 :game-type="effectiveGameType"
@@ -303,13 +303,13 @@
 
               <div v-else class="flex-1 flex flex-col overflow-auto">
                 <div class="flex items-center justify-between">
-                  <div class="text-[2.2vh] text-white/40">通用对局模式</div>
+                  <div class="text-[2.2vh] text-ios-label-tertiary">通用对局模式</div>
                   <div class="text-[3.8vh] font-black text-yellow-400 flex items-center gap-[0.5vw]">
                     <span class="text-[2.6vh]">💰</span> {{ pot }}
                   </div>
                 </div>
                 <div class="mt-[2vh] flex-1 flex flex-col items-center justify-center gap-[4vh]">
-                   <div class="text-center text-white/30">
+                   <div class="text-center text-ios-label-quaternary">
                       <div class="text-[8vh]">🎲</div>
                       <div class="mt-[1vh] text-[2.2vh]">等待游戏数据...</div>
                    </div>
@@ -322,18 +322,18 @@
 
         <!-- 房间工具 (向右折叠) -->
         <div :class="[
-          'border-l border-white/10 bg-white/5 overflow-hidden flex flex-col transition-all duration-300 ease-in-out',
+          'border-l border-ios-separator bg-ios-systemGray5 overflow-hidden flex flex-col transition-all duration-300 ease-in-out',
           collapsed.rightColumn ? uiProfile.compactPanelWidth : uiProfile.rightPanelWidth
         ]">
-          <div class="h-[8vh] px-[1vw] border-b border-white/10 flex items-center" :class="collapsed.rightColumn ? 'justify-center' : 'justify-between px-[1.5vw]'">
+          <div class="h-[8vh] px-[1vw] border-b border-ios-separator flex items-center" :class="collapsed.rightColumn ? 'justify-center' : 'justify-between px-[1.5vw]'">
             <div v-show="!collapsed.rightColumn" class="flex items-center gap-[0.5vw] overflow-hidden">
               <div class="text-[2.6vh] font-black whitespace-nowrap">房间工具</div>
             </div>
             <div class="flex items-center gap-[1vw]">
-              <button v-if="!collapsed.rightColumn && isOwner" class="glass-btn px-[1vw] py-[0.8vh] rounded-[1vh] text-[1.8vh] font-bold active:scale-95 transition-all whitespace-nowrap" @click="toggleKickMode">
+              <button v-if="!collapsed.rightColumn && isOwner" class="ios-btn-secondary px-[1vw] py-[0.8vh] rounded-[1vh] text-[1.8vh] font-bold active:scale-95 transition-all whitespace-nowrap" @click="toggleKickMode">
                 {{ kickMode ? '完成' : '踢人' }}
               </button>
-              <button type="button" class="glass-btn p-[1vh] rounded-[1vh] text-[2.1vh] font-bold active:scale-95 transition-all flex items-center justify-center"
+              <button type="button" class="ios-btn-secondary p-[1vh] rounded-[1vh] text-[2.1vh] font-bold active:scale-95 transition-all flex items-center justify-center"
                       :title="collapsed.rightColumn ? '展开房间工具' : '折叠房间工具'"
                       @click="collapsed.rightColumn = !collapsed.rightColumn">
                 <svg class="w-[2.5vh] h-[2.5vh] transition-transform duration-300" :class="collapsed.rightColumn ? 'rotate-180' : 'rotate-0'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -344,28 +344,28 @@
           </div>
 
           <div v-show="!collapsed.rightColumn" class="flex-1 overflow-y-auto p-[1.5vh] space-y-[1.5vh]">
-            <div class="rounded-[1.5vh] border border-white/10 bg-black/40 overflow-hidden">
+            <div class="rounded-[1.5vh] border border-ios-separator bg-ios-black/40 overflow-hidden">
               <button type="button" class="w-full px-[1.5vw] py-[2vh] flex items-center justify-between" @click="collapsed.rightPlayers = !collapsed.rightPlayers">
-                <div class="text-[2.2vh] text-white/40">玩家列表</div>
-                <svg class="w-[2.5vh] h-[2.5vh] text-white/40 transition-transform duration-200" :class="collapsed.rightPlayers ? '-rotate-90' : 'rotate-0'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="text-[2.2vh] text-ios-label-tertiary">玩家列表</div>
+                <svg class="w-[2.5vh] h-[2.5vh] text-ios-label-tertiary transition-transform duration-200" :class="collapsed.rightPlayers ? '-rotate-90' : 'rotate-0'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
               </button>
               <div v-show="!collapsed.rightPlayers" class="px-[1.5vw] pb-[2vh] space-y-[1vh]">
-                <div v-for="p in sortedPlayers" :key="p.user_id" class="flex items-center justify-between gap-[1vw] rounded-[1vh] bg-white/5 px-[1.2vw] py-[1vh]">
+                <div v-for="p in sortedPlayers" :key="p.user_id" class="flex items-center justify-between gap-[1vw] rounded-[1vh] bg-ios-systemGray5 px-[1.2vw] py-[1vh]">
                   <div class="flex items-center gap-[1vw] min-w-0">
-                    <img :src="getImageUrl(p.avatar)" class="w-[4.5vh] h-[4.5vh] rounded-full object-cover border border-white/10 flex-shrink-0" />
+                    <img :src="getImageUrl(p.avatar)" class="w-[4.5vh] h-[4.5vh] rounded-full object-cover border border-ios-separator flex-shrink-0" />
                     <div class="min-w-0">
                       <div class="text-[2.3vh] font-bold truncate">
                         {{ p.nickname || p.username || ('用户' + p.user_id) }}
                         <span v-if="String(p.user_id) === String(room?.creator_id)" class="ml-[0.5vw] text-[1.8vh] text-yellow-300">房主</span>
                         <span v-if="String(p.user_id) === String(currentUserId)" class="ml-[0.5vw] text-[1.8vh] text-green-300">你</span>
                       </div>
-                      <div class="text-[1.8vh] text-white/40 truncate">
+                      <div class="text-[1.8vh] text-ios-label-tertiary truncate">
                         <span class="text-yellow-400/80">💰 {{ p.total_chips || 0 }}</span> · 下注 {{ getPlayerBet(p.user_id) }} · {{ getPlayerStatusText(p.user_id) }} · {{ getPlayerSeenText(p.user_id) }}
                         <span v-if="p.is_ready && isFinished" class="ml-[0.3vw] text-green-400 font-bold">已准备</span>
                         <span v-if="sessionProfits[String(p.user_id)] !== undefined" 
-                              class="ml-[0.3vw] px-[0.4vw] py-[0.2vh] rounded-md bg-white/5 font-mono"
+                              class="ml-[0.3vw] px-[0.4vw] py-[0.2vh] rounded-md bg-ios-systemGray5 font-mono"
                               :class="sessionProfits[String(p.user_id)] >= 0 ? 'text-green-400' : 'text-red-400'">
                           {{ sessionProfits[String(p.user_id)] >= 0 ? '+' : '' }}{{ sessionProfits[String(p.user_id)] }}
                         </span>
@@ -373,11 +373,11 @@
                     </div>
                   </div>
                   <div class="flex items-center gap-[0.5vw]">
-                    <button v-if="kickMode && canKick(p.user_id)" class="glass-btn px-[0.8vw] py-[0.5vh] rounded-[0.8vh] text-[1.8vh] font-bold text-red-300 active:scale-95 transition-all"
+                    <button v-if="kickMode && canKick(p.user_id)" class="ios-btn-secondary px-[0.8vw] py-[0.5vh] rounded-[0.8vh] text-[1.8vh] font-bold text-red-300 active:scale-95 transition-all"
                             @click="kick(p.user_id)">
                       踢出
                     </button>
-                    <button v-else-if="compareMode && canCompareTarget(p.user_id)" class="glass-btn px-[0.8vw] py-[0.5vh] rounded-[0.8vh] text-[1.8vh] font-bold active:scale-95 transition-all"
+                    <button v-else-if="compareMode && canCompareTarget(p.user_id)" class="ios-btn-secondary px-[0.8vw] py-[0.5vh] rounded-[0.8vh] text-[1.8vh] font-bold active:scale-95 transition-all"
                             @click="compareWith(p.user_id)">
                       比牌
                     </button>
@@ -386,23 +386,23 @@
               </div>
             </div>
 
-            <div class="rounded-[1.5vh] border border-white/10 bg-black/40 overflow-hidden">
+            <div class="rounded-[1.5vh] border border-ios-separator bg-ios-black/40 overflow-hidden">
               <button type="button" class="w-full px-[1.5vw] py-[2vh] flex items-center justify-between" @click="collapsed.rightChat = !collapsed.rightChat">
-                <div class="text-[2.2vh] text-white/40">房间聊天</div>
-                <svg class="w-[2.5vh] h-[2.5vh] text-white/40 transition-transform duration-200" :class="collapsed.rightChat ? '-rotate-90' : 'rotate-0'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="text-[2.2vh] text-ios-label-tertiary">房间聊天</div>
+                <svg class="w-[2.5vh] h-[2.5vh] text-ios-label-tertiary transition-transform duration-200" :class="collapsed.rightChat ? '-rotate-90' : 'rotate-0'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
               </button>
               <div v-show="!collapsed.rightChat" class="px-[1.5vw] pb-[2vh]">
                 <div ref="chatListEl" class="h-[25vh] overflow-y-auto space-y-[0.8vh] pr-[0.3vw]">
                   <div v-for="m in chatMessages" :key="m.id" class="text-[2.1vh] leading-relaxed">
-                    <span class="text-white/40">{{ m.senderName }}：</span>
-                    <span class="text-white/80">{{ m.message }}</span>
+                    <span class="text-ios-label-tertiary">{{ m.senderName }}：</span>
+                    <span class="text-ios-label-primary">{{ m.message }}</span>
                   </div>
                 </div>
                 <div class="mt-[1.5vh] flex gap-[0.5vw]">
-                  <input v-model="chatInput" class="glass-input flex-1 py-[0.8vh] text-[2.1vh]" placeholder="输入消息..." @keydown.enter="sendChat" />
-                  <button class="glass-btn-primary px-[1vw] rounded-[1vh] font-black text-[2.1vh] active:scale-95 transition-all" @click="sendChat">发送</button>
+                  <input v-model="chatInput" class="ios-input flex-1 py-[0.8vh] text-[2.1vh]" placeholder="输入消息..." @keydown.enter="sendChat" />
+                  <button class="ios-btn-primary px-[1vw] rounded-[1vh] font-black text-[2.1vh] active:scale-95 transition-all" @click="sendChat">发送</button>
                 </div>
               </div>
             </div>
@@ -411,40 +411,40 @@
       </div>
     </div>
     <!-- 游戏结束弹窗 -->
-    <div v-if="showResultModal" class="fixed inset-0 z-[100] flex items-center justify-center p-[2vh] bg-black/80 backdrop-blur-md">
-      <div class="w-full max-w-[50vh] glass-panel overflow-hidden animate-in fade-in zoom-in duration-300 rounded-[2vh]">
+    <div v-if="showResultModal" class="fixed inset-0 z-[100] flex items-center justify-center p-[2vh] bg-ios-black/80 backdrop-blur-md">
+      <div class="w-full max-w-[50vh] ios-glass-panel overflow-hidden animate-in fade-in zoom-in duration-300 rounded-[2vh]">
         <div class="p-[3vh] text-center">
           <div class="mb-[2vh] inline-flex h-[12vh] w-[12vh] items-center justify-center rounded-full"
-               :class="isWinner ? 'bg-yellow-500/20 text-yellow-300' : 'bg-white/10 text-white/40'">
+               :class="isWinner ? 'bg-yellow-500/20 text-yellow-300' : 'bg-ios-systemGray5 text-ios-label-tertiary'">
             <span class="text-[8vh]">{{ isWinner ? '🏆' : '🃏' }}</span>
           </div>
           <h2 class="text-[4vh] font-black" :class="isWinner ? 'text-yellow-300' : 'text-white'">
             {{ isWinner ? '恭喜获胜！' : '下次努力' }}
           </h2>
           <div v-if="winnerInfo" class="mt-[1.5vh] flex flex-col items-center gap-[0.5vh]">
-            <div class="text-[2.2vh] text-white/80">
-              <span class="text-white/40">赢家：</span>
+            <div class="text-[2.2vh] text-ios-label-primary">
+              <span class="text-ios-label-tertiary">赢家：</span>
               <span class="font-bold">{{ getPlayerNickname(winnerInfo.userId) }}</span>
-              <span v-if="winnerInfo.handType" class="ml-[1vw] px-[0.8vw] py-[0.2vh] bg-white/10 rounded text-[1.8vh] font-bold text-yellow-300">
+              <span v-if="winnerInfo.handType" class="ml-[1vw] px-[0.8vw] py-[0.2vh] bg-ios-systemGray5 rounded text-[1.8vh] font-bold text-yellow-300">
                 {{ winnerInfo.handType }}
               </span>
             </div>
-            <p class="text-[1.8vh] text-white/50">
+            <p class="text-[1.8vh] text-ios-label-tertiary">
               {{ isWinner ? `你赢得了 ${gameResult?.totalPot || 0} 筹码` : `本局总底池为 ${gameResult?.totalPot || 0}` }}
             </p>
           </div>
-          <p v-else class="mt-[1.5vh] text-[2.2vh] text-white/60">
+          <p v-else class="mt-[1.5vh] text-[2.2vh] text-ios-label-secondary">
             {{ isWinner ? `你赢得了 ${gameResult?.totalPot || 0} 筹码` : '本局已结束' }}
           </p>
           
           <div class="mt-[4vh] space-y-[1.5vh]">
-            <button class="w-full glass-btn-primary py-[2vh] rounded-[1.5vh] font-black text-[2.8vh] active:scale-95 transition-all disabled:opacity-50"
+            <button class="w-full ios-btn-primary py-[2vh] rounded-[1.5vh] font-black text-[2.8vh] active:scale-95 transition-all disabled:opacity-50"
                     :disabled="isReady && (!isOwner || !isEveryoneReady)"
                     @click="startNextGame">
               {{ getNextGameButtonText }}
               <span v-if="startCountdown !== null" class="ml-[0.5vw] text-[2vh] opacity-60">({{ startCountdown }}s)</span>
             </button>
-            <button class="w-full glass-btn py-[2vh] rounded-[1.5vh] font-black text-[2.8vh] text-white/60 active:scale-95 transition-all"
+            <button class="w-full ios-btn-secondary py-[2vh] rounded-[1.5vh] font-black text-[2.8vh] text-ios-label-secondary active:scale-95 transition-all"
                     @click="exitToLobby">
               退出 ({{ resultCountdown }}s)
             </button>
@@ -747,14 +747,14 @@ function boardCellLabel(value: any) {
 }
 
 function boardCellClass(value: any) {
-  if (!value) return 'text-white/20';
-  if (value === '?') return 'text-white/50';
+  if (!value) return 'text-ios-label-quaternary';
+  if (value === '?') return 'text-ios-label-tertiary';
   const s = String(value);
-  if (isXiangqiGame.value) return s === s.toUpperCase() ? 'text-red-300' : 'text-white/90';
-  if (isInternationalChessGame.value) return s === s.toUpperCase() ? 'text-white' : 'text-white/90';
+  if (isXiangqiGame.value) return s === s.toUpperCase() ? 'text-red-300' : 'text-ios-label-primary';
+  if (isInternationalChessGame.value) return s === s.toUpperCase() ? 'text-white' : 'text-ios-label-primary';
   if (isJunqiGame.value) {
     const isRed = s === s.toUpperCase() || s.startsWith('R');
-    return isRed ? 'text-red-300' : 'text-white/90';
+    return isRed ? 'text-red-300' : 'text-ios-label-primary';
   }
   return 'text-white';
 }

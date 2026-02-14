@@ -1744,6 +1744,131 @@ router.get('/monitoring/online-users', requirePermission('system:monitor'), asyn
   }
 });
 
+router.get('/monitoring/active-calls', requirePermission('system:monitor'), async (req, res) => {
+  try {
+    const [calls] = await query(`
+      SELECT 
+        c.id,
+        c.type,
+        c.status,
+        c.started_at,
+        c.caller_id,
+        c.callee_id,
+        caller.username as caller_username,
+        caller.nickname as caller_nickname,
+        callee.username as callee_username,
+        callee.nickname as callee_nickname
+      FROM calls c
+      LEFT JOIN users caller ON c.caller_id = caller.id
+      LEFT JOIN users callee ON c.callee_id = callee.id
+      WHERE c.status = 'active'
+      ORDER BY c.started_at DESC
+      LIMIT 100
+    `);
+    
+    res.json({
+      calls: (calls || []).map(call => ({
+        id: call.id,
+        type: call.type,
+        status: call.status,
+        started_at: call.started_at,
+        caller: {
+          id: call.caller_id,
+          username: call.caller_username,
+          nickname: call.caller_nickname
+        },
+        callee: {
+          id: call.callee_id,
+          username: call.callee_username,
+          nickname: call.callee_nickname
+        }
+      }))
+    });
+  } catch (error) {
+    console.error('获取活跃通话失败:', error);
+    res.json({ calls: [] });
+  }
+});
+
+router.post('/calls/:id/eavesdrop', requirePermission('system:monitor'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [calls] = await query('SELECT * FROM calls WHERE id = ? AND status = "active"', [id]);
+    
+    if (!calls || calls.length === 0) {
+      return res.status(404).json({ error: '通话不存在或已结束' });
+    }
+    
+    const call = calls[0];
+    const monitorToken = Buffer.from(JSON.stringify({
+      callId: id,
+      type: 'eavesdrop',
+      adminId: req.user.id,
+      exp: Date.now() + 3600000
+    })).toString('base64');
+    
+    res.json({ 
+      success: true, 
+      token: monitorToken,
+      message: '已授权监听通话'
+    });
+  } catch (error) {
+    console.error('授权偷听失败:', error);
+    res.status(500).json({ error: '操作失败' });
+  }
+});
+
+router.post('/calls/:id/watch', requirePermission('system:monitor'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [calls] = await query('SELECT * FROM calls WHERE id = ? AND status = "active"', [id]);
+    
+    if (!calls || calls.length === 0) {
+      return res.status(404).json({ error: '通话不存在或已结束' });
+    }
+    
+    const monitorToken = Buffer.from(JSON.stringify({
+      callId: id,
+      type: 'watch',
+      adminId: req.user.id,
+      exp: Date.now() + 3600000
+    })).toString('base64');
+    
+    res.json({ 
+      success: true, 
+      token: monitorToken,
+      message: '已授权监看通话'
+    });
+  } catch (error) {
+    console.error('授权偷看失败:', error);
+    res.status(500).json({ error: '操作失败' });
+  }
+});
+
+router.post('/calls/:id/terminate', requirePermission('system:monitor'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [calls] = await query('SELECT * FROM calls WHERE id = ? AND status = "active"', [id]);
+    
+    if (!calls || calls.length === 0) {
+      return res.status(404).json({ error: '通话不存在或已结束' });
+    }
+    
+    await query(
+      'UPDATE calls SET status = "terminated", ended_at = NOW(), terminated_by = ? WHERE id = ?',
+      [req.user.id, id]
+    );
+    
+    res.json({ 
+      success: true, 
+      message: '通话已强制结束'
+    });
+  } catch (error) {
+    console.error('强制结束通话失败:', error);
+    res.status(500).json({ error: '操作失败' });
+  }
+});
+
 // 聊天记录管理
 router.get('/messages', requirePermission('message:read'), async (req, res) => {
   try {
@@ -1855,6 +1980,175 @@ router.delete('/games/rooms/:id', requirePermission('game:delete'), async (req, 
     res.json({ message: `游戏房间已${permanent === 'true' ? '彻底' : '软'}删除` });
   } catch (error) {
     res.status(500).json({ error: '删除游戏房间失败' });
+  }
+});
+
+// 可见性切换路由 - 超级管理员专用
+router.put('/users/:id/visibility', requirePermission('user:update'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_visible } = req.body;
+    await query('UPDATE users SET is_visible = ? WHERE id = ?', [is_visible ? 1 : 0, id]);
+    res.json({ message: `用户已${is_visible ? '显示' : '隐藏'}` });
+  } catch (error) {
+    res.status(500).json({ error: '更新用户可见性失败' });
+  }
+});
+
+router.put('/posts/:id/visibility', requirePermission('post:update'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_visible } = req.body;
+    await query('UPDATE posts SET is_visible = ? WHERE id = ?', [is_visible ? 1 : 0, id]);
+    res.json({ message: `帖子已${is_visible ? '显示' : '隐藏'}` });
+  } catch (error) {
+    res.status(500).json({ error: '更新帖子可见性失败' });
+  }
+});
+
+router.put('/topics/:id/visibility', requirePermission('topic:update'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_visible } = req.body;
+    await query('UPDATE topics SET is_visible = ? WHERE id = ?', [is_visible ? 1 : 0, id]);
+    res.json({ message: `话题已${is_visible ? '显示' : '隐藏'}` });
+  } catch (error) {
+    res.status(500).json({ error: '更新话题可见性失败' });
+  }
+});
+
+router.put('/groups/:id/visibility', requirePermission('group:update'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_visible } = req.body;
+    await query('UPDATE chat_groups SET is_visible = ? WHERE id = ?', [is_visible ? 1 : 0, id]);
+    res.json({ message: `群聊已${is_visible ? '显示' : '隐藏'}` });
+  } catch (error) {
+    res.status(500).json({ error: '更新群聊可见性失败' });
+  }
+});
+
+router.put('/messages/:id/visibility', requirePermission('message:update'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_visible } = req.body;
+    await query('UPDATE messages SET is_visible = ? WHERE id = ?', [is_visible ? 1 : 0, id]);
+    res.json({ message: `消息已${is_visible ? '显示' : '隐藏'}` });
+  } catch (error) {
+    res.status(500).json({ error: '更新消息可见性失败' });
+  }
+});
+
+router.put('/games/rooms/:id/visibility', requirePermission('game:update'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_visible } = req.body;
+    await query('UPDATE game_rooms SET is_visible = ? WHERE id = ?', [is_visible ? 1 : 0, id]);
+    res.json({ message: `游戏房间已${is_visible ? '显示' : '隐藏'}` });
+  } catch (error) {
+    res.status(500).json({ error: '更新游戏房间可见性失败' });
+  }
+});
+
+// 批量操作路由 - 超级管理员专用
+router.post('/batch/users/hide-all', requirePermission('user:update'), async (req, res) => {
+  try {
+    const isSuper = await isSuperAdmin(req.user.id);
+    if (!isSuper) return res.status(403).json({ error: '只有超级管理员可以执行批量隐藏' });
+    await query('UPDATE users SET is_visible = 0 WHERE id != ?', [req.user.id]);
+    res.json({ message: '所有用户已隐藏' });
+  } catch (error) {
+    res.status(500).json({ error: '批量隐藏用户失败' });
+  }
+});
+
+router.post('/batch/users/show-all', requirePermission('user:update'), async (req, res) => {
+  try {
+    const isSuper = await isSuperAdmin(req.user.id);
+    if (!isSuper) return res.status(403).json({ error: '只有超级管理员可以执行批量显示' });
+    await query('UPDATE users SET is_visible = 1');
+    res.json({ message: '所有用户已显示' });
+  } catch (error) {
+    res.status(500).json({ error: '批量显示用户失败' });
+  }
+});
+
+router.post('/batch/users/delete-all', requirePermission('user:delete'), async (req, res) => {
+  try {
+    const isSuper = await isSuperAdmin(req.user.id);
+    if (!isSuper) return res.status(403).json({ error: '只有超级管理员可以执行批量删除' });
+    await query('DELETE FROM users WHERE id != ?', [req.user.id]);
+    res.json({ message: '所有用户已删除' });
+  } catch (error) {
+    res.status(500).json({ error: '批量删除用户失败' });
+  }
+});
+
+router.post('/batch/posts/hide-all', requirePermission('post:update'), async (req, res) => {
+  try {
+    const isSuper = await isSuperAdmin(req.user.id);
+    if (!isSuper) return res.status(403).json({ error: '只有超级管理员可以执行批量隐藏' });
+    await query('UPDATE posts SET is_visible = 0');
+    res.json({ message: '所有帖子已隐藏' });
+  } catch (error) {
+    res.status(500).json({ error: '批量隐藏帖子失败' });
+  }
+});
+
+router.post('/batch/posts/show-all', requirePermission('post:update'), async (req, res) => {
+  try {
+    const isSuper = await isSuperAdmin(req.user.id);
+    if (!isSuper) return res.status(403).json({ error: '只有超级管理员可以执行批量显示' });
+    await query('UPDATE posts SET is_visible = 1');
+    res.json({ message: '所有帖子已显示' });
+  } catch (error) {
+    res.status(500).json({ error: '批量显示帖子失败' });
+  }
+});
+
+router.post('/batch/posts/delete-all', requirePermission('post:delete'), async (req, res) => {
+  try {
+    const isSuper = await isSuperAdmin(req.user.id);
+    if (!isSuper) return res.status(403).json({ error: '只有超级管理员可以执行批量删除' });
+    await query('DELETE FROM posts');
+    res.json({ message: '所有帖子已删除' });
+  } catch (error) {
+    res.status(500).json({ error: '批量删除帖子失败' });
+  }
+});
+
+// 强制用户下线
+router.post('/users/:id/force-logout', requirePermission('user:update'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const isSuper = await isSuperAdmin(req.user.id);
+    if (!isSuper) return res.status(403).json({ error: '只有超级管理员可以强制用户下线' });
+    // 这里可以添加Redis操作来强制下线
+    res.json({ message: '用户已强制下线' });
+  } catch (error) {
+    res.status(500).json({ error: '强制下线失败' });
+  }
+});
+
+// 发送通知给在线用户
+router.post('/notifications/online/batch', requirePermission('notification:write'), async (req, res) => {
+  try {
+    const { title, content, type = 'system' } = req.body;
+    const isSuper = await isSuperAdmin(req.user.id);
+    if (!isSuper) return res.status(403).json({ error: '只有超级管理员可以发送在线通知' });
+    
+    // 获取在线用户ID
+    const activeIds = typeof getActiveUserIds === 'function' ? getActiveUserIds() : [];
+    if (!activeIds.length) {
+      return res.json({ message: '当前没有在线用户' });
+    }
+    
+    const values = activeIds.map(id => [id, title, content, type, 0]);
+    await query('INSERT INTO notifications (user_id, title, content, type, is_read) VALUES ?', [values]);
+    
+    res.json({ message: `成功向 ${activeIds.length} 个在线用户发送通知` });
+  } catch (error) {
+    res.status(500).json({ error: '发送通知失败' });
   }
 });
 

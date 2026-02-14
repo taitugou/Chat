@@ -1,8 +1,8 @@
 <template>
   <div class="flex-1 flex flex-col overflow-auto h-full">
     <div class="flex items-center justify-between">
-      <div class="text-[2.2vh] text-white/40">你的手牌</div>
-      <div class="text-[1.8vh] text-white/40">
+      <div class="text-[2.2vh] text-ios-label-tertiary">你的手牌</div>
+      <div class="text-[1.8vh] text-ios-label-tertiary">
         剩余牌墙 {{ gameState.wallCount ?? '-' }} · 回合 {{ gameState.turnCount ?? 0 }}/{{ gameState.maxTurns ?? '-' }}
       </div>
     </div>
@@ -11,8 +11,8 @@
     <div class="mt-[1.5vh] h-[8vh] relative">
       <transition name="discard-pop">
         <div v-if="gameState.lastDiscard" :key="gameState.lastDiscard.tile.id" 
-             class="absolute inset-0 rounded-[1.2vh] border border-white/10 bg-black/30 p-[1.2vh] flex items-center justify-between">
-          <div class="text-[2vh] text-white/50">上一张弃牌（{{ getPlayerNickname(gameState.lastDiscard.playerId) }}）</div>
+             class="absolute inset-0 rounded-[1.2vh] border border-ios-separator bg-black/30 p-[1.2vh] flex items-center justify-between">
+          <div class="text-[2vh] text-ios-label-tertiary">上一张弃牌（{{ getPlayerNickname(gameState.lastDiscard.playerId) }}）</div>
           <MahjongTile :tile="gameState.lastDiscard.tile" />
         </div>
       </transition>

@@ -1,9 +1,9 @@
 <template>
-  <div class="h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
-    <div class="glass px-4 py-3 flex items-center z-50 shadow-sm border-b border-foreground/5">
+  <div class="h-screen flex flex-col bg-ios-systemGray6 text-ios-label-primary transition-colors duration-300">
+    <div class="ios-glass px-4 py-3 flex items-center z-50 shadow-sm border-b border-ios-separator">
       <button
         @click="goBackOneLevel"
-        class="p-2 -ml-2 rounded-full text-foreground/70 hover:text-white hover:bg-foreground/10 transition-all active:scale-90"
+        class="p-2 -ml-2 rounded-full text-ios-label-secondary hover:text-ios-label-primary hover:bg-ios-systemGray5 transition-all active:scale-90"
         title="返回上一页"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -11,25 +11,25 @@
         </svg>
       </button>
       <div class="flex-1 min-w-0 ml-2">
-        <div class="text-sm font-bold text-foreground/80">游戏房间 {{ room?.name || '' }}</div>
-        <div class="text-[10px] font-black text-foreground/30 uppercase tracking-widest">Game Room</div>
+        <div class="text-sm font-bold text-ios-label-primary">游戏房间 {{ room?.name || '' }}</div>
+        <div class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest">Game Room</div>
       </div>
     </div>
 
     <div class="flex-1 px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto pb-20">
       <div class="lg:col-span-2 space-y-6">
-        <div class="glass-card p-6">
+        <div class="ios-card p-6">
           <div class="flex items-center justify-between">
             <div>
-              <div class="text-base font-bold text-white/90">房间信息</div>
-              <div class="text-xs text-white/40">房间代码：<span class="font-mono">{{ room?.room_code }}</span></div>
+              <div class="text-base font-bold text-ios-label-primary">房间信息</div>
+              <div class="text-xs text-ios-label-tertiary">房间代码：<span class="font-mono">{{ room?.room_code }}</span></div>
             </div>
             <div class="flex items-center gap-3">
               <button 
                 v-if="!isOwner && room?.status === 'waiting'"
                 @click="handleToggleReady"
                 class="px-4 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95"
-                :class="isReady ? 'bg-red-500/20 text-red-400 border border-red-500/20' : 'bg-primary/20 text-primary border border-primary/20'"
+                :class="isReady ? 'bg-red-500/20 text-red-400 border border-red-500/20' : 'bg-ios-blue/20 text-ios-blue border border-ios-blue/20'"
               >
                 {{ isReady ? '取消准备' : '准备游戏' }}
               </button>
@@ -41,32 +41,32 @@
           </div>
           <div class="mt-4 grid grid-cols-2 gap-4">
             <div class="space-y-2">
-              <div class="text-xs text-white/40">玩法</div>
-              <div class="text-sm font-semibold text-white/90">{{ room?.game_name || '未知' }}</div>
-              <div class="text-[10px] text-white/30 font-mono">{{ formatDateTime(room?.last_active_at) }}</div>
+              <div class="text-xs text-ios-label-tertiary">玩法</div>
+              <div class="text-sm font-semibold text-ios-label-primary">{{ room?.game_name || '未知' }}</div>
+              <div class="text-[10px] text-ios-label-quaternary font-mono">{{ formatDateTime(room?.last_active_at) }}</div>
             </div>
             <div class="space-y-2">
-              <div class="text-xs text-white/40">人数</div>
-              <div class="text-sm font-semibold text-white/90">{{ players.length }}/{{ room?.max_players || 0 }}</div>
+              <div class="text-xs text-ios-label-tertiary">人数</div>
+              <div class="text-sm font-semibold text-ios-label-primary">{{ players.length }}/{{ room?.max_players || 0 }}</div>
             </div>
           </div>
           <div class="mt-6">
-            <div class="text-xs text-white/40 mb-2">玩家列表</div>
+            <div class="text-xs text-ios-label-tertiary mb-2">玩家列表</div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div v-for="p in players" :key="p.user_id || p.id" class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors">
-                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-sm">👤</div>
+              <div v-for="p in players" :key="p.user_id || p.id" class="flex items-center gap-3 p-2 rounded-xl hover:bg-ios-systemGray5 transition-colors">
+                <div class="w-8 h-8 rounded-lg bg-ios-systemGray5 flex items-center justify-center text-sm">👤</div>
                 <div class="flex-1 min-w-0">
-                  <div class="text-sm font-semibold text-white/90 truncate">
+                  <div class="text-sm font-semibold text-ios-label-primary truncate">
                     {{ p.nickname || p.username || ('用户' + (p.user_id || p.id)) }}
                   </div>
-                  <div class="text-[10px] text-white/30 truncate">
+                  <div class="text-[10px] text-ios-label-quaternary truncate">
                     {{ (p.user_id || p.id) == room?.creator_id ? '房主' : '玩家' }} · {{ p.is_online ? '在线' : '离线' }}
                   </div>
                 </div>
                 <div v-if="p.is_ready" class="flex items-center gap-1 px-2 py-0.5 rounded-md bg-green-500/10 text-green-400 text-[10px] font-bold">
                   <span>✓</span> 已准备
                 </div>
-                <div v-else-if="(p.user_id || p.id) != room?.creator_id" class="text-[10px] text-white/20">
+                <div v-else-if="(p.user_id || p.id) != room?.creator_id" class="text-[10px] text-ios-label-quaternary">
                   未准备
                 </div>
               </div>
@@ -74,18 +74,18 @@
           </div>
         </div>
 
-        <div class="glass-card p-6">
-          <div class="text-base font-bold text-white/90 mb-4">房间操作</div>
+        <div class="ios-card p-6">
+          <div class="text-base font-bold text-ios-label-primary mb-4">房间操作</div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <button
-              class="glass-btn-primary py-3 rounded-xl font-bold text-sm active:scale-95 transition-all disabled:opacity-50"
+              class="ios-btn-primary py-3 rounded-xl font-bold text-sm active:scale-95 transition-all disabled:opacity-50"
               :disabled="!canStartGame"
               @click="handleStartGame"
             >
               ▶ 开始游戏
             </button>
             <button
-              class="glass-btn py-3 rounded-xl font-bold text-sm active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              class="ios-btn-secondary py-3 rounded-xl font-bold text-sm active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
               :disabled="room?.status !== 'playing'"
               @click="goToGameplay"
               :title="room?.status !== 'playing' ? '游戏尚未开始' : '进入对局'"
@@ -93,13 +93,13 @@
               进入对局页
             </button>
             <button
-              class="glass-btn py-3 rounded-xl font-bold text-sm active:scale-95 transition-all"
+              class="ios-btn-secondary py-3 rounded-xl font-bold text-sm active:scale-95 transition-all"
               @click="leaveRoom"
             >
               ⏏ 离开房间
             </button>
           </div>
-          <div class="mt-4 text-[12px] text-white/40">
+          <div class="mt-4 text-[12px] text-ios-label-tertiary">
             <div>提示：</div>
             <div>- 只有房主且房间状态为“等待中”时可开始游戏</div>
             <div>- 进入对局页可进行具体操作并查看状态更新</div>
@@ -108,60 +108,60 @@
       </div>
 
       <div class="space-y-6">
-        <div class="glass-card p-6">
+        <div class="ios-card p-6">
           <div class="flex items-center justify-between">
-            <div class="text-base font-bold text-white/90">语音聊天</div>
+            <div class="text-base font-bold text-ios-label-primary">语音聊天</div>
             <div class="flex items-center gap-2">
               <button
-                class="glass-btn px-3 py-1.5 rounded-lg text-xs font-bold active:scale-95 transition-all"
+                class="ios-btn-secondary px-3 py-1.5 rounded-lg text-xs font-bold active:scale-95 transition-all"
                 @click="toggleVoice"
               >
                 {{ voiceStarted ? '退出语音' : '加入语音' }}
               </button>
               <button
                 v-if="voiceStarted"
-                class="glass-btn px-3 py-1.5 rounded-lg text-xs font-bold active:scale-95 transition-all"
+                class="ios-btn-secondary px-3 py-1.5 rounded-lg text-xs font-bold active:scale-95 transition-all"
                 @click="toggleVoiceMute"
               >
                 {{ voiceMuted ? '取消静音' : '静音' }}
               </button>
             </div>
           </div>
-          <div class="mt-3 text-[12px] text-white/60">
+          <div class="mt-3 text-[12px] text-ios-label-secondary">
             已连接 {{ voicePeerIds.length }} 人
           </div>
-          <div class="mt-2 text-[12px] text-white/40">
+          <div class="mt-2 text-[12px] text-ios-label-tertiary">
             首次加入会请求麦克风权限
           </div>
         </div>
 
-        <div class="glass-card p-6">
+        <div class="ios-card p-6">
           <div class="flex items-center justify-between">
-            <div class="text-base font-bold text-white/90">房间聊天</div>
-            <div class="text-[12px] text-white/40">
+            <div class="text-base font-bold text-ios-label-primary">房间聊天</div>
+            <div class="text-[12px] text-ios-label-tertiary">
               {{ chatMessages.length }} 条
             </div>
           </div>
           <div ref="chatListEl" class="mt-3 space-y-2 max-h-[240px] overflow-auto pr-1">
             <div v-for="m in chatMessages" :key="m.id || (m.user_id + '-' + m.created_at)" class="text-[12px]">
-              <span class="text-white/70 font-semibold">
+              <span class="text-ios-label-secondary font-semibold">
                 {{ m.nickname || m.username || ('用户' + m.user_id) }}
               </span>
-              <span class="text-white/20 mx-2">·</span>
-              <span class="text-white/40">{{ formatDateTime(m.created_at || m.createdAt) }}</span>
-              <div class="text-white/80 mt-1 whitespace-pre-wrap break-words">{{ m.content || m.message }}</div>
+              <span class="text-ios-label-quaternary mx-2">·</span>
+              <span class="text-ios-label-tertiary">{{ formatDateTime(m.created_at || m.createdAt) }}</span>
+              <div class="text-ios-label-primary mt-1 whitespace-pre-wrap break-words">{{ m.content || m.message }}</div>
             </div>
-            <div v-if="chatLoading" class="text-[12px] text-white/30">加载中...</div>
+            <div v-if="chatLoading" class="text-[12px] text-ios-label-quaternary">加载中...</div>
           </div>
           <div class="mt-3 flex items-center gap-2">
             <input
               v-model="chatInput"
-              class="flex-1 glass px-3 py-2 rounded-xl text-[12px] outline-none"
+              class="flex-1 ios-glass px-3 py-2 rounded-xl text-[12px] outline-none"
               placeholder="说点什么…"
               @keydown.enter="sendRoomChat"
             />
             <button
-              class="glass-btn-primary px-4 py-2 rounded-xl text-[12px] font-bold active:scale-95 transition-all disabled:opacity-50"
+              class="ios-btn-primary px-4 py-2 rounded-xl text-[12px] font-bold active:scale-95 transition-all disabled:opacity-50"
               :disabled="!chatInput.trim()"
               @click="sendRoomChat"
             >
@@ -170,14 +170,14 @@
           </div>
         </div>
 
-        <div class="glass-card p-6">
-          <div class="text-base font-bold text-white/90 mb-3">状态快照</div>
-          <pre class="text-xs bg-black/40 p-3 rounded-xl overflow-auto max-h-[320px]">{{ safeJson(stateSnapshot) }}</pre>
+        <div class="ios-card p-6">
+          <div class="text-base font-bold text-ios-label-primary mb-3">状态快照</div>
+          <pre class="text-xs bg-ios-black/40 p-3 rounded-xl overflow-auto max-h-[320px]">{{ safeJson(stateSnapshot) }}</pre>
         </div>
-        <div class="glass-card p-6">
-          <div class="text-base font-bold text-white/90 mb-3">最近事件</div>
+        <div class="ios-card p-6">
+          <div class="text-base font-bold text-ios-label-primary mb-3">最近事件</div>
           <div class="space-y-2 max-h-[240px] overflow-auto">
-            <div v-for="(e, idx) in recentEvents" :key="idx" class="text-[12px] text-white/70">
+            <div v-for="(e, idx) in recentEvents" :key="idx" class="text-[12px] text-ios-label-secondary">
               {{ e }}
             </div>
           </div>
@@ -197,9 +197,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, nextTick, reactive } from 'vue';
+import { ref, onMounted, onUnmounted, computed, nextTick, reactive, watch } from 'vue';
 import { onBeforeRouteLeave, useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { useMusicPlayerStore } from '@/stores/musicPlayer';
 import api from '@/utils/api';
 import { getSocket, initSocket } from '@/utils/socket';
 import { GameVoiceMesh } from '@/utils/gameVoice';
@@ -207,6 +208,7 @@ import { GameVoiceMesh } from '@/utils/gameVoice';
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const musicStore = useMusicPlayerStore();
 
 const toast = reactive({
   show: false,
@@ -599,10 +601,15 @@ onMounted(async () => {
   setupInactivityListeners();
   resetInactivityTimer();
   
-  // 每秒自动无感刷新房间数据
+  musicStore.enterRoom(String(roomId.value), isOwner.value);
+  
   refreshTimer.value = setInterval(() => {
     fetchRoom();
   }, 3000);
+});
+
+watch(isOwner, (newVal) => {
+  musicStore.setRoomOwner(newVal);
 });
 
 onBeforeRouteLeave((to) => {
@@ -617,6 +624,7 @@ onUnmounted(() => {
   voiceManager.value?.stop().catch(() => {});
   unbindSocketEvents();
   removeInactivityListeners();
+  musicStore.leaveRoom();
   if (refreshTimer.value) {
     clearInterval(refreshTimer.value);
     refreshTimer.value = null;

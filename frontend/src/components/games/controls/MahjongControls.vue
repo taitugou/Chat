@@ -1,16 +1,16 @@
 <template>
   <div class="mahjong-controls grid grid-cols-1 gap-[1.2vh]">
-    <div v-if="lastDiscard" class="rounded-[1vh] bg-white/5 px-[1vw] py-[1vh] text-[2.1vh] text-white/70">
+    <div v-if="lastDiscard" class="rounded-[1vh] bg-ios-systemGray5 px-[1vw] py-[1vh] text-[2.1vh] text-ios-label-secondary">
       上一张弃牌：{{ mahjongTileText(lastDiscard.tile) }}（{{ getPlayerNickname(lastDiscard.playerId) }}）
     </div>
 
     <div class="grid grid-cols-2 gap-[1vh]">
-      <button class="glass-btn-primary py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
+      <button class="ios-btn-primary py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
               :disabled="!canAct || selectedTileIds.length !== 1"
               @click="$emit('action', 'discard', { tileId: selectedTileIds[0] })">
         弃牌
       </button>
-      <button class="glass-btn py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
+      <button class="ios-btn-secondary py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
               :disabled="!canAct"
               @click="$emit('action', 'hu')">
         自摸胡
@@ -18,22 +18,22 @@
     </div>
 
     <div class="grid grid-cols-2 gap-[1vh]">
-      <button class="glass-btn py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
+      <button class="ios-btn-secondary py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
               :disabled="isFinished || !lastDiscard || String(lastDiscard.playerId) === String(myUserId)"
               @click="$emit('action', 'ron')">
         点炮胡
       </button>
-      <button class="glass-btn py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
+      <button class="ios-btn-secondary py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
               :disabled="isFinished || !canMahjongPeng"
               @click="$emit('action', 'peng', { useTileIds: mahjongAutoPengIds })">
         碰
       </button>
-      <button class="glass-btn py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
+      <button class="ios-btn-secondary py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
               :disabled="isFinished || !canMahjongChi"
               @click="$emit('action', 'chi', { useTileIds: mahjongAutoChiIds })">
         吃
       </button>
-      <button class="glass-btn py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
+      <button class="ios-btn-secondary py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
               :disabled="isFinished || !canMahjongGang"
               @click="$emit('action', 'gang', { useTileIds: mahjongAutoGangIds })">
         杠
@@ -41,19 +41,19 @@
     </div>
 
     <div class="grid grid-cols-2 gap-[1vh]">
-      <button class="glass-btn py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
+      <button class="ios-btn-secondary py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
               :disabled="isFinished"
               @click="$emit('clearSelection')">
         清空选中
       </button>
-      <button class="glass-btn py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
+      <button class="ios-btn-secondary py-[1.6vh] rounded-[1.2vh] font-black text-[2.2vh] active:scale-95 transition-all disabled:opacity-40"
               :disabled="isFinished"
               @click="$emit('action', 'settle')">
         强制结算
       </button>
     </div>
 
-    <button class="glass-btn py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] text-red-300 active:scale-95 transition-all disabled:opacity-40"
+    <button class="ios-btn-secondary py-[1.8vh] rounded-[1.2vh] font-black text-[2.3vh] text-red-300 active:scale-95 transition-all disabled:opacity-40"
             :disabled="isFinished"
             @click="$emit('action', 'surrender')">
       认输

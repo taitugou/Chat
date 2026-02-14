@@ -235,9 +235,17 @@ export class ZhajinhuaGame {
     }
 
     if (a.typeRank !== b.typeRank) return a.typeRank > b.typeRank ? aId : bId;
+
     const cmp = lexCompare(a.tiebreaker, b.tiebreaker);
-    if (cmp === 0) return aId;
-    return cmp > 0 ? aId : bId;
+    if (cmp !== 0) return cmp > 0 ? aId : bId;
+
+    if (a.typeRank === 1 && this.enable235) {
+      if (a.is235 !== b.is235) {
+        return a.is235 ? aId : bId;
+      }
+    }
+
+    return aId;
   }
 
   endShowdown(aId, bId) {

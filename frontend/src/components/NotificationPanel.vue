@@ -1,18 +1,18 @@
 <template>
   <div v-if="variant === 'page'" class="w-full space-y-6">
     <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-black text-white tracking-tight">通知</h1>
+      <h1 class="text-2xl font-black text-ios-label-primary tracking-tight">通知</h1>
       <div class="flex items-center gap-2">
         <button
           v-if="unreadCount > 0"
           @click="markAllRead"
-          class="glass-btn px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all"
+          class="ios-btn-secondary px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all"
         >
           全部已读
         </button>
         <button
           @click="clearAll"
-          class="glass-btn px-4 py-2 rounded-xl text-xs font-bold text-red-400 border-red-500/20 active:scale-95 transition-all"
+          class="ios-btn-secondary px-4 py-2 rounded-xl text-xs font-bold text-red-400 border-red-500/20 active:scale-95 transition-all"
         >
           清空
         </button>
@@ -27,7 +27,7 @@
         @click="activeTab = tab.key"
         class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all active:scale-95 flex items-center gap-2"
         :class="[
-          activeTab === tab.key ? 'glass-btn-primary' : 'glass text-foreground/40 hover:text-white border border-foreground/5'
+          activeTab === tab.key ? 'ios-btn-primary' : 'ios-glass text-ios-label-tertiary hover:text-ios-label-primary border border-ios-separator'
         ]"
       >
         {{ tab.label }}
@@ -43,8 +43,8 @@
     <!-- 通知列表 -->
     <div class="space-y-4">
       <div v-if="loading" class="py-20 text-center">
-        <div class="animate-spin rounded-full h-10 w-10 border-4 border-primary/20 border-t-primary mx-auto mb-4"></div>
-        <p class="text-[10px] font-black text-foreground/30 uppercase tracking-widest">Loading...</p>
+        <div class="animate-spin rounded-full h-10 w-10 border-4 border-ios-blue/20 border-t-primary mx-auto mb-4"></div>
+        <p class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest">Loading...</p>
       </div>
 
       <div v-else class="space-y-3" ref="listRef">
@@ -53,39 +53,39 @@
           <div
             v-for="request in friendRequests"
             :key="'request-' + request.id"
-            class="glass-card p-4 flex items-center gap-4 animate-in slide-in-from-left-2"
+            class="ios-card p-4 flex items-center gap-4 animate-in slide-in-from-left-2"
           >
             <div class="relative group cursor-pointer" @click.stop="goToProfile(request.username)">
               <img
                 v-if="request.avatar"
                 :src="getImageUrl(request.avatar)"
-                class="w-12 h-12 rounded-xl object-cover border border-foreground/10 group-hover:border-primary transition-colors"
+                class="w-12 h-12 rounded-xl object-cover border border-ios-separator group-hover:border-ios-blue transition-colors"
               />
-              <div v-else class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-xl border border-primary/20">
+              <div v-else class="w-12 h-12 rounded-xl bg-ios-blue/10 flex items-center justify-center text-xl border border-ios-blue/20">
                 👥
               </div>
             </div>
             
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-[10px] font-black text-primary uppercase tracking-widest">好友申请</span>
-                <span class="text-[9px] text-foreground/20 font-black uppercase tracking-widest">{{ formatTime(request.created_at) }}</span>
+                <span class="text-[10px] font-black text-ios-blue uppercase tracking-widest">好友申请</span>
+                <span class="text-[9px] text-ios-label-quaternary font-black uppercase tracking-widest">{{ formatTime(request.created_at) }}</span>
               </div>
-              <p class="text-sm text-foreground/80 leading-relaxed">
-                <span class="font-bold text-white cursor-pointer hover:text-primary transition-colors" @click.stop="goToProfile(request.username)">
+              <p class="text-sm text-ios-label-primary leading-relaxed">
+                <span class="font-bold text-ios-label-primary cursor-pointer hover:text-ios-blue transition-colors" @click.stop="goToProfile(request.username)">
                   {{ request.nickname }}
                 </span>
                 申请添加你为好友
               </p>
-              <div v-if="request.message" class="mt-2 p-2.5 bg-foreground/5 rounded-xl border border-foreground/5 text-[11px] text-foreground/40 italic">
+              <div v-if="request.message" class="mt-2 p-2.5 bg-ios-systemGray5 rounded-xl border border-ios-separator text-[11px] text-ios-label-tertiary italic">
                 "{{ request.message }}"
               </div>
               
               <div class="flex gap-2 mt-4">
-                <button @click.stop="handleFriendRequest(request.id, 'accept')" class="glass-btn-primary px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">
+                <button @click.stop="handleFriendRequest(request.id, 'accept')" class="ios-btn-primary px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">
                   通过
                 </button>
-                <button @click.stop="handleFriendRequest(request.id, 'reject')" class="glass-btn px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">
+                <button @click.stop="handleFriendRequest(request.id, 'reject')" class="ios-btn-secondary px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">
                   拒绝
                 </button>
               </div>
@@ -99,36 +99,36 @@
             v-for="notification in notifications.filter(n => n.related_type !== 'friend_request')"
             :key="notification.id"
             @click="handleNotificationClick(notification)"
-            class="glass-card p-4 flex items-center gap-4 group cursor-pointer active:scale-[0.99] transition-all"
-            :class="{ 'border-primary/30 bg-primary/5': !notification.is_read }"
+            class="ios-card p-4 flex items-center gap-4 group cursor-pointer active:scale-[0.99] transition-all"
+            :class="{ 'border-ios-blue/30 bg-ios-blue/5': !notification.is_read }"
           >
             <div class="relative flex-shrink-0" @click.stop="goToProfile(notification.sender_username)">
               <img
                 v-if="notification.sender_avatar"
                 :src="getImageUrl(notification.sender_avatar)"
-                class="w-12 h-12 rounded-xl object-cover border border-foreground/10 group-hover:border-primary transition-colors"
+                class="w-12 h-12 rounded-xl object-cover border border-ios-separator group-hover:border-ios-blue transition-colors"
               />
               <div
                 v-else
-                class="w-12 h-12 rounded-xl flex items-center justify-center text-xl border border-foreground/10"
+                class="w-12 h-12 rounded-xl flex items-center justify-center text-xl border border-ios-separator"
                 :class="`bg-${notification.type}-500/10`"
               >
                 {{ getTypeIcon(notification.type) }}
               </div>
-              <div v-if="!notification.is_read" class="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-black shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+              <div v-if="!notification.is_read" class="absolute -top-1 -right-1 w-3 h-3 bg-ios-blue rounded-full border-2 border-black shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
             </div>
 
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-[10px] font-black text-foreground/30 uppercase tracking-widest">
+                <span class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest">
                   {{ notification.title || getTypeTitle(notification.type) }}
                 </span>
-                <span class="text-[9px] text-foreground/20 font-black uppercase tracking-widest">{{ formatTime(notification.created_at) }}</span>
+                <span class="text-[9px] text-ios-label-quaternary font-black uppercase tracking-widest">{{ formatTime(notification.created_at) }}</span>
               </div>
-              <div class="text-sm text-foreground/80 leading-relaxed break-words">
+              <div class="text-sm text-ios-label-primary leading-relaxed break-words">
                 <span 
                   v-if="notification.sender_nickname"
-                  class="font-bold text-white hover:text-primary transition-colors"
+                  class="font-bold text-ios-label-primary hover:text-ios-blue transition-colors"
                   @click.stop="goToProfile(notification.sender_username)"
                 >
                   {{ notification.sender_nickname }}
@@ -139,16 +139,16 @@
 
             <button
               @click.stop="deleteNotification(notification.id)"
-              class="w-8 h-8 rounded-full glass-btn flex items-center justify-center text-foreground/20 hover:text-red-400 hover:bg-red-400/10 active:scale-90 transition-all opacity-0 group-hover:opacity-100"
+              class="w-8 h-8 rounded-full ios-btn-secondary flex items-center justify-center text-ios-label-quaternary hover:text-red-400 hover:bg-red-400/10 active:scale-90 transition-all opacity-0 group-hover:opacity-100"
             >
               ×
             </button>
           </div>
         </template>
 
-        <div v-if="isEmpty" class="py-20 text-center glass-card">
+        <div v-if="isEmpty" class="py-20 text-center ios-card">
           <span class="text-4xl block mb-4 opacity-20">🔔</span>
-          <p class="text-[10px] font-black text-foreground/30 uppercase tracking-widest">暂无通知记录</p>
+          <p class="text-[10px] font-black text-ios-label-tertiary uppercase tracking-widest">暂无通知记录</p>
         </div>
 
         <!-- 加载更多 -->
@@ -156,7 +156,7 @@
           <button
             @click="loadMore"
             :disabled="loadingMore"
-            class="glass-btn px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] active:scale-95 transition-all disabled:opacity-20"
+            class="ios-btn-secondary px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] active:scale-95 transition-all disabled:opacity-20"
           >
             {{ loadingMore ? 'Loading...' : 'Load More' }}
           </button>
@@ -170,8 +170,8 @@
     <button
       ref="triggerRef"
       @click="toggleDropdown"
-      class="relative w-10 h-10 rounded-full glass-btn flex items-center justify-center active:scale-90 transition-all"
-      :class="{ 'bg-primary/20 text-primary': unreadCount > 0 }"
+      class="relative w-10 h-10 rounded-full ios-btn-secondary flex items-center justify-center active:scale-90 transition-all"
+      :class="{ 'bg-ios-blue/20 text-ios-blue': unreadCount > 0 }"
     >
       <span class="text-xl">🔔</span>
       <span
@@ -187,22 +187,22 @@
         <div
           v-if="variant === 'dropdown' && showDropdown"
           ref="dropdownRef"
-          class="fixed z-[1000] mt-3 w-80 max-h-[80vh] glass-modal rounded-[2rem] border border-foreground/10 shadow-2xl overflow-hidden flex flex-col"
+          class="fixed z-[1000] mt-3 w-80 max-h-[80vh] ios-modal rounded-[2rem] border border-ios-separator shadow-2xl overflow-hidden flex flex-col"
           :style="dropdownStyle"
         >
-          <div class="p-4 border-b border-foreground/5 flex items-center justify-between bg-foreground/5">
-            <h3 class="text-sm font-bold text-white">通知</h3>
+          <div class="p-4 border-b border-ios-separator flex items-center justify-between bg-ios-systemGray5">
+            <h3 class="text-sm font-bold text-ios-label-primary">通知</h3>
             <div class="flex gap-3">
-              <button v-if="unreadCount > 0" @click="markAllRead" class="text-[10px] font-black text-primary uppercase tracking-widest hover:opacity-70">全部已读</button>
+              <button v-if="unreadCount > 0" @click="markAllRead" class="text-[10px] font-black text-ios-blue uppercase tracking-widest hover:opacity-70">全部已读</button>
               <button @click="clearAll" class="text-[10px] font-black text-red-400/60 uppercase tracking-widest hover:text-red-400">清空</button>
             </div>
           </div>
 
           <div class="flex-1 overflow-y-auto custom-scrollbar">
             <div v-if="loading" class="p-10 text-center">
-              <div class="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
+              <div class="animate-spin h-6 w-6 border-2 border-ios-blue border-t-transparent rounded-full mx-auto"></div>
             </div>
-            <div v-else-if="isEmpty" class="p-12 text-center text-foreground/20">
+            <div v-else-if="isEmpty" class="p-12 text-center text-ios-label-quaternary">
               <p class="text-xs font-bold uppercase tracking-widest">暂无新通知</p>
             </div>
             <div v-else class="divide-y divide-white/[0.03]">
@@ -211,19 +211,19 @@
                  v-for="notification in notifications.slice(0, 10)" 
                  :key="notification.id"
                  @click="handleNotificationClick(notification)"
-                 class="p-4 hover:bg-foreground/5 cursor-pointer transition-colors flex gap-3"
-                 :class="{ 'bg-primary/5': !notification.is_read }"
+                 class="p-4 hover:bg-ios-systemGray5 cursor-pointer transition-colors flex gap-3"
+                 :class="{ 'bg-ios-blue/5': !notification.is_read }"
                >
-                  <img :src="getImageUrl(notification.sender_avatar)" class="w-8 h-8 rounded-lg object-cover border border-foreground/10" />
+                  <img :src="getImageUrl(notification.sender_avatar)" class="w-8 h-8 rounded-lg object-cover border border-ios-separator" />
                   <div class="flex-1 min-w-0">
-                     <p class="text-xs text-foreground/80 line-clamp-2 leading-relaxed">{{ notification.content }}</p>
-                     <p class="text-[9px] text-foreground/20 font-black uppercase tracking-widest mt-1">{{ formatTime(notification.created_at) }}</p>
+                     <p class="text-xs text-ios-label-primary line-clamp-2 leading-relaxed">{{ notification.content }}</p>
+                     <p class="text-[9px] text-ios-label-quaternary font-black uppercase tracking-widest mt-1">{{ formatTime(notification.created_at) }}</p>
                   </div>
                </div>
             </div>
           </div>
 
-          <router-link to="/notifications" class="p-3 bg-foreground/5 border-t border-foreground/5 text-center text-[10px] font-black text-primary uppercase tracking-widest hover:bg-foreground/10 transition-colors" @click="showDropdown = false">
+          <router-link to="/notifications" class="p-3 bg-ios-systemGray5 border-t border-ios-separator text-center text-[10px] font-black text-ios-blue uppercase tracking-widest hover:bg-ios-systemGray5 transition-colors" @click="showDropdown = false">
             查看全部通知 >
           </router-link>
         </div>

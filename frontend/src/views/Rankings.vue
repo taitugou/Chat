@@ -1,17 +1,17 @@
 <template>
-  <div class="min-h-screen pb-20 bg-background text-foreground transition-colors duration-300">
+  <div class="min-h-screen pb-20 bg-ios-systemGray6 text-ios-label-primary transition-colors duration-300">
     <TopNav title="排行榜" />
 
     <div class="max-w-4xl mx-auto px-4 py-6 space-y-8 pb-24">
       <!-- 排行榜切换标签 -->
       <div class="flex justify-center">
-        <div class="flex p-1 glass rounded-2xl w-full max-w-md">
+        <div class="flex p-1 ios-glass rounded-2xl w-full max-w-md">
           <button
             v-for="tab in tabs"
             :key="tab.value"
             @click="activeTab = tab.value"
             class="flex-1 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-95"
-            :class="activeTab === tab.value ? 'glass-btn-primary' : 'text-foreground/40 hover:text-white'"
+            :class="activeTab === tab.value ? 'ios-btn-primary' : 'text-ios-label-tertiary hover:text-white'"
           >
             {{ tab.label }}
           </button>
@@ -19,35 +19,35 @@
       </div>
 
       <!-- 排行榜内容 -->
-      <div class="glass-card overflow-hidden animate-in fade-in duration-500">
-        <div class="p-5 border-b border-foreground/5 bg-foreground/5 flex items-center justify-between">
-          <h3 class="text-xs font-black text-foreground/40 uppercase tracking-[0.2em] flex items-center gap-2">
+      <div class="ios-card overflow-hidden animate-in fade-in duration-500">
+        <div class="p-5 border-b border-ios-separator bg-ios-systemGray5 flex items-center justify-between">
+          <h3 class="text-xs font-black text-ios-label-tertiary uppercase tracking-[0.2em] flex items-center gap-2">
             <span class="text-lg">{{ getTabIcon(activeTab) }}</span>
             {{ getTabTitle(activeTab) }}
           </h3>
-          <button @click="refreshCurrentTab" class="w-8 h-8 rounded-full hover:bg-foreground/5 flex items-center justify-center text-foreground/20 transition-colors">
+          <button @click="refreshCurrentTab" class="w-8 h-8 rounded-full hover:bg-ios-systemGray5 flex items-center justify-center text-ios-label-quaternary transition-colors">
             🔄
           </button>
         </div>
 
         <div v-if="loading" class="flex flex-col justify-center items-center py-32 space-y-4">
           <div class="relative w-10 h-10">
-            <div class="absolute inset-0 border-3 border-primary/20 rounded-full"></div>
-            <div class="absolute inset-0 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div class="absolute inset-0 border-3 border-ios-blue/20 rounded-full"></div>
+            <div class="absolute inset-0 border-3 border-ios-blue border-t-transparent rounded-full animate-spin"></div>
           </div>
-          <span class="text-[10px] text-foreground/30 uppercase tracking-[0.2em] font-black">Updating Ranks...</span>
+          <span class="text-[10px] text-ios-label-tertiary uppercase tracking-[0.2em] font-black">Updating Ranks...</span>
         </div>
 
         <div v-else-if="getActiveData.length === 0" class="flex flex-col items-center justify-center py-32 text-center">
-          <div class="w-16 h-16 bg-foreground/5 rounded-2xl flex items-center justify-center text-3xl mb-4 opacity-30">📊</div>
-          <p class="text-foreground/30 text-xs font-black uppercase tracking-widest">No Data Available</p>
+          <div class="w-16 h-16 bg-ios-systemGray5 rounded-2xl flex items-center justify-center text-3xl mb-4 opacity-30">📊</div>
+          <p class="text-ios-label-tertiary text-xs font-black uppercase tracking-widest">No Data Available</p>
         </div>
 
         <div v-else class="p-2 divide-y divide-white/[0.03]">
           <div
             v-for="(user, index) in getActiveData"
             :key="user.user_id"
-            class="flex items-center justify-between p-4 rounded-2xl hover:bg-foreground/5 transition-all cursor-pointer group"
+            class="flex items-center justify-between p-4 rounded-2xl hover:bg-ios-systemGray5 transition-all cursor-pointer group"
             @click="goToProfile(user.username)"
           >
             <div class="flex items-center gap-4">
@@ -57,7 +57,7 @@
                   index === 0 ? 'bg-yellow-500 text-white' :
                   index === 1 ? 'bg-gray-400 text-white' :
                   index === 2 ? 'bg-amber-600 text-white' :
-                  'bg-foreground/5 text-foreground/20 border border-foreground/5'
+                  'bg-ios-systemGray5 text-ios-label-quaternary border border-ios-separator'
                 ]"
               >
                 {{ index + 1 }}
@@ -66,22 +66,22 @@
               <div class="relative">
                 <img
                   :src="getImageUrl(user.avatar)"
-                  class="w-12 h-12 rounded-xl border border-foreground/10 group-hover:border-primary/50 transition-colors object-cover"
+                  class="w-12 h-12 rounded-xl border border-ios-separator group-hover:border-ios-blue/50 transition-colors object-cover"
                 />
                 <div v-if="index < 3" class="absolute -top-1.5 -right-1.5 text-xs">👑</div>
               </div>
 
               <div class="min-w-0">
-                <div class="font-bold text-foreground/90 group-hover:text-primary transition-colors truncate max-w-[120px] sm:max-w-none">
+                <div class="font-bold text-ios-label-primary group-hover:text-ios-blue transition-colors truncate max-w-[120px] sm:max-w-none">
                   {{ user.nickname || user.username }}
                 </div>
-                <div class="text-[10px] text-foreground/30 uppercase tracking-tighter">@{{ user.username }}</div>
+                <div class="text-[10px] text-ios-label-tertiary uppercase tracking-tighter">@{{ user.username }}</div>
               </div>
             </div>
 
             <div class="text-right">
-              <div class="text-lg font-black text-primary tabular-nums tracking-tighter">{{ getRankValue(user) }}</div>
-              <div class="text-[9px] text-foreground/20 uppercase tracking-[0.1em] font-bold">{{ getRankLabel() }}</div>
+              <div class="text-lg font-black text-ios-blue tabular-nums tracking-tighter">{{ getRankValue(user) }}</div>
+              <div class="text-[9px] text-ios-label-quaternary uppercase tracking-[0.1em] font-bold">{{ getRankLabel() }}</div>
             </div>
           </div>
         </div>
